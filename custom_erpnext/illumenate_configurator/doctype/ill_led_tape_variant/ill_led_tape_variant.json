@@ -10,7 +10,9 @@
 		"watts_per_ft",
 		"column_break_cut",
 		"cut_increment_in",
-		"cut_increment_mm"
+		"cut_increment_mm",
+		"column_break_run",
+		"voltage_drop_max_run_ft"
 	],
 	"fields": [
 		{
@@ -57,6 +59,18 @@
 			"fieldtype": "Float",
 			"label": "Cut Increment (mm)",
 			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_run",
+			"fieldtype": "Column Break"
+		},
+		{
+			"description": "Maximum run length in feet before voltage drop becomes unacceptable. Used alongside 85W rule to determine run breaks.",
+			"fieldname": "voltage_drop_max_run_ft",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Voltage Drop Max Run (ft)",
+			"reqd": 1
 		}
 	],
 	"index_web_pages_for_search": 1,

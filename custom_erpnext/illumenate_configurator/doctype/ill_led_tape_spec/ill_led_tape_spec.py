@@ -97,7 +97,7 @@ class ILLLEDTapeSpec(Document):
 			attribute_combination: A string like "Color Temperature: 2700K, CRI: 90"
 
 		Returns:
-			Dict with voltage, watts_per_ft, cut_increment_in, cut_increment_mm or None if not found
+			Dict with voltage, watts_per_ft, cut_increment_in, cut_increment_mm, voltage_drop_max_run_ft or None if not found
 		"""
 		if not self.variant_specs:
 			return None
@@ -113,6 +113,7 @@ class ILLLEDTapeSpec(Document):
 					"watts_per_ft": row.watts_per_ft,
 					"cut_increment_in": row.cut_increment_in,
 					"cut_increment_mm": row.cut_increment_mm,
+					"voltage_drop_max_run_ft": row.voltage_drop_max_run_ft,
 				}
 
 		return None

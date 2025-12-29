@@ -107,15 +107,17 @@ def compute_length(
 	}
 
 
-def compute_runs(tape_cut_mm: float, watts_per_ft: float) -> dict:
+def compute_runs(tape_cut_mm: float, watts_per_ft: float, voltage_drop_max_run_ft: float | None = None) -> dict:
 	"""
-	Compute the number of runs based on 85W maximum per run.
+	Compute the number of runs based on 85W maximum per run AND voltage drop max run length.
 
 	Rules:
 	- Total_ft = L_tape_cut_mm / 304.8
 	- W_total = Total_ft * watts_per_ft
-	- MaxRun_ft = 85 / watts_per_ft
-	- runs_count = ceil(Total_ft / MaxRun_ft) (minimum 1)
+	- MaxRun_ft_by_85w = 85 / watts_per_ft
+	- MaxRun_ft_by_voltage_drop = voltage_drop_max_run_ft (if provided)
+	- Effective MaxRun_ft = min(MaxRun_ft_by_85w, MaxRun_ft_by_voltage_drop)
+	- runs_count = ceil(Total_ft / Effective_MaxRun_ft) (minimum 1)
 
 	Returns a dict with electrical calculations.
 	"""
@@ -125,10 +127,18 @@ def compute_runs(tape_cut_mm: float, watts_per_ft: float) -> dict:
 
 	total_ft = tape_cut_mm / MM_PER_FOOT
 	w_total = total_ft * watts_per_ft
-	max_run_ft = MAX_WATTS_PER_RUN / watts_per_ft
+	max_run_ft_by_85w = MAX_WATTS_PER_RUN / watts_per_ft
+
+	# Determine effective max run (minimum of 85W rule and voltage drop limit)
+	if voltage_drop_max_run_ft and voltage_drop_max_run_ft > 0:
+		effective_max_run_ft = min(max_run_ft_by_85w, voltage_drop_max_run_ft)
+		limiting_factor = "voltage_drop" if voltage_drop_max_run_ft < max_run_ft_by_85w else "85w_rule"
+	else:
+		effective_max_run_ft = max_run_ft_by_85w
+		limiting_factor = "85w_rule"
 
 	if total_ft > 0:
-		runs_count = max(1, math.ceil(total_ft / max_run_ft))
+		runs_count = max(1, math.ceil(total_ft / effective_max_run_ft))
 	else:
 		runs_count = 1
 
@@ -136,7 +146,10 @@ def compute_runs(tape_cut_mm: float, watts_per_ft: float) -> dict:
 		"watts_per_ft": watts_per_ft,
 		"total_watts": round(w_total, 2),
 		"runs_count": runs_count,
-		"max_run_ft_by_85w": round(max_run_ft, 4),
+		"max_run_ft_by_85w": round(max_run_ft_by_85w, 4),
+		"max_run_ft_by_voltage_drop": round(voltage_drop_max_run_ft, 4) if voltage_drop_max_run_ft else None,
+		"effective_max_run_ft": round(effective_max_run_ft, 4),
+		"limiting_factor": limiting_factor,
 		"total_ft": round(total_ft, 4),
 	}
 

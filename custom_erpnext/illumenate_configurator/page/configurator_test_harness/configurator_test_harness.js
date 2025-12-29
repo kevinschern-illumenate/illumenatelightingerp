@@ -302,12 +302,21 @@ function display_results(page, result) {
 			</table>
 		`;
 
+		var voltage_drop_row = electrical.max_run_ft_by_voltage_drop 
+			? `<tr><td>Max Run (V-Drop):</td><td>${electrical.max_run_ft_by_voltage_drop} ft</td></tr>`
+			: "";
+		var limiting_factor_display = electrical.limiting_factor === "voltage_drop" 
+			? "Voltage Drop" 
+			: "85W Rule";
+
 		var electrical_html = `
 			<table class="table table-sm table-borderless">
 				<tr><td>Watts per Foot:</td><td><strong>${electrical.watts_per_ft} W/ft</strong></td></tr>
 				<tr><td>Total Watts:</td><td><strong>${electrical.total_watts} W</strong></td></tr>
 				<tr><td>Run Count:</td><td><strong>${electrical.runs_count}</strong></td></tr>
 				<tr><td>Max Run (85W):</td><td>${electrical.max_run_ft_by_85w} ft</td></tr>
+				${voltage_drop_row}
+				<tr><td>Effective Max Run:</td><td><strong>${electrical.effective_max_run_ft} ft</strong> (${limiting_factor_display})</td></tr>
 			</table>
 		`;
 

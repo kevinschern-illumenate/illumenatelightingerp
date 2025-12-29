@@ -103,6 +103,13 @@ frappe.ui.form.on("ILL LED Tape Spec", {
 			label: "Cut Increment (inches)",
 			reqd: 1
 		});
+		fields.push({
+			fieldtype: "Float",
+			fieldname: "voltage_drop_max_run_ft",
+			label: "Voltage Drop Max Run (ft)",
+			description: "Maximum run length before voltage drop becomes unacceptable. Used alongside 85W rule.",
+			reqd: 1
+		});
 
 		let d = new frappe.ui.Dialog({
 			title: __("Build Variant Specification"),
@@ -135,7 +142,8 @@ frappe.ui.form.on("ILL LED Tape Spec", {
 					attribute_combination: combination_str,
 					voltage: values.voltage,
 					watts_per_ft: values.watts_per_ft,
-					cut_increment_in: values.cut_increment_in
+					cut_increment_in: values.cut_increment_in,
+					voltage_drop_max_run_ft: values.voltage_drop_max_run_ft
 				});
 
 				frm.refresh_field("variant_specs");

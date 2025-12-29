@@ -126,6 +126,7 @@ def validate_configuration(
 	cut_increment_mm = tape_variant_spec["cut_increment_mm"]
 	voltage = tape_variant_spec["voltage"]
 	watts_per_ft = tape_variant_spec["watts_per_ft"]
+	voltage_drop_max_run_ft = tape_variant_spec.get("voltage_drop_max_run_ft")
 
 	# Compute length
 	length_result = compute_length(
@@ -148,6 +149,7 @@ def validate_configuration(
 	runs_result = compute_runs(
 		tape_cut_mm=length_result["tape_cut"]["mm"],
 		watts_per_ft=watts_per_ft,
+		voltage_drop_max_run_ft=voltage_drop_max_run_ft,
 	)
 
 	# Find eligible drivers based on voltage and driver spec/attribute combination

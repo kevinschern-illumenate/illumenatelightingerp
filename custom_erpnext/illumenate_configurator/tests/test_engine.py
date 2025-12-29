@@ -156,6 +156,52 @@ class TestRunsComputation(unittest.TestCase):
 		self.assertEqual(result["runs_count"], 3)
 		self.assertAlmostEqual(result["total_watts"], 200.0, places=2)
 
+	def test_voltage_drop_limit_used(self):
+		"""Test that voltage drop max run is used when it's more restrictive."""
+		# 20ft at 5W/ft = 100W total
+		# Max run at 85W = 17ft
+		# But voltage drop limit = 10ft
+		# Effective max run = 10ft (voltage drop is more restrictive)
+		# runs_count = ceil(20 / 10) = 2
+		result = compute_runs(
+			tape_cut_mm=6096.0,  # 20 ft
+			watts_per_ft=5.0,
+			voltage_drop_max_run_ft=10.0,
+		)
+
+		self.assertEqual(result["runs_count"], 2)
+		self.assertEqual(result["limiting_factor"], "voltage_drop")
+		self.assertAlmostEqual(result["effective_max_run_ft"], 10.0, places=2)
+		self.assertAlmostEqual(result["max_run_ft_by_voltage_drop"], 10.0, places=2)
+
+	def test_85w_rule_used_when_more_restrictive(self):
+		"""Test that 85W rule is used when it's more restrictive than voltage drop."""
+		# 20ft at 20W/ft = 400W total
+		# Max run at 85W = 4.25ft
+		# Voltage drop limit = 15ft
+		# Effective max run = 4.25ft (85W is more restrictive)
+		# runs_count = ceil(20 / 4.25) = 5
+		result = compute_runs(
+			tape_cut_mm=6096.0,  # 20 ft
+			watts_per_ft=20.0,
+			voltage_drop_max_run_ft=15.0,
+		)
+
+		self.assertEqual(result["runs_count"], 5)
+		self.assertEqual(result["limiting_factor"], "85w_rule")
+		self.assertAlmostEqual(result["effective_max_run_ft"], 4.25, places=2)
+
+	def test_no_voltage_drop_limit(self):
+		"""Test that without voltage drop limit, 85W rule is used."""
+		result = compute_runs(
+			tape_cut_mm=3048.0,  # 10 ft
+			watts_per_ft=10.0,
+			voltage_drop_max_run_ft=None,
+		)
+
+		self.assertEqual(result["limiting_factor"], "85w_rule")
+		self.assertIsNone(result["max_run_ft_by_voltage_drop"])
+
 
 class TestDriverSelection(unittest.TestCase):
 	"""Tests for driver auto-selection."""
