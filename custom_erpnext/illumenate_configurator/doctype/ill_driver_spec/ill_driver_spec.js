@@ -35,7 +35,9 @@ frappe.ui.form.on("ILL Driver Spec", {
 			args: { item: frm.doc.driver_item },
 			callback: function(r) {
 				if (r.message && r.message.has_variants) {
-					frm.trigger("show_attribute_builder_dialog", r.message.attributes);
+					// Store attributes on frm for the dialog to use
+					frm._variant_attributes = r.message.attributes;
+					frm.trigger("show_attribute_builder_dialog");
 				} else {
 					// No variants - just add a row with empty combination
 					let row = frm.add_child("variant_specs", {
@@ -51,7 +53,8 @@ frappe.ui.form.on("ILL Driver Spec", {
 		});
 	},
 
-	show_attribute_builder_dialog: function(frm, attributes) {
+	show_attribute_builder_dialog: function(frm) {
+		let attributes = frm._variant_attributes || [];
 		let fields = [];
 		
 		// Build the dialog fields based on attributes
