@@ -15,8 +15,25 @@
 		"column_break_limits",
 		"max_assembled_length_in",
 		"max_assembled_length_mm",
+		"section_break_piece_lengths",
+		"profile_piece_length_mm",
+		"lens_piece_length_mm",
 		"section_break_endcaps",
-		"endcap_options"
+		"endcap_options",
+		"section_break_allowed_tape_types",
+		"allowed_tape_types",
+		"section_break_allowed_environments",
+		"allowed_environments",
+		"section_break_allowed_finishes",
+		"allowed_finishes",
+		"section_break_allowed_outputs",
+		"allowed_outputs",
+		"section_break_allowed_cct_cri",
+		"allowed_cct_cri",
+		"section_break_allowed_lens_options",
+		"allowed_lens_options",
+		"section_break_allowed_mounting_methods",
+		"allowed_mounting_methods"
 	],
 	"fields": [
 		{
@@ -80,6 +97,23 @@
 			"read_only": 1
 		},
 		{
+			"fieldname": "section_break_piece_lengths",
+			"fieldtype": "Section Break",
+			"label": "Piece Lengths"
+		},
+		{
+			"default": "2000",
+			"fieldname": "profile_piece_length_mm",
+			"fieldtype": "Int",
+			"label": "Profile Piece Length (mm)"
+		},
+		{
+			"default": "2000",
+			"fieldname": "lens_piece_length_mm",
+			"fieldtype": "Int",
+			"label": "Lens Piece Length (mm)"
+		},
+		{
 			"fieldname": "section_break_endcaps",
 			"fieldtype": "Section Break",
 			"label": "Endcap Options"
@@ -89,6 +123,83 @@
 			"fieldtype": "Table",
 			"label": "Endcap Options",
 			"options": "ILL Endcap Option"
+		},
+		{
+			"fieldname": "section_break_allowed_tape_types",
+			"fieldtype": "Section Break",
+			"label": "Allowed Tape Types"
+		},
+		{
+			"fieldname": "allowed_tape_types",
+			"fieldtype": "Table",
+			"label": "Allowed Tape Types",
+			"options": "ILL Allowed Tape Type"
+		},
+		{
+			"fieldname": "section_break_allowed_environments",
+			"fieldtype": "Section Break",
+			"label": "Allowed Environments"
+		},
+		{
+			"fieldname": "allowed_environments",
+			"fieldtype": "Table",
+			"label": "Allowed Environments",
+			"options": "ILL Allowed Environment"
+		},
+		{
+			"fieldname": "section_break_allowed_finishes",
+			"fieldtype": "Section Break",
+			"label": "Allowed Finishes"
+		},
+		{
+			"fieldname": "allowed_finishes",
+			"fieldtype": "Table",
+			"label": "Allowed Finishes",
+			"options": "ILL Allowed Finish"
+		},
+		{
+			"fieldname": "section_break_allowed_outputs",
+			"fieldtype": "Section Break",
+			"label": "Allowed Outputs"
+		},
+		{
+			"fieldname": "allowed_outputs",
+			"fieldtype": "Table",
+			"label": "Allowed Outputs",
+			"options": "ILL Allowed Output"
+		},
+		{
+			"fieldname": "section_break_allowed_cct_cri",
+			"fieldtype": "Section Break",
+			"label": "Allowed CCT/CRI Combinations"
+		},
+		{
+			"fieldname": "allowed_cct_cri",
+			"fieldtype": "Table",
+			"label": "Allowed CCT/CRI Combinations",
+			"options": "ILL Allowed CCT CRI"
+		},
+		{
+			"fieldname": "section_break_allowed_lens_options",
+			"fieldtype": "Section Break",
+			"label": "Allowed Lens Options"
+		},
+		{
+			"fieldname": "allowed_lens_options",
+			"fieldtype": "Table",
+			"label": "Allowed Lens Options",
+			"options": "ILL Allowed Lens Option"
+		},
+		{
+			"fieldname": "section_break_allowed_mounting_methods",
+			"fieldtype": "Section Break",
+			"label": "Allowed Mounting Methods"
+		},
+		{
+			"fieldname": "allowed_mounting_methods",
+			"fieldtype": "Table",
+			"label": "Allowed Mounting Methods",
+			"options": "ILL Allowed Mounting Method"
 		}
 	],
 	"index_web_pages_for_search": 1,

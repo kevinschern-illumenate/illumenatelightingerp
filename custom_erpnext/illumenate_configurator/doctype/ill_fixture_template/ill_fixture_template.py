@@ -11,6 +11,7 @@ class ILLFixtureTemplate(Document):
 		self.validate_profile_item()
 		self.validate_endcap_options()
 		self.compute_max_assembled_length_mm()
+		self._validate_piece_lengths()
 
 	def validate_profile_item(self):
 		"""Validate that the profile item has Stock UOM = Meter."""
@@ -38,6 +39,13 @@ class ILLFixtureTemplate(Document):
 						option.idx
 					)
 				)
+
+	def _validate_piece_lengths(self):
+		"""Validate piece length fields."""
+		if self.profile_piece_length_mm and self.profile_piece_length_mm <= 0:
+			frappe.throw(_("Profile piece length must be > 0"))
+		if self.lens_piece_length_mm and self.lens_piece_length_mm <= 0:
+			frappe.throw(_("Lens piece length must be > 0"))
 
 	def compute_max_assembled_length_mm(self):
 		if self.max_assembled_length_in:

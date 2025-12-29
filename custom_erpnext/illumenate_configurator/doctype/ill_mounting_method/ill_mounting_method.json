@@ -1,0 +1,112 @@
+{
+	"actions": [],
+	"autoname": "field:mounting_method_code",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"mounting_method_code",
+		"mounting_method_name",
+		"mounting_token",
+		"column_break_main",
+		"hardware_item",
+		"hardware_qty_rule",
+		"hardware_qty_per_unit",
+		"column_break_status",
+		"is_active"
+	],
+	"fields": [
+		{
+			"fieldname": "mounting_method_code",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Mounting Method Code",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "mounting_method_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Mounting Method Name"
+		},
+		{
+			"fieldname": "mounting_token",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Mounting Token",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "hardware_item",
+			"fieldtype": "Link",
+			"label": "Hardware Item",
+			"options": "Item"
+		},
+		{
+			"fieldname": "hardware_qty_rule",
+			"fieldtype": "Select",
+			"label": "Hardware Qty Rule",
+			"options": "\nPer Fixture\nPer Meter\nPer 2m Piece"
+		},
+		{
+			"fieldname": "hardware_qty_per_unit",
+			"fieldtype": "Float",
+			"label": "Hardware Qty per Unit"
+		},
+		{
+			"fieldname": "column_break_status",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Mounting Method",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

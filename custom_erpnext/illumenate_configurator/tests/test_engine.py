@@ -12,6 +12,8 @@ import unittest
 from custom_erpnext.illumenate_configurator.engine import (
 	compute_length,
 	compute_runs,
+	compute_segmentation,
+	format_length_as_fraction,
 	format_to_16th,
 	inches_to_mm,
 	mm_to_inches,
@@ -323,6 +325,70 @@ class TestDriverSelection(unittest.TestCase):
 
 		self.assertFalse(result.get("error"))
 		self.assertEqual(result["driver_spec"], "DRV-SMALL")
+
+
+class TestSegmentation(unittest.TestCase):
+	"""Tests for profile segmentation."""
+
+	def test_single_piece(self):
+		"""Fixture under 2m = 1 piece, 0 joiners."""
+		result = compute_segmentation(1500)
+		self.assertEqual(result["profile_pieces_count"], 1)
+		self.assertEqual(result["joiner_qty_target"], 0)
+
+	def test_two_pieces(self):
+		"""Fixture 2.5m = 2 pieces, 1 joiner."""
+		result = compute_segmentation(2500)
+		self.assertEqual(result["profile_pieces_count"], 2)
+		self.assertEqual(result["joiner_qty_target"], 1)
+		self.assertEqual(result["profile_last_piece_length_mm"], 500)
+
+	def test_three_pieces(self):
+		"""Fixture 4.5m = 3 pieces, 2 joiners."""
+		result = compute_segmentation(4500)
+		self.assertEqual(result["profile_pieces_count"], 3)
+		self.assertEqual(result["joiner_qty_target"], 2)
+
+	def test_exactly_2m(self):
+		"""Fixture exactly 2m = 1 piece, 0 joiners."""
+		result = compute_segmentation(2000)
+		self.assertEqual(result["profile_pieces_count"], 1)
+		self.assertEqual(result["joiner_qty_target"], 0)
+		self.assertEqual(result["profile_last_piece_length_mm"], 2000)
+
+	def test_custom_piece_length(self):
+		"""Custom profile piece length."""
+		result = compute_segmentation(3000, profile_piece_length_mm=1000)
+		self.assertEqual(result["profile_pieces_count"], 3)
+		self.assertEqual(result["joiner_qty_target"], 2)
+
+
+class TestLengthFraction(unittest.TestCase):
+	"""Tests for fraction length formatting."""
+
+	def test_whole_number(self):
+		self.assertEqual(format_length_as_fraction(50.0), "50")
+
+	def test_one_sixteenth(self):
+		self.assertEqual(format_length_as_fraction(50.0625), "50-1_16")
+
+	def test_one_eighth(self):
+		self.assertEqual(format_length_as_fraction(50.125), "50-1_8")
+
+	def test_one_quarter(self):
+		self.assertEqual(format_length_as_fraction(50.25), "50-1_4")
+
+	def test_three_sixteenths(self):
+		self.assertEqual(format_length_as_fraction(50.1875), "50-3_16")
+
+	def test_half(self):
+		self.assertEqual(format_length_as_fraction(50.5), "50-1_2")
+
+	def test_three_quarters(self):
+		self.assertEqual(format_length_as_fraction(50.75), "50-3_4")
+
+	def test_seven_sixteenths(self):
+		self.assertEqual(format_length_as_fraction(50.4375), "50-7_16")
 
 
 if __name__ == "__main__":
