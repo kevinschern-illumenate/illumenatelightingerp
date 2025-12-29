@@ -13,6 +13,19 @@
 		"endcap_item",
 		"driver_spec",
 		"driver_attribute_combination",
+		"section_break_options",
+		"tape_type_token",
+		"environment_token",
+		"cct_token",
+		"cri_value",
+		"output_token",
+		"finish_token",
+		"column_break_options",
+		"lens_option",
+		"lens_color_token",
+		"mounting_method",
+		"mounting_token",
+		"joiner_angle",
 		"section_break_requested",
 		"requested_overall_in",
 		"requested_overall_mm",
@@ -28,6 +41,16 @@
 		"watts_per_ft",
 		"total_watts",
 		"runs_count",
+		"section_break_segmentation",
+		"profile_pieces_count",
+		"profile_last_piece_length_mm",
+		"column_break_adders",
+		"joiner_item",
+		"joiner_qty",
+		"lens_qty_m",
+		"lens_piece_count",
+		"mounting_hardware_item",
+		"mounting_hardware_qty",
 		"section_break_driver",
 		"selected_driver_spec",
 		"selected_driver_qty",
@@ -89,6 +112,77 @@
 			"fieldname": "driver_attribute_combination",
 			"fieldtype": "Data",
 			"label": "Driver Attribute Combination"
+		},
+		{
+			"fieldname": "section_break_options",
+			"fieldtype": "Section Break",
+			"label": "Selected Options"
+		},
+		{
+			"fieldname": "tape_type_token",
+			"fieldtype": "Select",
+			"label": "Tape Type",
+			"options": "\nSW\nTW\nRGBTW"
+		},
+		{
+			"fieldname": "environment_token",
+			"fieldtype": "Select",
+			"label": "Environment",
+			"options": "\nI\nO"
+		},
+		{
+			"fieldname": "cct_token",
+			"fieldtype": "Data",
+			"label": "CCT Token"
+		},
+		{
+			"fieldname": "cri_value",
+			"fieldtype": "Int",
+			"label": "CRI Value"
+		},
+		{
+			"fieldname": "output_token",
+			"fieldtype": "Int",
+			"label": "Output Token"
+		},
+		{
+			"fieldname": "finish_token",
+			"fieldtype": "Data",
+			"label": "Finish Token"
+		},
+		{
+			"fieldname": "column_break_options",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "lens_option",
+			"fieldtype": "Link",
+			"label": "Lens Option",
+			"options": "ILL Lens Option"
+		},
+		{
+			"fieldname": "lens_color_token",
+			"fieldtype": "Data",
+			"label": "Lens Color Token",
+			"read_only": 1
+		},
+		{
+			"fieldname": "mounting_method",
+			"fieldtype": "Link",
+			"label": "Mounting Method",
+			"options": "ILL Mounting Method"
+		},
+		{
+			"fieldname": "mounting_token",
+			"fieldtype": "Data",
+			"label": "Mounting Token",
+			"read_only": 1
+		},
+		{
+			"fieldname": "joiner_angle",
+			"fieldtype": "Select",
+			"label": "Joiner Angle",
+			"options": "\nStraight\n90\nOther"
 		},
 		{
 			"fieldname": "section_break_requested",
@@ -172,6 +266,65 @@
 			"fieldname": "runs_count",
 			"fieldtype": "Int",
 			"label": "Runs Count",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_segmentation",
+			"fieldtype": "Section Break",
+			"label": "Segmentation & Adders"
+		},
+		{
+			"fieldname": "profile_pieces_count",
+			"fieldtype": "Int",
+			"label": "Profile Pieces",
+			"read_only": 1
+		},
+		{
+			"fieldname": "profile_last_piece_length_mm",
+			"fieldtype": "Float",
+			"label": "Last Piece Length (mm)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_adders",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "joiner_item",
+			"fieldtype": "Link",
+			"label": "Joiner Item",
+			"options": "Item",
+			"read_only": 1
+		},
+		{
+			"fieldname": "joiner_qty",
+			"fieldtype": "Int",
+			"label": "Joiner Qty",
+			"read_only": 1
+		},
+		{
+			"fieldname": "lens_qty_m",
+			"fieldtype": "Float",
+			"label": "Lens Qty (m)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "lens_piece_count",
+			"fieldtype": "Int",
+			"label": "Lens Piece Count",
+			"read_only": 1
+		},
+		{
+			"fieldname": "mounting_hardware_item",
+			"fieldtype": "Link",
+			"label": "Mounting Hardware Item",
+			"options": "Item",
+			"read_only": 1
+		},
+		{
+			"fieldname": "mounting_hardware_qty",
+			"fieldtype": "Int",
+			"label": "Mounting Hardware Qty",
 			"read_only": 1
 		},
 		{

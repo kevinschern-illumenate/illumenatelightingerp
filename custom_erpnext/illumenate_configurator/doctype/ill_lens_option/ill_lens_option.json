@@ -1,0 +1,116 @@
+{
+	"actions": [],
+	"autoname": "field:lens_option_code",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"lens_option_code",
+		"lens_item",
+		"lens_color_token",
+		"column_break_main",
+		"lens_type",
+		"is_continuous_reel",
+		"max_continuous_length_m",
+		"column_break_status",
+		"is_active"
+	],
+	"fields": [
+		{
+			"fieldname": "lens_option_code",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Lens Option Code",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "lens_item",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Lens Item",
+			"options": "Item",
+			"reqd": 1
+		},
+		{
+			"fieldname": "lens_color_token",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Lens Color Token",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "lens_type",
+			"fieldtype": "Select",
+			"label": "Lens Type",
+			"options": "\nOpal\nClear\nFrosted\nPrismatic"
+		},
+		{
+			"default": "0",
+			"fieldname": "is_continuous_reel",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Continuous Reel"
+		},
+		{
+			"depends_on": "is_continuous_reel",
+			"fieldname": "max_continuous_length_m",
+			"fieldtype": "Float",
+			"label": "Max Continuous Length (m)"
+		},
+		{
+			"fieldname": "column_break_status",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Lens Option",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

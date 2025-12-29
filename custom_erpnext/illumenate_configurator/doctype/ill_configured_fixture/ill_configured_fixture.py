@@ -61,29 +61,46 @@ class ILLConfiguredFixture(Document):
 			"tape_attribute_combination": self.tape_attribute_combination or "",
 			"endcap_item": self.endcap_item,
 			"requested_overall_mm": round(self.requested_overall_mm, 2) if self.requested_overall_mm else 0,
+			# Sprint 3 additions
+			"tape_type_token": self.tape_type_token or "",
+			"environment_token": self.environment_token or "",
+			"cct_token": self.cct_token or "",
+			"cri_value": self.cri_value or 0,
+			"output_token": self.output_token or 0,
+			"finish_token": self.finish_token or "",
+			"lens_option": self.lens_option or "",
+			"mounting_method": self.mounting_method or "",
+			"joiner_angle": self.joiner_angle or "",
 		}
 		sorted_json = json.dumps(signature_data, sort_keys=True)
 		self.configuration_signature = hashlib.md5(sorted_json.encode()).hexdigest()
 
 	def generate_sku(self) -> str:
-		"""Generate SKU using template code, attribute abbreviations, and manufacturable length."""
+		"""Generate SKU with tokens and fraction-style length."""
+		from custom_erpnext.illumenate_configurator.engine import format_length_as_fraction
+
 		if not self.manufacturable_overall_in:
 			return ""
 
-		# Round to nearest 1/16" (0.0625)
-		length_16ths = round(self.manufacturable_overall_in * 16) / 16
-		# Format as underscore-separated to avoid special chars
-		length_str = f"{length_16ths:.2f}".replace(".", "_")
+		length_token = format_length_as_fraction(self.manufacturable_overall_in)
 
-		# Build SKU from template code + abbreviated attributes + length
-		# tape_attribute_combination is already abbreviated (e.g., "DRY-3K-100-24V")
-		tape_attrs = self.tape_attribute_combination or ""
-		
-		# Combine into SKU format
-		if tape_attrs:
-			return f"ILL-{self.fixture_template}-{tape_attrs}-{length_str}"
-		else:
-			return f"ILL-{self.fixture_template}-{length_str}"
+		# Build token string
+		tokens = [
+			"ILL",
+			self.fixture_template,
+			self.tape_type_token or "NA",
+			self.environment_token or "NA",
+			self.cct_token or "NA",
+			f"CRI{self.cri_value}" if self.cri_value else "CRINA",
+			str(self.output_token) if self.output_token else "NA",
+			self.lens_color_token or "NA",
+			self.mounting_token or "NA",
+			self.finish_token or "NA",
+			length_token,
+			"PFNA",  # Powerfeed placeholder for later sprint
+		]
+
+		return "-".join(tokens)
 
 	def compute_all(self):
 		"""
@@ -192,20 +209,56 @@ class ILLConfiguredFixture(Document):
 
 def generate_traveler_instructions(cf) -> str:
 	"""Generate traveler instructions from configured fixture."""
+
+	# Build options summary
+	options_summary = f"""
+Options Selected:
+- Tape Type: {cf.tape_type_token or 'N/A'}
+- Environment: {cf.environment_token or 'N/A'}
+- CCT: {cf.cct_token or 'N/A'}, CRI: {cf.cri_value or 'N/A'}
+- Output: {cf.output_token or 'N/A'}
+- Finish: {cf.finish_token or 'N/A'}
+- Lens: {cf.lens_option or 'N/A'} ({cf.lens_color_token or ''})
+- Mounting: {cf.mounting_method or 'N/A'} ({cf.mounting_token or ''})
+- Joiner Angle: {cf.joiner_angle or 'N/A'}
+"""
+
+	# Build segmentation section
+	segmentation = ""
+	if cf.profile_pieces_count:
+		segmentation = f"""
+Profile Segmentation:
+- Total Pieces: {cf.profile_pieces_count}
+- Last Piece Length: {cf.profile_last_piece_length_mm} mm
+- Joiner: {cf.joiner_item or 'None'} x {cf.joiner_qty}
+"""
+
+	# Lens note
+	lens_note = ""
+	if cf.lens_option:
+		lens_opt = frappe.get_doc("ILL Lens Option", cf.lens_option)
+		if lens_opt.is_continuous_reel:
+			lens_note = f"- Lens: Continuous reel, {cf.lens_qty_m}m"
+		else:
+			lens_note = f"- Lens: Segmented, {cf.lens_piece_count} pieces @ 2m each"
+
 	return f"""
 Configuration Instructions
---------------------------
+==========================
 Requested Overall Length: {cf.requested_overall_in}" ({cf.requested_overall_mm} mm)
 Manufacturable Overall Length: {cf.manufacturable_overall_in}" ({cf.manufacturable_overall_mm} mm)
 Delta (rounded down): {round(cf.delta_mm / 25.4, 4)}" ({cf.delta_mm} mm)
 Tape Cut Length: {cf.tape_cut_length_mm} mm ({round(cf.tape_cut_length_mm / 25.4, 4)}")
 Runs: {cf.runs_count}
 Driver: {cf.selected_driver_spec} x {cf.selected_driver_qty} (80% derated)
-
+{options_summary}
+{segmentation}
 Components:
 - Profile: {round(cf.manufacturable_overall_mm / 1000, 3)} m
 - Tape: {round(cf.tape_cut_length_mm / 1000, 3)} m
 - Endcaps: 4 (includes extra pair)
 - Leader cables: {cf.runs_count}
 - Drivers: {cf.selected_driver_qty}
+{lens_note}
+- Mounting Hardware: {cf.mounting_hardware_item or 'None'} x {cf.mounting_hardware_qty}
 """

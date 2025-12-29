@@ -235,3 +235,44 @@ def select_driver(
 		"usable_watts_each": best["usable_watts_each"],
 		"total_usable_watts": best["total_usable_watts"],
 	}
+
+
+def format_length_as_fraction(inches: float) -> str:
+	"""
+	Format inches as fraction string like 50-1_16.
+
+	Rules:
+	- Snap to 1/16": x16 = round(inches * 16)
+	- whole = x16 // 16, rem = x16 % 16
+	- if rem == 0: return "50"
+	- else: reduce fraction, format as "50-1_16"
+	"""
+	x16 = round(inches * 16)
+	whole = x16 // 16
+	rem = x16 % 16
+
+	if rem == 0:
+		return str(whole)
+
+	# Reduce fraction
+	gcd = math.gcd(rem, 16)
+	num = rem // gcd
+	den = 16 // gcd
+
+	return f"{whole}-{num}_{den}"
+
+
+def compute_segmentation(
+	manufacturable_overall_mm: float,
+	profile_piece_length_mm: int = 2000,
+) -> dict:
+	"""Compute profile segmentation for fixtures longer than single piece."""
+	pieces_count = math.ceil(manufacturable_overall_mm / profile_piece_length_mm)
+	last_piece_length_mm = manufacturable_overall_mm - (pieces_count - 1) * profile_piece_length_mm
+	joiner_qty_target = max(pieces_count - 1, 0)
+
+	return {
+		"profile_pieces_count": pieces_count,
+		"profile_last_piece_length_mm": round(last_piece_length_mm, 2),
+		"joiner_qty_target": joiner_qty_target,
+	}
