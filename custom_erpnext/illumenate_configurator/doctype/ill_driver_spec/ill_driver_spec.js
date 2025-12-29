@@ -3,51 +3,88 @@
 
 frappe.ui.form.on("ILL Driver Spec", {
 	refresh: function(frm) {
-		// Filter variant_attributes to only show attributes from the linked Item Template
-		frm.set_query("attribute", "variant_attributes", function() {
-			if (!frm.doc.driver_item) {
-				frappe.msgprint(__("Please select a Driver Item first"));
-				return {
-					filters: {
-						name: ["in", []]
-					}
-				};
-			}
-			return {
-				query: "custom_erpnext.illumenate_configurator.api.get_item_attributes",
-				filters: {
-					item: frm.doc.driver_item
-				}
-			};
-		});
+		frm.trigger("render_available_attributes");
 	},
 
 	driver_item: function(frm) {
-		// Clear variant attributes when item changes
-		frm.clear_table("variant_attributes");
-		frm.set_value("resolved_variant_item", "");
-		frm.refresh_field("variant_attributes");
+		// Clear variant specs when item changes
+		frm.clear_table("variant_specs");
+		frm.refresh_field("variant_specs");
 
-		// If item is a template, show the attributes section
-		if (frm.doc.driver_item) {
-			frappe.db.get_value("Item", frm.doc.driver_item, ["has_variants", "variant_of"], function(r) {
-				if (r) {
-					if (r.has_variants) {
-						frm.set_df_property("section_break_attributes", "hidden", 0);
-						frm.set_df_property("section_break_attributes", "collapsible", 0);
-					} else if (r.variant_of) {
-						// This is already a variant, hide attributes section
-						frm.set_df_property("section_break_attributes", "hidden", 1);
-						frappe.show_alert({
-							message: __("Selected item is a variant. No need to specify attributes."),
-							indicator: "blue"
-						});
-					} else {
-						// Standard item, hide attributes section
-						frm.set_df_property("section_break_attributes", "hidden", 1);
-					}
-				}
-			});
+		frm.trigger("render_available_attributes");
+	},
+
+	render_available_attributes: function(frm) {
+		// Render the available attributes for the selected driver item
+		if (!frm.doc.driver_item) {
+			frm.get_field("available_attributes_html").$wrapper.html(`
+				<div class="alert alert-warning">
+					<i class="fa fa-info-circle"></i>
+					Please select a Driver Item Template to see available variant attributes.
+				</div>
+			`);
+			return;
 		}
+
+		frappe.call({
+			method: "custom_erpnext.illumenate_configurator.api.get_item_template_attributes",
+			args: { item: frm.doc.driver_item },
+			callback: function(r) {
+				if (r.message) {
+					const data = r.message;
+
+					if (!data.has_variants) {
+						frm.get_field("available_attributes_html").$wrapper.html(`
+							<div class="alert alert-info">
+								<i class="fa fa-info-circle"></i>
+								<strong>${frm.doc.driver_item}</strong> is not an Item Template. 
+								It does not have variants, so all specifications will apply to this single item.
+							</div>
+						`);
+						return;
+					}
+
+					let html = `
+						<div class="alert alert-success">
+							<h5><i class="fa fa-tags"></i> Available Variant Attributes for ${frm.doc.driver_item}</h5>
+							<table class="table table-bordered table-sm" style="margin-top: 10px;">
+								<thead>
+									<tr>
+										<th>Attribute</th>
+										<th>Possible Values</th>
+									</tr>
+								</thead>
+								<tbody>
+					`;
+
+					data.attributes.forEach(attr => {
+						let valuesDisplay = "";
+						if (attr.numeric_values) {
+							valuesDisplay = `Range: ${attr.from_range} to ${attr.to_range} (increment: ${attr.increment})`;
+						} else {
+							valuesDisplay = attr.values.join(", ");
+						}
+						html += `
+							<tr>
+								<td><strong>${attr.attribute}</strong></td>
+								<td>${valuesDisplay}</td>
+							</tr>
+						`;
+					});
+
+					html += `
+								</tbody>
+							</table>
+							<p class="text-muted">
+								<small>Use these attributes to create combinations in the Variant Specs table below. 
+								Format: "Attribute1: Value1, Attribute2: Value2"</small>
+							</p>
+						</div>
+					`;
+
+					frm.get_field("available_attributes_html").$wrapper.html(html);
+				}
+			}
+		});
 	}
 });

@@ -1,0 +1,75 @@
+{
+	"actions": [],
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"attribute_combination",
+		"column_break_specs",
+		"voltage",
+		"watts_per_ft",
+		"column_break_cut",
+		"cut_increment_in",
+		"cut_increment_mm"
+	],
+	"fields": [
+		{
+			"description": "The variant attribute combination (e.g., 'Color: 2700K, CRI: 90'). Used to match against fixture configuration.",
+			"fieldname": "attribute_combination",
+			"fieldtype": "Small Text",
+			"in_list_view": 1,
+			"label": "Attribute Combination",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_specs",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "voltage",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Voltage",
+			"options": "\n12\n24\n48",
+			"reqd": 1
+		},
+		{
+			"fieldname": "watts_per_ft",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Watts per Foot",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_cut",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "cut_increment_in",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Cut Increment (inches)",
+			"reqd": 1
+		},
+		{
+			"description": "Auto-calculated from Cut Increment (inches)",
+			"fieldname": "cut_increment_mm",
+			"fieldtype": "Float",
+			"label": "Cut Increment (mm)",
+			"read_only": 1
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"istable": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL LED Tape Variant",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

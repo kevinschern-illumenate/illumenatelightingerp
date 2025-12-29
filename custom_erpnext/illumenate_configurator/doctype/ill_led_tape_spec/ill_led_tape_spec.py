@@ -8,73 +8,46 @@ from frappe.model.document import Document
 
 class ILLLEDTapeSpec(Document):
 	def validate(self):
-		self.validate_watts_per_ft()
-		self.validate_cut_increment()
 		self.validate_tape_item()
-		self.validate_variant_attributes()
+		self.validate_variant_specs()
 		self.validate_uniqueness()
-		self.compute_cut_increment_mm()
-
-	def validate_watts_per_ft(self):
-		if self.watts_per_ft is not None and self.watts_per_ft <= 0:
-			frappe.throw(_("Watts per Foot must be greater than 0"))
-
-	def validate_cut_increment(self):
-		if self.cut_increment_in is not None and self.cut_increment_in <= 0:
-			frappe.throw(_("Cut Increment (inches) must be greater than 0"))
+		self.compute_cut_increment_mm_for_variants()
+		self.set_help_html()
 
 	def validate_tape_item(self):
+		"""Validate that the tape item is active and preferably a template."""
 		if self.tape_item:
 			item = frappe.get_doc("Item", self.tape_item)
 			if item.disabled:
 				frappe.throw(_("The selected Tape Item is disabled. Please select an active item."))
 
-	def validate_variant_attributes(self):
-		"""Validate that variant attributes are specified if tape_item is a template."""
-		if not self.tape_item:
+	def validate_variant_specs(self):
+		"""Validate each variant spec row."""
+		if not self.variant_specs:
 			return
 
-		item = frappe.get_doc("Item", self.tape_item)
+		seen_combinations = set()
+		for row in self.variant_specs:
+			# Validate watts per foot
+			if row.watts_per_ft is not None and row.watts_per_ft <= 0:
+				frappe.throw(_("Row {0}: Watts per Foot must be greater than 0").format(row.idx))
 
-		if item.has_variants and self.variant_attributes:
-			# Validate that specified attributes match the template's attributes
-			template_attrs = {attr.attribute for attr in item.attributes}
-			for row in self.variant_attributes:
-				if row.attribute not in template_attrs:
-					frappe.throw(
-						_("Attribute '{0}' is not defined for Item Template '{1}'").format(
-							row.attribute, self.tape_item
-						)
+			# Validate cut increment
+			if row.cut_increment_in is not None and row.cut_increment_in <= 0:
+				frappe.throw(_("Row {0}: Cut Increment (inches) must be greater than 0").format(row.idx))
+
+			# Validate unique attribute combinations within this spec
+			combination = row.attribute_combination.strip() if row.attribute_combination else ""
+			if combination in seen_combinations:
+				frappe.throw(
+					_("Row {0}: Duplicate attribute combination '{1}'. Each combination must be unique.").format(
+						row.idx, combination
 					)
-
-			# Validate attribute values
-			for row in self.variant_attributes:
-				attr_doc = frappe.get_doc("Item Attribute", row.attribute)
-				if attr_doc.numeric_values:
-					try:
-						val = float(row.attribute_value)
-						if val < attr_doc.from_range or val > attr_doc.to_range:
-							frappe.throw(
-								_("Value '{0}' for attribute '{1}' must be between {2} and {3}").format(
-									row.attribute_value, row.attribute, attr_doc.from_range, attr_doc.to_range
-								)
-							)
-					except ValueError:
-						frappe.throw(
-							_("Value '{0}' for attribute '{1}' must be a number").format(
-								row.attribute_value, row.attribute
-							)
-						)
-				else:
-					valid_values = [v.attribute_value for v in attr_doc.item_attribute_values]
-					if row.attribute_value not in valid_values:
-						frappe.throw(
-							_("Value '{0}' is not valid for attribute '{1}'. Valid values: {2}").format(
-								row.attribute_value, row.attribute, ", ".join(valid_values)
-							)
-						)
+				)
+			seen_combinations.add(combination)
 
 	def validate_uniqueness(self):
+		"""Ensure only one active tape spec per tape item template."""
 		if self.is_active:
 			existing = frappe.db.exists(
 				"ILL LED Tape Spec",
@@ -86,55 +59,74 @@ class ILLLEDTapeSpec(Document):
 			)
 			if existing:
 				frappe.throw(
-					_("Only one active tape spec per tape Item is allowed. Existing active spec: {0}").format(
+					_("Only one active tape spec per Tape Item Template is allowed. Existing active spec: {0}").format(
 						existing
 					)
 				)
 
-	def compute_cut_increment_mm(self):
-		if self.cut_increment_in:
-			self.cut_increment_mm = self.cut_increment_in * 25.4
-		else:
-			self.cut_increment_mm = 0
+	def compute_cut_increment_mm_for_variants(self):
+		"""Compute mm values for each variant's cut increment."""
+		if self.variant_specs:
+			for row in self.variant_specs:
+				if row.cut_increment_in:
+					row.cut_increment_mm = row.cut_increment_in * 25.4
+				else:
+					row.cut_increment_mm = 0
 
-	def get_resolved_item(self, create_if_missing=False):
+	def set_help_html(self):
+		"""Set the help HTML field with usage instructions."""
+		self.help_html = """
+		<div class="alert alert-info">
+			<h5>How to Configure Variant Specifications</h5>
+			<p>Each row in the <strong>Variant Specs</strong> table defines the electrical specifications for a specific attribute combination.</p>
+			<ol>
+				<li><strong>Attribute Combination:</strong> Enter the combination of variant attributes as a comma-separated string (e.g., "Color Temperature: 2700K, CRI: 90")</li>
+				<li><strong>Voltage:</strong> Select the operating voltage for this combination</li>
+				<li><strong>Watts per Foot:</strong> Enter the power consumption per foot for this combination</li>
+				<li><strong>Cut Increment:</strong> Enter the minimum cut length in inches for this combination</li>
+			</ol>
+			<p><strong>Note:</strong> The Attribute Combination string will be matched against the fixture configuration during BOM generation.</p>
+		</div>
 		"""
-		Get the resolved Item for BOM generation.
 
-		If tape_item is a template and variant_attributes are specified,
-		resolves to the matching variant. Otherwise returns tape_item.
+	def get_spec_for_attributes(self, attribute_combination: str) -> dict:
+		"""
+		Get the specification for a given attribute combination.
 
 		Args:
-			create_if_missing: If True, creates the variant if it doesn't exist
+			attribute_combination: A string like "Color Temperature: 2700K, CRI: 90"
 
 		Returns:
-			Item name (variant or original tape_item)
+			Dict with voltage, watts_per_ft, cut_increment_in, cut_increment_mm or None if not found
 		"""
-		if not self.tape_item:
+		if not self.variant_specs:
 			return None
 
-		item = frappe.get_doc("Item", self.tape_item)
+		# Normalize the input combination
+		normalized_input = self._normalize_combination(attribute_combination)
 
-		# If not a template, return as-is
-		if not item.has_variants:
-			return self.tape_item
+		for row in self.variant_specs:
+			normalized_row = self._normalize_combination(row.attribute_combination)
+			if normalized_row == normalized_input:
+				return {
+					"voltage": row.voltage,
+					"watts_per_ft": row.watts_per_ft,
+					"cut_increment_in": row.cut_increment_in,
+					"cut_increment_mm": row.cut_increment_mm,
+				}
 
-		# If template but no attributes specified, return template (will error at BOM creation)
-		if not self.variant_attributes:
-			return self.tape_item
+		return None
 
-		# Resolve variant
-		from custom_erpnext.illumenate_configurator.api import (
-			get_or_create_variant,
-			resolve_variant_item,
-		)
+	def _normalize_combination(self, combination: str) -> str:
+		"""Normalize an attribute combination string for comparison."""
+		if not combination:
+			return ""
+		# Split by comma, strip whitespace, sort, and rejoin
+		parts = [p.strip().lower() for p in combination.split(",")]
+		return ", ".join(sorted(parts))
 
-		variant_attrs = [
-			{"attribute": row.attribute, "attribute_value": row.attribute_value}
-			for row in self.variant_attributes
-		]
-
-		if create_if_missing:
-			return get_or_create_variant(self.tape_item, variant_attrs)
-		else:
-			return resolve_variant_item(self.tape_item, variant_attrs)
+	def get_all_attribute_combinations(self) -> list:
+		"""Get a list of all defined attribute combinations."""
+		if not self.variant_specs:
+			return []
+		return [row.attribute_combination for row in self.variant_specs]

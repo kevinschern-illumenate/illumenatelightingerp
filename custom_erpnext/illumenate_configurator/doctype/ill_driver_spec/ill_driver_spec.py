@@ -8,128 +8,124 @@ from frappe.model.document import Document
 
 class ILLDriverSpec(Document):
 	def validate(self):
-		self.validate_max_wattage()
-		self.validate_outputs_count()
-		self.validate_variant_attributes()
+		self.validate_driver_item()
+		self.validate_variant_specs()
 		self.validate_uniqueness()
+		self.set_help_html()
 
-	def validate_max_wattage(self):
-		if self.max_wattage is not None and self.max_wattage <= 0:
-			frappe.throw(_("Max Wattage must be greater than 0"))
+	def validate_driver_item(self):
+		"""Validate that the driver item is active and preferably a template."""
+		if self.driver_item:
+			item = frappe.get_doc("Item", self.driver_item)
+			if item.disabled:
+				frappe.throw(_("The selected Driver Item is disabled. Please select an active item."))
 
-	def validate_outputs_count(self):
-		if self.outputs_count is not None and self.outputs_count < 1:
-			frappe.throw(_("Number of Outputs must be at least 1"))
-
-	def validate_variant_attributes(self):
-		"""Validate that variant attributes are specified if driver_item is a template."""
-		if not self.driver_item:
+	def validate_variant_specs(self):
+		"""Validate each variant spec row."""
+		if not self.variant_specs:
 			return
 
-		item = frappe.get_doc("Item", self.driver_item)
+		seen_combinations = set()
+		for row in self.variant_specs:
+			# Validate max wattage
+			if row.max_wattage is not None and row.max_wattage <= 0:
+				frappe.throw(_("Row {0}: Max Wattage must be greater than 0").format(row.idx))
 
-		if item.has_variants and self.variant_attributes:
-			# Validate that specified attributes match the template's attributes
-			template_attrs = {attr.attribute for attr in item.attributes}
-			for row in self.variant_attributes:
-				if row.attribute not in template_attrs:
-					frappe.throw(
-						_("Attribute '{0}' is not defined for Item Template '{1}'").format(
-							row.attribute, self.driver_item
-						)
+			# Validate outputs count
+			if row.outputs_count is not None and row.outputs_count < 1:
+				frappe.throw(_("Row {0}: Number of Outputs must be at least 1").format(row.idx))
+
+			# Validate unique attribute combinations within this spec
+			combination = row.attribute_combination.strip() if row.attribute_combination else ""
+			if combination in seen_combinations:
+				frappe.throw(
+					_("Row {0}: Duplicate attribute combination '{1}'. Each combination must be unique.").format(
+						row.idx, combination
 					)
-
-			# Validate attribute values
-			for row in self.variant_attributes:
-				attr_doc = frappe.get_doc("Item Attribute", row.attribute)
-				if attr_doc.numeric_values:
-					try:
-						val = float(row.attribute_value)
-						if val < attr_doc.from_range or val > attr_doc.to_range:
-							frappe.throw(
-								_("Value '{0}' for attribute '{1}' must be between {2} and {3}").format(
-									row.attribute_value, row.attribute, attr_doc.from_range, attr_doc.to_range
-								)
-							)
-					except ValueError:
-						frappe.throw(
-							_("Value '{0}' for attribute '{1}' must be a number").format(
-								row.attribute_value, row.attribute
-							)
-						)
-				else:
-					valid_values = [v.attribute_value for v in attr_doc.item_attribute_values]
-					if row.attribute_value not in valid_values:
-						frappe.throw(
-							_("Value '{0}' is not valid for attribute '{1}'. Valid values: {2}").format(
-								row.attribute_value, row.attribute, ", ".join(valid_values)
-							)
-						)
+				)
+			seen_combinations.add(combination)
 
 	def validate_uniqueness(self):
+		"""Ensure only one active driver spec per driver item template."""
 		if self.is_active:
 			existing = frappe.db.exists(
 				"ILL Driver Spec",
 				{
 					"driver_item": self.driver_item,
-					"voltage_out": self.voltage_out,
-					"dimming_protocol": self.dimming_protocol,
 					"is_active": 1,
 					"name": ("!=", self.name),
 				},
 			)
 			if existing:
 				frappe.throw(
-					_(
-						"Only one active driver spec per combination of (driver_item, voltage_out, dimming_protocol) is allowed. Existing active spec: {0}"
-					).format(existing)
+					_("Only one active driver spec per Driver Item Template is allowed. Existing active spec: {0}").format(
+						existing
+					)
 				)
 
-	@property
-	def usable_wattage(self):
-		"""Derived property: max_wattage * 0.8 (80% derating)"""
-		if self.max_wattage:
-			return self.max_wattage * 0.8
-		return 0
-
-	def get_resolved_item(self, create_if_missing=False):
+	def set_help_html(self):
+		"""Set the help HTML field with usage instructions."""
+		self.help_html = """
+		<div class="alert alert-info">
+			<h5>How to Configure Variant Specifications</h5>
+			<p>Each row in the <strong>Variant Specs</strong> table defines the electrical specifications for a specific attribute combination.</p>
+			<ol>
+				<li><strong>Attribute Combination:</strong> Enter the combination of variant attributes as a comma-separated string (e.g., "Input Voltage: 120V, Dimming: 0-10V")</li>
+				<li><strong>Output Voltage:</strong> Select the DC output voltage for this combination</li>
+				<li><strong>Dimming Protocol:</strong> Select the dimming protocol for this combination</li>
+				<li><strong>Max Wattage:</strong> Enter the maximum power capacity for this combination</li>
+				<li><strong>Number of Outputs:</strong> Enter the number of output channels for this combination</li>
+			</ol>
+			<p><strong>Note:</strong> The Attribute Combination string will be matched against the fixture configuration during BOM generation.</p>
+		</div>
 		"""
-		Get the resolved Item for BOM generation.
 
-		If driver_item is a template and variant_attributes are specified,
-		resolves to the matching variant. Otherwise returns driver_item.
+	def get_spec_for_attributes(self, attribute_combination: str) -> dict:
+		"""
+		Get the specification for a given attribute combination.
 
 		Args:
-			create_if_missing: If True, creates the variant if it doesn't exist
+			attribute_combination: A string like "Input Voltage: 120V, Dimming: 0-10V"
 
 		Returns:
-			Item name (variant or original driver_item)
+			Dict with voltage_out, dimming_protocol, max_wattage, outputs_count, usable_wattage or None if not found
 		"""
-		if not self.driver_item:
+		if not self.variant_specs:
 			return None
 
-		item = frappe.get_doc("Item", self.driver_item)
+		# Normalize the input combination
+		normalized_input = self._normalize_combination(attribute_combination)
 
-		# If not a template, return as-is
-		if not item.has_variants:
-			return self.driver_item
+		for row in self.variant_specs:
+			normalized_row = self._normalize_combination(row.attribute_combination)
+			if normalized_row == normalized_input:
+				return {
+					"voltage_out": row.voltage_out,
+					"dimming_protocol": row.dimming_protocol,
+					"max_wattage": row.max_wattage,
+					"outputs_count": row.outputs_count,
+					"usable_wattage": row.max_wattage * 0.8 if row.max_wattage else 0,
+				}
 
-		# If template but no attributes specified, return template (will error at BOM creation)
-		if not self.variant_attributes:
-			return self.driver_item
+		return None
 
-		# Resolve variant
-		from custom_erpnext.illumenate_configurator.api import (
-			get_or_create_variant,
-			resolve_variant_item,
-		)
+	def _normalize_combination(self, combination: str) -> str:
+		"""Normalize an attribute combination string for comparison."""
+		if not combination:
+			return ""
+		# Split by comma, strip whitespace, sort, and rejoin
+		parts = [p.strip().lower() for p in combination.split(",")]
+		return ", ".join(sorted(parts))
 
-		variant_attrs = [
-			{"attribute": row.attribute, "attribute_value": row.attribute_value}
-			for row in self.variant_attributes
-		]
+	def get_all_attribute_combinations(self) -> list:
+		"""Get a list of all defined attribute combinations."""
+		if not self.variant_specs:
+			return []
+		return [row.attribute_combination for row in self.variant_specs]
 
-		if create_if_missing:
-			return get_or_create_variant(self.driver_item, variant_attrs)
-		else:
-			return resolve_variant_item(self.driver_item, variant_attrs)
+	def get_usable_wattage_for_attributes(self, attribute_combination: str) -> float:
+		"""Get the usable wattage (80% derating) for a given attribute combination."""
+		spec = self.get_spec_for_attributes(attribute_combination)
+		if spec:
+			return spec.get("usable_wattage", 0)
+		return 0

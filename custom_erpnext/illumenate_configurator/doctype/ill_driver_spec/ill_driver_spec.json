@@ -9,15 +9,12 @@
 		"driver_item",
 		"column_break_main",
 		"is_active",
-		"section_break_specs",
-		"voltage_out",
-		"dimming_protocol",
-		"column_break_power",
-		"max_wattage",
-		"outputs_count",
 		"section_break_attributes",
-		"variant_attributes",
-		"resolved_variant_item"
+		"available_attributes_html",
+		"section_break_variants",
+		"variant_specs",
+		"section_break_help",
+		"help_html"
 	],
 	"fields": [
 		{
@@ -29,11 +26,12 @@
 			"options": "DRV-SPEC-.#####"
 		},
 		{
+			"description": "Select the Driver Item Template. This should be an Item with variants.",
 			"fieldname": "driver_item",
 			"fieldtype": "Link",
 			"in_list_view": 1,
 			"in_standard_filter": 1,
-			"label": "Driver Item",
+			"label": "Driver Item Template",
 			"options": "Item",
 			"reqd": 1
 		},
@@ -50,67 +48,42 @@
 			"label": "Is Active"
 		},
 		{
-			"fieldname": "section_break_specs",
+			"depends_on": "driver_item",
+			"fieldname": "section_break_attributes",
 			"fieldtype": "Section Break",
-			"label": "Specifications"
+			"label": "Item Attributes"
 		},
 		{
-			"fieldname": "voltage_out",
-			"fieldtype": "Select",
-			"in_list_view": 1,
-			"in_standard_filter": 1,
-			"label": "Output Voltage",
-			"options": "\n12\n24\n48",
-			"reqd": 1
+			"description": "Displays the available variant attributes for the selected driver item template.",
+			"fieldname": "available_attributes_html",
+			"fieldtype": "HTML",
+			"label": "Available Attributes"
 		},
 		{
-			"fieldname": "dimming_protocol",
-			"fieldtype": "Select",
-			"in_list_view": 1,
-			"in_standard_filter": 1,
-			"label": "Dimming Protocol",
-			"options": "\n0-10V\nDALI\nDMX\nTRIAC\nPWM\nOther",
-			"reqd": 1
+			"depends_on": "driver_item",
+			"description": "Define the electrical specifications for each variant attribute combination. Each row should specify a unique combination of attributes and its corresponding output voltage, dimming protocol, wattage, and output count.",
+			"fieldname": "section_break_variants",
+			"fieldtype": "Section Break",
+			"label": "Variant Specifications"
 		},
 		{
-			"fieldname": "column_break_power",
-			"fieldtype": "Column Break"
-		},
-		{
-			"fieldname": "max_wattage",
-			"fieldtype": "Float",
-			"in_list_view": 1,
-			"label": "Max Wattage",
-			"reqd": 1
-		},
-		{
-			"fieldname": "outputs_count",
-			"fieldtype": "Int",
-			"in_list_view": 1,
-			"label": "Number of Outputs",
+			"description": "Add a row for each variant attribute combination (e.g., 'Input Voltage: 120V, Dimming: 0-10V') with its electrical specs.",
+			"fieldname": "variant_specs",
+			"fieldtype": "Table",
+			"label": "Variant Specs",
+			"options": "ILL Driver Variant",
 			"reqd": 1
 		},
 		{
 			"collapsible": 1,
-			"description": "Specify variant attributes to resolve the linked Item Template to a specific Item Variant for BOM generation.",
-			"fieldname": "section_break_attributes",
+			"fieldname": "section_break_help",
 			"fieldtype": "Section Break",
-			"label": "Variant Attributes (Optional)"
+			"label": "Help"
 		},
 		{
-			"description": "If Driver Item is a template, specify attributes to identify the exact variant.",
-			"fieldname": "variant_attributes",
-			"fieldtype": "Table",
-			"label": "Variant Attributes",
-			"options": "ILL Spec Attribute"
-		},
-		{
-			"description": "Auto-resolved Item Variant based on Driver Item + Attributes. Populated during BOM generation.",
-			"fieldname": "resolved_variant_item",
-			"fieldtype": "Link",
-			"label": "Resolved Variant Item",
-			"options": "Item",
-			"read_only": 1
+			"fieldname": "help_html",
+			"fieldtype": "HTML",
+			"label": "Help"
 		}
 	],
 	"index_web_pages_for_search": 1,

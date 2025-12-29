@@ -1,0 +1,76 @@
+{
+	"actions": [],
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"attribute_combination",
+		"column_break_specs",
+		"voltage_out",
+		"dimming_protocol",
+		"column_break_power",
+		"max_wattage",
+		"outputs_count"
+	],
+	"fields": [
+		{
+			"description": "The variant attribute combination (e.g., 'Voltage: 120V, Dimming: 0-10V'). Used to match against fixture configuration.",
+			"fieldname": "attribute_combination",
+			"fieldtype": "Small Text",
+			"in_list_view": 1,
+			"label": "Attribute Combination",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_specs",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "voltage_out",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Output Voltage",
+			"options": "\n12\n24\n48",
+			"reqd": 1
+		},
+		{
+			"fieldname": "dimming_protocol",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Dimming Protocol",
+			"options": "\n0-10V\nDALI\nDMX\nTRIAC\nPWM\nOther",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_power",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "max_wattage",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Max Wattage",
+			"reqd": 1
+		},
+		{
+			"fieldname": "outputs_count",
+			"fieldtype": "Int",
+			"in_list_view": 1,
+			"label": "Number of Outputs",
+			"reqd": 1
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"istable": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Driver Variant",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
