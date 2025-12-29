@@ -66,7 +66,7 @@ class ILLConfiguredFixture(Document):
 		self.configuration_signature = hashlib.md5(sorted_json.encode()).hexdigest()
 
 	def generate_sku(self) -> str:
-		"""Generate SKU using template code and manufacturable length."""
+		"""Generate SKU using template code, attribute abbreviations, and manufacturable length."""
 		if not self.manufacturable_overall_in:
 			return ""
 
@@ -75,8 +75,15 @@ class ILLConfiguredFixture(Document):
 		# Format as underscore-separated to avoid special chars
 		length_str = f"{length_16ths:.2f}".replace(".", "_")
 
-		# MVP format with placeholders for future expansion
-		return f"ILL-{self.fixture_template}-NA-NA-NA-NA-NA-NA-NA-{length_str}"
+		# Build SKU from template code + abbreviated attributes + length
+		# tape_attribute_combination is already abbreviated (e.g., "DRY-3K-100-24V")
+		tape_attrs = self.tape_attribute_combination or ""
+		
+		# Combine into SKU format
+		if tape_attrs:
+			return f"ILL-{self.fixture_template}-{tape_attrs}-{length_str}"
+		else:
+			return f"ILL-{self.fixture_template}-{length_str}"
 
 	def compute_all(self):
 		"""
