@@ -14,7 +14,10 @@
 		"watts_per_ft",
 		"column_break_cut",
 		"cut_increment_in",
-		"cut_increment_mm"
+		"cut_increment_mm",
+		"section_break_attributes",
+		"variant_attributes",
+		"resolved_variant_item"
 	],
 	"fields": [
 		{
@@ -81,6 +84,28 @@
 			"fieldname": "cut_increment_mm",
 			"fieldtype": "Float",
 			"label": "Cut Increment (mm)",
+			"read_only": 1
+		},
+		{
+			"collapsible": 1,
+			"description": "Specify variant attributes to resolve the linked Item Template to a specific Item Variant for BOM generation.",
+			"fieldname": "section_break_attributes",
+			"fieldtype": "Section Break",
+			"label": "Variant Attributes (Optional)"
+		},
+		{
+			"description": "If Tape Item is a template, specify attributes to identify the exact variant.",
+			"fieldname": "variant_attributes",
+			"fieldtype": "Table",
+			"label": "Variant Attributes",
+			"options": "ILL Spec Attribute"
+		},
+		{
+			"description": "Auto-resolved Item Variant based on Tape Item + Attributes. Populated during BOM generation.",
+			"fieldname": "resolved_variant_item",
+			"fieldtype": "Link",
+			"label": "Resolved Variant Item",
+			"options": "Item",
 			"read_only": 1
 		}
 	],

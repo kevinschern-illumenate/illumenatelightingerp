@@ -18,11 +18,24 @@ The ilLumenate Configurator module provides a fixture configuration engine for L
 
 ### Features
 
-- **ILL LED Tape Spec**: Define LED tape specifications linked to ERPNext Items
-- **ILL Driver Spec**: Define driver specifications with voltage, dimming protocol, and wattage
+- **ILL LED Tape Spec**: Define LED tape specifications linked to ERPNext Items (supports Item Templates with variant attributes)
+- **ILL Driver Spec**: Define driver specifications with voltage, dimming protocol, and wattage (supports Item Templates with variant attributes)
 - **ILL Fixture Template**: Define fixture templates with endcap options and allowances
 - **Configurator Rules Engine**: Calculate manufacturable lengths, run counts, and driver selection
 - **Configurator Test Harness**: Internal UI for testing configurations
+
+### Item Templates & Variant Support
+
+The configurator supports linking specs to ERPNext Item Templates (items with variants). When creating specs:
+
+1. **Link to Template**: Set `tape_item` or `driver_item` to an Item Template
+2. **Specify Attributes**: In the "Variant Attributes" section, add the attribute values for this spec
+3. **Automatic Resolution**: When generating BOMs (future sprint), the system will resolve to the correct Item Variant
+
+Example: If you have an LED Tape template with "Color Temperature" and "CRI" attributes:
+- Create a spec linked to the template
+- Add variant attributes: Color Temperature = "3000K", CRI = "90"
+- The system will resolve this to the specific variant when needed
 
 ### Roles
 

@@ -14,7 +14,10 @@
 		"dimming_protocol",
 		"column_break_power",
 		"max_wattage",
-		"outputs_count"
+		"outputs_count",
+		"section_break_attributes",
+		"variant_attributes",
+		"resolved_variant_item"
 	],
 	"fields": [
 		{
@@ -86,6 +89,28 @@
 			"in_list_view": 1,
 			"label": "Number of Outputs",
 			"reqd": 1
+		},
+		{
+			"collapsible": 1,
+			"description": "Specify variant attributes to resolve the linked Item Template to a specific Item Variant for BOM generation.",
+			"fieldname": "section_break_attributes",
+			"fieldtype": "Section Break",
+			"label": "Variant Attributes (Optional)"
+		},
+		{
+			"description": "If Driver Item is a template, specify attributes to identify the exact variant.",
+			"fieldname": "variant_attributes",
+			"fieldtype": "Table",
+			"label": "Variant Attributes",
+			"options": "ILL Spec Attribute"
+		},
+		{
+			"description": "Auto-resolved Item Variant based on Driver Item + Attributes. Populated during BOM generation.",
+			"fieldname": "resolved_variant_item",
+			"fieldtype": "Link",
+			"label": "Resolved Variant Item",
+			"options": "Item",
+			"read_only": 1
 		}
 	],
 	"index_web_pages_for_search": 1,
