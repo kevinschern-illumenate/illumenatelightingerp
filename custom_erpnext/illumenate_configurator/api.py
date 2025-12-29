@@ -286,6 +286,9 @@ def validate_configuration(
 			"total_watts": runs_result["total_watts"],
 			"runs_count": runs_result["runs_count"],
 			"max_run_ft_by_85w": runs_result["max_run_ft_by_85w"],
+			"max_run_ft_by_voltage_drop": runs_result["max_run_ft_by_voltage_drop"],
+			"effective_max_run_ft": runs_result["effective_max_run_ft"],
+			"limiting_factor": runs_result["limiting_factor"],
 		},
 		"driver": {
 			"driver_spec": driver_result["driver_spec"],
