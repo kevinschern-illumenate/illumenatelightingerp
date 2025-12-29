@@ -1,0 +1,264 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"fixture_template",
+		"tape_spec",
+		"tape_attribute_combination",
+		"column_break_main",
+		"endcap_item",
+		"driver_spec",
+		"driver_attribute_combination",
+		"section_break_requested",
+		"requested_overall_in",
+		"requested_overall_mm",
+		"column_break_allowances",
+		"endcap_allowance_mm_per_side_used",
+		"leader_allowance_mm_used",
+		"section_break_computed",
+		"tape_cut_length_mm",
+		"manufacturable_overall_mm",
+		"manufacturable_overall_in",
+		"column_break_computed",
+		"delta_mm",
+		"watts_per_ft",
+		"total_watts",
+		"runs_count",
+		"section_break_driver",
+		"selected_driver_spec",
+		"selected_driver_qty",
+		"section_break_output",
+		"configured_item",
+		"bom",
+		"column_break_signature",
+		"configuration_signature"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-CF-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "fixture_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Fixture Template",
+			"options": "ILL Fixture Template",
+			"reqd": 1
+		},
+		{
+			"fieldname": "tape_spec",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Tape Spec",
+			"options": "ILL LED Tape Spec",
+			"reqd": 1
+		},
+		{
+			"fieldname": "tape_attribute_combination",
+			"fieldtype": "Data",
+			"label": "Tape Attribute Combination"
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "endcap_item",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Endcap Item",
+			"options": "Item",
+			"reqd": 1
+		},
+		{
+			"fieldname": "driver_spec",
+			"fieldtype": "Link",
+			"label": "Driver Spec (optional)",
+			"options": "ILL Driver Spec"
+		},
+		{
+			"fieldname": "driver_attribute_combination",
+			"fieldtype": "Data",
+			"label": "Driver Attribute Combination"
+		},
+		{
+			"fieldname": "section_break_requested",
+			"fieldtype": "Section Break",
+			"label": "Length Inputs"
+		},
+		{
+			"fieldname": "requested_overall_in",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Requested Overall (inches)",
+			"reqd": 1
+		},
+		{
+			"fieldname": "requested_overall_mm",
+			"fieldtype": "Float",
+			"label": "Requested Overall (mm)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_allowances",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "endcap_allowance_mm_per_side_used",
+			"fieldtype": "Float",
+			"label": "Endcap Allowance (mm/side)"
+		},
+		{
+			"default": "15",
+			"fieldname": "leader_allowance_mm_used",
+			"fieldtype": "Float",
+			"label": "Leader Allowance (mm)"
+		},
+		{
+			"fieldname": "section_break_computed",
+			"fieldtype": "Section Break",
+			"label": "Computed Values"
+		},
+		{
+			"fieldname": "tape_cut_length_mm",
+			"fieldtype": "Float",
+			"label": "Tape Cut Length (mm)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "manufacturable_overall_mm",
+			"fieldtype": "Float",
+			"label": "Manufacturable Overall (mm)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "manufacturable_overall_in",
+			"fieldtype": "Float",
+			"label": "Manufacturable Overall (inches)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_computed",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "delta_mm",
+			"fieldtype": "Float",
+			"label": "Delta (mm)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "watts_per_ft",
+			"fieldtype": "Float",
+			"label": "Watts per Foot",
+			"read_only": 1
+		},
+		{
+			"fieldname": "total_watts",
+			"fieldtype": "Float",
+			"label": "Total Watts",
+			"read_only": 1
+		},
+		{
+			"fieldname": "runs_count",
+			"fieldtype": "Int",
+			"label": "Runs Count",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_driver",
+			"fieldtype": "Section Break",
+			"label": "Driver Selection"
+		},
+		{
+			"fieldname": "selected_driver_spec",
+			"fieldtype": "Link",
+			"label": "Selected Driver Spec",
+			"options": "ILL Driver Spec",
+			"read_only": 1
+		},
+		{
+			"fieldname": "selected_driver_qty",
+			"fieldtype": "Int",
+			"label": "Selected Driver Quantity",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_output",
+			"fieldtype": "Section Break",
+			"label": "Output"
+		},
+		{
+			"fieldname": "configured_item",
+			"fieldtype": "Link",
+			"label": "Configured Item",
+			"options": "Item",
+			"read_only": 1
+		},
+		{
+			"fieldname": "bom",
+			"fieldtype": "Link",
+			"label": "BOM",
+			"options": "BOM",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_signature",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "configuration_signature",
+			"fieldtype": "Data",
+			"label": "Configuration Signature",
+			"read_only": 1,
+			"unique": 1
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Configured Fixture",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
