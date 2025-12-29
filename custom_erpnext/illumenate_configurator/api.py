@@ -17,6 +17,52 @@ from custom_erpnext.illumenate_configurator.engine import (
 )
 
 
+def abbreviate_attribute_combination(attribute_combination: str) -> str:
+	"""
+	Convert an attribute combination string to use abbreviations.
+
+	Takes a string like "LED Tape CCT: 3000K, LED Tape CRI: 90+"
+	and returns an abbreviated version like "3000K, 90+" using the
+	abbreviations defined in ERPNext's Item Attribute Value table.
+
+	Args:
+		attribute_combination: Full attribute combination string
+
+	Returns:
+		Abbreviated string, or original values if no abbreviation found
+	"""
+	if not attribute_combination:
+		return ""
+
+	abbreviated_parts = []
+
+	# Parse "Attribute: Value, Attribute: Value" format
+	for part in attribute_combination.split(","):
+		part = part.strip()
+		if ":" not in part:
+			continue
+
+		attribute_name, attribute_value = part.split(":", 1)
+		attribute_name = attribute_name.strip()
+		attribute_value = attribute_value.strip()
+
+		# Look up abbreviation from Item Attribute Value
+		abbr = frappe.db.get_value(
+			"Item Attribute Value",
+			{"parent": attribute_name, "attribute_value": attribute_value},
+			"abbr",
+		)
+
+		# Use abbreviation if found, otherwise use the value itself
+		if abbr:
+			abbreviated_parts.append(abbr)
+		else:
+			# Fall back to just the value (without attribute name)
+			abbreviated_parts.append(attribute_value)
+
+	return "-".join(abbreviated_parts)
+
+
 @frappe.whitelist()
 def validate_configuration(
 	template_code: str,
@@ -804,6 +850,7 @@ def create_manufacturing_package(
 	cf = frappe.new_doc("ILL Configured Fixture")
 	cf.fixture_template = template_code
 	cf.tape_spec = tape_spec
+	# Use full attribute combination for computation (matching against variant specs)
 	cf.tape_attribute_combination = tape_attribute_combination
 	cf.endcap_item = endcap_item
 	cf.requested_overall_in = requested_overall_in
@@ -811,9 +858,10 @@ def create_manufacturing_package(
 	if driver_spec:
 		cf.driver_spec = driver_spec
 	if driver_attribute_combination:
+		# Use full attribute combination for computation
 		cf.driver_attribute_combination = driver_attribute_combination
 
-	# Compute all values
+	# Compute all values (requires full attribute combination strings for matching)
 	try:
 		cf.compute_all()
 	except Exception as e:
@@ -821,6 +869,15 @@ def create_manufacturing_package(
 			"error": True,
 			"errors": [{"code": "COMPUTATION_ERROR", "message": str(e)}],
 		}
+
+	# After computation, abbreviate attribute combinations for storage
+	# to fit within field character limits
+	cf.tape_attribute_combination = abbreviate_attribute_combination(tape_attribute_combination)
+	if driver_attribute_combination:
+		cf.driver_attribute_combination = abbreviate_attribute_combination(driver_attribute_combination)
+
+	# Regenerate signature with abbreviated combinations for consistent matching
+	cf.generate_configuration_signature()
 
 	# Check if a fixture with this signature already exists
 	existing_cf = frappe.db.get_value(
