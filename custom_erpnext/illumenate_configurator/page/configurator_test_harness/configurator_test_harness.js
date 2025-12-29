@@ -81,6 +81,73 @@ frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
 		options: [""],
 	});
 
+	// === Sprint 3 Fields ===
+
+	page.tape_type_field = page.add_field({
+		label: "Tape Type",
+		fieldname: "tape_type_token",
+		fieldtype: "Select",
+		options: ["", "SW", "TW", "RGBTW"],
+	});
+
+	page.environment_field = page.add_field({
+		label: "Environment",
+		fieldname: "environment_token",
+		fieldtype: "Select",
+		options: ["", "I", "O"],
+	});
+
+	page.cct_field = page.add_field({
+		label: "CCT Token",
+		fieldname: "cct_token",
+		fieldtype: "Data",
+	});
+
+	page.cri_field = page.add_field({
+		label: "CRI",
+		fieldname: "cri_value",
+		fieldtype: "Int",
+	});
+
+	page.output_field = page.add_field({
+		label: "Output",
+		fieldname: "output_token",
+		fieldtype: "Int",
+	});
+
+	page.finish_field = page.add_field({
+		label: "Finish",
+		fieldname: "finish_token",
+		fieldtype: "Data",
+	});
+
+	page.lens_option_field = page.add_field({
+		label: "Lens Option",
+		fieldname: "lens_option",
+		fieldtype: "Link",
+		options: "ILL Lens Option",
+		get_query: function () {
+			return { filters: { is_active: 1 } };
+		},
+	});
+
+	page.mounting_method_field = page.add_field({
+		label: "Mounting Method",
+		fieldname: "mounting_method",
+		fieldtype: "Link",
+		options: "ILL Mounting Method",
+		get_query: function () {
+			return { filters: { is_active: 1 } };
+		},
+	});
+
+	page.joiner_angle_field = page.add_field({
+		label: "Joiner Angle",
+		fieldname: "joiner_angle",
+		fieldtype: "Select",
+		options: ["", "Straight", "90", "Other"],
+	});
+
 	// Add validate button
 	page.set_primary_action("Validate Configuration", function () {
 		validate_configuration(page);
@@ -223,6 +290,17 @@ function validate_configuration(page) {
 	var driver_spec = page.driver_field.get_value();
 	var driver_attribute_combination = page.driver_attribute_field.get_value();
 
+	// Sprint 3 fields
+	var tape_type_token = page.tape_type_field.get_value();
+	var environment_token = page.environment_field.get_value();
+	var cct_token = page.cct_field.get_value();
+	var cri_value = page.cri_field.get_value();
+	var output_token = page.output_field.get_value();
+	var finish_token = page.finish_field.get_value();
+	var lens_option = page.lens_option_field.get_value();
+	var mounting_method = page.mounting_method_field.get_value();
+	var joiner_angle = page.joiner_angle_field.get_value();
+
 	// Validate required fields
 	if (!template_code) {
 		frappe.msgprint("Please select a Template");
@@ -255,6 +333,17 @@ function validate_configuration(page) {
 		args.driver_spec = driver_spec;
 		args.driver_attribute_combination = driver_attribute_combination;
 	}
+
+	// Add Sprint 3 optional params
+	if (tape_type_token) args.tape_type_token = tape_type_token;
+	if (environment_token) args.environment_token = environment_token;
+	if (cct_token) args.cct_token = cct_token;
+	if (cri_value) args.cri_value = cri_value;
+	if (output_token) args.output_token = output_token;
+	if (finish_token) args.finish_token = finish_token;
+	if (lens_option) args.lens_option = lens_option;
+	if (mounting_method) args.mounting_method = mounting_method;
+	if (joiner_angle) args.joiner_angle = joiner_angle;
 
 	frappe.call({
 		method: "custom_erpnext.illumenate_configurator.api.validate_configuration",
@@ -373,6 +462,16 @@ function create_manufacturing_package(page) {
 		driver_spec: page.driver_field.get_value() || null,
 		driver_attribute_combination: page.driver_attribute_field.get_value() || null,
 		qty: 1,
+		// Sprint 3 fields
+		tape_type_token: page.tape_type_field.get_value() || null,
+		environment_token: page.environment_field.get_value() || null,
+		cct_token: page.cct_field.get_value() || null,
+		cri_value: page.cri_field.get_value() || null,
+		output_token: page.output_field.get_value() || null,
+		finish_token: page.finish_field.get_value() || null,
+		lens_option: page.lens_option_field.get_value() || null,
+		mounting_method: page.mounting_method_field.get_value() || null,
+		joiner_angle: page.joiner_angle_field.get_value() || null,
 	};
 
 	frappe.call({

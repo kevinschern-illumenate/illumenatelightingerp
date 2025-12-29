@@ -7,12 +7,15 @@ Configurator API Module
 Provides the validate_configuration endpoint for the fixture configurator.
 """
 
+import math
+
 import frappe
 from frappe import _
 
 from custom_erpnext.illumenate_configurator.engine import (
 	compute_length,
 	compute_runs,
+	compute_segmentation,
 	select_driver,
 )
 
@@ -72,6 +75,16 @@ def validate_configuration(
 	driver_spec: str | None = None,
 	driver_attribute_combination: str | None = None,
 	endcap_item: str | None = None,
+	# Sprint 3 additions
+	tape_type_token: str | None = None,
+	environment_token: str | None = None,
+	cct_token: str | None = None,
+	cri_value: int | None = None,
+	output_token: int | None = None,
+	finish_token: str | None = None,
+	lens_option: str | None = None,
+	mounting_method: str | None = None,
+	joiner_angle: str | None = None,
 ):
 	"""
 	Validate a fixture configuration and return computed results.
@@ -84,6 +97,15 @@ def validate_configuration(
 		driver_spec: Optional ILL Driver Spec name/ID. If not provided, auto-selects based on tape specs.
 		driver_attribute_combination: Attribute combination string for driver (e.g., "Input Voltage: 120V, Dimming: 0-10V")
 		endcap_item: Optional endcap Item name. Uses template default if omitted.
+		tape_type_token: Optional tape type token (SW, TW, RGBTW)
+		environment_token: Optional environment token (I, O)
+		cct_token: Optional CCT token
+		cri_value: Optional CRI value
+		output_token: Optional output token
+		finish_token: Optional finish token
+		lens_option: Optional ILL Lens Option name
+		mounting_method: Optional ILL Mounting Method name
+		joiner_angle: Optional joiner angle (Straight, 90, Other)
 
 	Returns:
 		A dict with configuration results or errors.
@@ -158,6 +180,87 @@ def validate_configuration(
 		)
 
 	# Return early if critical errors
+	if errors:
+		return {"errors": errors}
+
+	# Validate against template allowed sets (Sprint 3)
+	if tape_type_token:
+		allowed_tape_types = [t.tape_type_token for t in (template.allowed_tape_types or [])]
+		if allowed_tape_types and tape_type_token not in allowed_tape_types:
+			errors.append(
+				{
+					"code": "INVALID_TAPE_TYPE",
+					"message": f"Tape type '{tape_type_token}' not allowed for this template",
+					"field": "tape_type_token",
+				}
+			)
+
+	if environment_token:
+		allowed_envs = [e.environment_token for e in (template.allowed_environments or [])]
+		if allowed_envs and environment_token not in allowed_envs:
+			errors.append(
+				{
+					"code": "INVALID_ENVIRONMENT",
+					"message": f"Environment '{environment_token}' not allowed for this template",
+					"field": "environment_token",
+				}
+			)
+
+	if finish_token:
+		allowed_finishes = [f.finish_token for f in (template.allowed_finishes or [])]
+		if allowed_finishes and finish_token not in allowed_finishes:
+			errors.append(
+				{
+					"code": "INVALID_FINISH",
+					"message": f"Finish '{finish_token}' not allowed for this template",
+					"field": "finish_token",
+				}
+			)
+
+	if output_token:
+		allowed_outputs = [o.output_token for o in (template.allowed_outputs or [])]
+		if allowed_outputs and output_token not in allowed_outputs:
+			errors.append(
+				{
+					"code": "INVALID_OUTPUT",
+					"message": f"Output '{output_token}' not allowed for this template",
+					"field": "output_token",
+				}
+			)
+
+	if cct_token and cri_value:
+		allowed_cct_cri = [(c.cct_token, c.cri_value) for c in (template.allowed_cct_cri or [])]
+		if allowed_cct_cri and (cct_token, cri_value) not in allowed_cct_cri:
+			errors.append(
+				{
+					"code": "INVALID_CCT_CRI",
+					"message": f"CCT/CRI combination '{cct_token}/{cri_value}' not allowed for this template",
+					"field": "cct_token",
+				}
+			)
+
+	if lens_option:
+		allowed_lens_opts = [l.lens_option for l in (template.allowed_lens_options or [])]
+		if allowed_lens_opts and lens_option not in allowed_lens_opts:
+			errors.append(
+				{
+					"code": "INVALID_LENS_OPTION",
+					"message": f"Lens option '{lens_option}' not allowed for this template",
+					"field": "lens_option",
+				}
+			)
+
+	if mounting_method:
+		allowed_mounting = [m.mounting_method for m in (template.allowed_mounting_methods or [])]
+		if allowed_mounting and mounting_method not in allowed_mounting:
+			errors.append(
+				{
+					"code": "INVALID_MOUNTING_METHOD",
+					"message": f"Mounting method '{mounting_method}' not allowed for this template",
+					"field": "mounting_method",
+				}
+			)
+
 	if errors:
 		return {"errors": errors}
 
@@ -720,6 +823,39 @@ def create_bom(configured_fixture) -> str:
 			}
 		)
 
+	# === Sprint 3 Additions ===
+
+	# 6. Lens (meters)
+	if cf.lens_option and cf.lens_qty_m and cf.lens_qty_m > 0:
+		lens_opt = frappe.get_doc("ILL Lens Option", cf.lens_option)
+		bom_items.append(
+			{
+				"item_code": lens_opt.lens_item,
+				"qty": round(cf.lens_qty_m, 3),
+				"uom": "Meter",
+			}
+		)
+
+	# 7. Joiners (Nos)
+	if cf.joiner_item and cf.joiner_qty and cf.joiner_qty > 0:
+		bom_items.append(
+			{
+				"item_code": cf.joiner_item,
+				"qty": cf.joiner_qty,
+				"uom": "Nos",
+			}
+		)
+
+	# 8. Mounting Hardware (Nos)
+	if cf.mounting_hardware_item and cf.mounting_hardware_qty and cf.mounting_hardware_qty > 0:
+		bom_items.append(
+			{
+				"item_code": cf.mounting_hardware_item,
+				"qty": cf.mounting_hardware_qty,
+				"uom": "Nos",
+			}
+		)
+
 	bom = frappe.get_doc(
 		{
 			"doctype": "BOM",
@@ -746,6 +882,16 @@ def create_manufacturing_package(
 	driver_spec: str | None = None,
 	driver_attribute_combination: str | None = None,
 	qty: int = 1,
+	# Sprint 3 additions
+	tape_type_token: str | None = None,
+	environment_token: str | None = None,
+	cct_token: str | None = None,
+	cri_value: int | None = None,
+	output_token: int | None = None,
+	finish_token: str | None = None,
+	lens_option: str | None = None,
+	mounting_method: str | None = None,
+	joiner_angle: str | None = None,
 ):
 	"""
 	Orchestrate creation of configured fixture, item, BOM, and work order.
@@ -760,6 +906,15 @@ def create_manufacturing_package(
 		driver_spec: Optional ILL Driver Spec name
 		driver_attribute_combination: Attribute combination string for driver
 		qty: Quantity for work order (default 1)
+		tape_type_token: Optional tape type token
+		environment_token: Optional environment token
+		cct_token: Optional CCT token
+		cri_value: Optional CRI value
+		output_token: Optional output token
+		finish_token: Optional finish token
+		lens_option: Optional lens option
+		mounting_method: Optional mounting method
+		joiner_angle: Optional joiner angle
 
 	Returns:
 		Dict with configured_fixture, item_code, bom_no, and optionally work_order
@@ -861,6 +1016,25 @@ def create_manufacturing_package(
 		# Use full attribute combination for computation
 		cf.driver_attribute_combination = driver_attribute_combination
 
+	# Sprint 3: Set option fields
+	cf.tape_type_token = tape_type_token
+	cf.environment_token = environment_token
+	cf.cct_token = cct_token
+	cf.cri_value = cri_value
+	cf.output_token = output_token
+	cf.finish_token = finish_token
+	cf.lens_option = lens_option
+	cf.mounting_method = mounting_method
+	cf.joiner_angle = joiner_angle
+
+	# Set lens_color_token and mounting_token from linked documents
+	if lens_option:
+		lens_doc = frappe.get_doc("ILL Lens Option", lens_option)
+		cf.lens_color_token = lens_doc.lens_color_token
+	if mounting_method:
+		mounting_doc = frappe.get_doc("ILL Mounting Method", mounting_method)
+		cf.mounting_token = mounting_doc.mounting_token
+
 	# Compute all values (requires full attribute combination strings for matching)
 	try:
 		cf.compute_all()
@@ -869,6 +1043,44 @@ def create_manufacturing_package(
 			"error": True,
 			"errors": [{"code": "COMPUTATION_ERROR", "message": str(e)}],
 		}
+
+	# Sprint 3: Compute segmentation and adders
+	profile_piece_length_mm = template.profile_piece_length_mm or 2000
+	lens_piece_length_mm = template.lens_piece_length_mm or 2000
+
+	seg = compute_segmentation(cf.manufacturable_overall_mm, profile_piece_length_mm)
+	cf.profile_pieces_count = seg["profile_pieces_count"]
+	cf.profile_last_piece_length_mm = seg["profile_last_piece_length_mm"]
+
+	# Resolve joiner
+	if mounting_method and joiner_angle and seg["joiner_qty_target"] > 0:
+		joiner_result = resolve_joiner(template_code, mounting_method, joiner_angle)
+		cf.joiner_item = joiner_result.get("joiner_item")
+		cf.joiner_qty = seg["joiner_qty_target"]
+	else:
+		cf.joiner_qty = 0
+
+	# Compute lens qty
+	if lens_option:
+		cf.lens_qty_m = round(cf.manufacturable_overall_mm / 1000, 3)
+		lens_doc = frappe.get_doc("ILL Lens Option", lens_option)
+		if lens_doc.is_continuous_reel:
+			cf.lens_piece_count = 1
+		else:
+			cf.lens_piece_count = math.ceil(cf.manufacturable_overall_mm / lens_piece_length_mm)
+	else:
+		cf.lens_qty_m = 0
+		cf.lens_piece_count = 0
+
+	# Compute mounting hardware
+	if mounting_method:
+		hw = compute_mounting_hardware(
+			mounting_method, cf.manufacturable_overall_mm / 1000, cf.profile_pieces_count
+		)
+		cf.mounting_hardware_item = hw["hardware_item"]
+		cf.mounting_hardware_qty = hw["qty"]
+	else:
+		cf.mounting_hardware_qty = 0
 
 	# After computation, abbreviate attribute combinations for storage
 	# to fit within field character limits
@@ -918,3 +1130,39 @@ def create_manufacturing_package(
 		"item_code": item_code,
 		"bom_no": bom_name,
 	}
+
+
+def resolve_joiner(fixture_template: str, mounting_method: str, joiner_angle: str) -> dict:
+	"""Find the joiner item for the given template/mounting/angle combination."""
+	joiner = frappe.db.get_value(
+		"ILL Joiner Option",
+		{
+			"fixture_template": fixture_template,
+			"mounting_method": mounting_method,
+			"joiner_angle": joiner_angle,
+			"is_active": 1,
+		},
+		["joiner_item"],
+		as_dict=True,
+	)
+	if joiner:
+		return {"joiner_item": joiner.joiner_item, "found": True}
+	return {"joiner_item": None, "found": False, "warning": "No joiner SKU configured for selected mounting+angle; joiners omitted."}
+
+
+def compute_mounting_hardware(mounting_method_name: str, manufacturable_m: float, profile_pieces_count: int) -> dict:
+	"""Compute mounting hardware quantity based on method rules."""
+	mm = frappe.get_doc("ILL Mounting Method", mounting_method_name)
+	if not mm.hardware_item:
+		return {"hardware_item": None, "qty": 0}
+
+	if mm.hardware_qty_rule == "Per Fixture":
+		qty = math.ceil(mm.hardware_qty_per_unit or 0)
+	elif mm.hardware_qty_rule == "Per Meter":
+		qty = math.ceil(manufacturable_m * (mm.hardware_qty_per_unit or 0))
+	elif mm.hardware_qty_rule == "Per 2m Piece":
+		qty = math.ceil(profile_pieces_count * (mm.hardware_qty_per_unit or 0))
+	else:
+		qty = 0
+
+	return {"hardware_item": mm.hardware_item, "qty": qty}
