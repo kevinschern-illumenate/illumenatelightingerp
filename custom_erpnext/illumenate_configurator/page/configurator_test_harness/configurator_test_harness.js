@@ -1,0 +1,250 @@
+frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
+	var page = frappe.ui.make_app_page({
+		parent: wrapper,
+		title: "Configurator Test Harness",
+		single_column: true,
+	});
+
+	// Initialize controls
+	page.template_field = page.add_field({
+		label: "Template",
+		fieldname: "template_code",
+		fieldtype: "Link",
+		options: "ILL Fixture Template",
+		change: function () {
+			// Reset endcap field when template changes
+			page.endcap_field.set_value("");
+			update_endcap_filter(page);
+		},
+	});
+
+	page.endcap_field = page.add_field({
+		label: "Endcap (optional)",
+		fieldname: "endcap_item",
+		fieldtype: "Link",
+		options: "Item",
+	});
+
+	page.tape_field = page.add_field({
+		label: "Tape Spec",
+		fieldname: "tape_spec",
+		fieldtype: "Link",
+		options: "ILL LED Tape Spec",
+		get_query: function () {
+			return {
+				filters: {
+					is_active: 1,
+				},
+			};
+		},
+	});
+
+	page.dimming_field = page.add_field({
+		label: "Dimming Protocol",
+		fieldname: "dimming_protocol",
+		fieldtype: "Select",
+		options: ["", "0-10V", "DALI", "DMX", "TRIAC", "PWM", "Other"],
+	});
+
+	page.length_field = page.add_field({
+		label: "Requested Overall Length (inches)",
+		fieldname: "requested_overall_in",
+		fieldtype: "Float",
+	});
+
+	// Add validate button
+	page.set_primary_action("Validate Configuration", function () {
+		validate_configuration(page);
+	});
+
+	// Add result container
+	$(wrapper).find(".layout-main-section").append(`
+		<div class="configurator-results" style="margin-top: 20px;">
+			<h4>Results</h4>
+			<div class="results-summary" style="display: none; margin-bottom: 15px;">
+				<div class="frappe-card p-4">
+					<div class="row">
+						<div class="col-md-4">
+							<h5>Length</h5>
+							<div class="length-summary"></div>
+						</div>
+						<div class="col-md-4">
+							<h5>Electrical</h5>
+							<div class="electrical-summary"></div>
+						</div>
+						<div class="col-md-4">
+							<h5>Driver</h5>
+							<div class="driver-summary"></div>
+						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-12">
+							<div class="warning-message alert alert-warning" style="display: none;"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="errors-container alert alert-danger" style="display: none;"></div>
+			<div class="results-json" style="display: none;">
+				<h5>Full Response (JSON)</h5>
+				<pre class="json-output" style="background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto;"></pre>
+			</div>
+		</div>
+	`);
+
+	page.results_container = $(wrapper).find(".configurator-results");
+};
+
+function update_endcap_filter(page) {
+	var template_code = page.template_field.get_value();
+	if (!template_code) {
+		return;
+	}
+
+	frappe.call({
+		method: "frappe.client.get",
+		args: {
+			doctype: "ILL Fixture Template",
+			name: template_code,
+		},
+		callback: function (r) {
+			if (r.message && r.message.endcap_options) {
+				var endcap_items = r.message.endcap_options.map(function (opt) {
+					return opt.endcap_item;
+				});
+
+				page.endcap_field.df.get_query = function () {
+					return {
+						filters: {
+							name: ["in", endcap_items],
+						},
+					};
+				};
+			}
+		},
+	});
+}
+
+function validate_configuration(page) {
+	var template_code = page.template_field.get_value();
+	var tape_spec = page.tape_field.get_value();
+	var dimming_protocol = page.dimming_field.get_value();
+	var requested_overall_in = page.length_field.get_value();
+	var endcap_item = page.endcap_field.get_value();
+
+	// Validate required fields
+	if (!template_code) {
+		frappe.msgprint("Please select a Template");
+		return;
+	}
+	if (!tape_spec) {
+		frappe.msgprint("Please select a Tape Spec");
+		return;
+	}
+	if (!dimming_protocol) {
+		frappe.msgprint("Please select a Dimming Protocol");
+		return;
+	}
+	if (!requested_overall_in || requested_overall_in <= 0) {
+		frappe.msgprint("Please enter a valid length (greater than 0)");
+		return;
+	}
+
+	frappe.call({
+		method: "custom_erpnext.illumenate_configurator.api.validate_configuration",
+		args: {
+			template_code: template_code,
+			tape_spec: tape_spec,
+			requested_overall_in: requested_overall_in,
+			dimming_protocol: dimming_protocol,
+			endcap_item: endcap_item || null,
+		},
+		freeze: true,
+		freeze_message: "Validating configuration...",
+		callback: function (r) {
+			display_results(page, r.message);
+		},
+		error: function (r) {
+			page.results_container.find(".results-summary").hide();
+			page.results_container.find(".results-json").hide();
+			page.results_container
+				.find(".errors-container")
+				.html("<strong>Error:</strong> " + (r.message || "An unexpected error occurred"))
+				.show();
+		},
+	});
+}
+
+function display_results(page, result) {
+	var summary = page.results_container.find(".results-summary");
+	var errors_container = page.results_container.find(".errors-container");
+	var json_container = page.results_container.find(".results-json");
+	var json_output = page.results_container.find(".json-output");
+
+	// Reset
+	summary.hide();
+	errors_container.hide();
+	json_container.hide();
+
+	if (result.errors && result.errors.length > 0) {
+		var error_html = "<strong>Validation Errors:</strong><ul>";
+		result.errors.forEach(function (err) {
+			error_html += "<li><strong>" + err.code + ":</strong> " + err.message;
+			if (err.field) {
+				error_html += " (field: " + err.field + ")";
+			}
+			error_html += "</li>";
+		});
+		error_html += "</ul>";
+		errors_container.html(error_html).show();
+	} else {
+		// Display summary
+		var length = result.length;
+		var electrical = result.electrical;
+		var driver = result.driver;
+
+		var length_html = `
+			<table class="table table-sm table-borderless">
+				<tr><td>Requested:</td><td><strong>${length.requested.in_display_1_16}"</strong> (${length.requested.mm} mm)</td></tr>
+				<tr><td>Manufacturable:</td><td><strong>${length.manufacturable.in_display_1_16}"</strong> (${length.manufacturable.mm} mm)</td></tr>
+				<tr><td>Tape Cut:</td><td>${length.tape_cut.in_display_1_16}" (${length.tape_cut.mm} mm)</td></tr>
+				<tr><td>Delta:</td><td>${length.delta.in_display_1_16}" (${length.delta.mm} mm)</td></tr>
+			</table>
+		`;
+
+		var electrical_html = `
+			<table class="table table-sm table-borderless">
+				<tr><td>Watts per Foot:</td><td><strong>${electrical.watts_per_ft} W/ft</strong></td></tr>
+				<tr><td>Total Watts:</td><td><strong>${electrical.total_watts} W</strong></td></tr>
+				<tr><td>Run Count:</td><td><strong>${electrical.runs_count}</strong></td></tr>
+				<tr><td>Max Run (85W):</td><td>${electrical.max_run_ft_by_85w} ft</td></tr>
+			</table>
+		`;
+
+		var driver_html = `
+			<table class="table table-sm table-borderless">
+				<tr><td>Driver Spec:</td><td><strong>${driver.driver_spec}</strong></td></tr>
+				<tr><td>Driver Item:</td><td>${driver.driver_item}</td></tr>
+				<tr><td>Quantity:</td><td><strong>${driver.quantity}</strong></td></tr>
+				<tr><td>Usable W (each):</td><td>${driver.usable_watts_each} W</td></tr>
+				<tr><td>Total Usable W:</td><td>${driver.total_usable_watts} W</td></tr>
+			</table>
+		`;
+
+		summary.find(".length-summary").html(length_html);
+		summary.find(".electrical-summary").html(electrical_html);
+		summary.find(".driver-summary").html(driver_html);
+
+		if (length.warning) {
+			summary.find(".warning-message").html("<strong>Note:</strong> " + length.warning).show();
+		} else {
+			summary.find(".warning-message").hide();
+		}
+
+		summary.show();
+	}
+
+	// Always show JSON
+	json_output.text(JSON.stringify(result, null, 2));
+	json_container.show();
+}

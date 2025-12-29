@@ -1,0 +1,47 @@
+{
+	"actions": [],
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"endcap_item",
+		"allowance_mm_per_side",
+		"is_default"
+	],
+	"fields": [
+		{
+			"fieldname": "endcap_item",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Endcap Item",
+			"options": "Item",
+			"reqd": 1
+		},
+		{
+			"fieldname": "allowance_mm_per_side",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Allowance (mm per side)"
+		},
+		{
+			"default": "0",
+			"fieldname": "is_default",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Default"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"istable": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Endcap Option",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

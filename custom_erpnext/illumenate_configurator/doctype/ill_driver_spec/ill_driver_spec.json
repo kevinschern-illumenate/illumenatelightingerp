@@ -1,0 +1,129 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"driver_item",
+		"column_break_main",
+		"is_active",
+		"section_break_specs",
+		"voltage_out",
+		"dimming_protocol",
+		"column_break_power",
+		"max_wattage",
+		"outputs_count"
+	],
+	"fields": [
+		{
+			"default": "DRV-SPEC-.#####",
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "DRV-SPEC-.#####"
+		},
+		{
+			"fieldname": "driver_item",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Driver Item",
+			"options": "Item",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Is Active"
+		},
+		{
+			"fieldname": "section_break_specs",
+			"fieldtype": "Section Break",
+			"label": "Specifications"
+		},
+		{
+			"fieldname": "voltage_out",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Output Voltage",
+			"options": "\n12\n24\n48",
+			"reqd": 1
+		},
+		{
+			"fieldname": "dimming_protocol",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Dimming Protocol",
+			"options": "\n0-10V\nDALI\nDMX\nTRIAC\nPWM\nOther",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_power",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "max_wattage",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Max Wattage",
+			"reqd": 1
+		},
+		{
+			"fieldname": "outputs_count",
+			"fieldtype": "Int",
+			"in_list_view": 1,
+			"label": "Number of Outputs",
+			"reqd": 1
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Driver Spec",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

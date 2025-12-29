@@ -1,0 +1,132 @@
+{
+	"actions": [],
+	"autoname": "field:template_code",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"template_code",
+		"template_name",
+		"column_break_main",
+		"profile_item",
+		"section_break_allowances",
+		"default_endcap_allowance_mm_per_side",
+		"leader_allowance_mm_per_fixture",
+		"column_break_limits",
+		"max_assembled_length_in",
+		"max_assembled_length_mm",
+		"section_break_endcaps",
+		"endcap_options"
+	],
+	"fields": [
+		{
+			"fieldname": "template_code",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Template Code",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "template_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Template Name"
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "profile_item",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Profile Item",
+			"options": "Item",
+			"reqd": 1
+		},
+		{
+			"fieldname": "section_break_allowances",
+			"fieldtype": "Section Break",
+			"label": "Allowances"
+		},
+		{
+			"default": "2.0",
+			"fieldname": "default_endcap_allowance_mm_per_side",
+			"fieldtype": "Float",
+			"label": "Default Endcap Allowance (mm per side)"
+		},
+		{
+			"default": "15.0",
+			"fieldname": "leader_allowance_mm_per_fixture",
+			"fieldtype": "Float",
+			"label": "Leader Allowance (mm per fixture)"
+		},
+		{
+			"fieldname": "column_break_limits",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "102.0",
+			"fieldname": "max_assembled_length_in",
+			"fieldtype": "Float",
+			"label": "Max Assembled Length (inches)"
+		},
+		{
+			"fieldname": "max_assembled_length_mm",
+			"fieldtype": "Float",
+			"label": "Max Assembled Length (mm)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_endcaps",
+			"fieldtype": "Section Break",
+			"label": "Endcap Options"
+		},
+		{
+			"fieldname": "endcap_options",
+			"fieldtype": "Table",
+			"label": "Endcap Options",
+			"options": "ILL Endcap Option"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Fixture Template",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
