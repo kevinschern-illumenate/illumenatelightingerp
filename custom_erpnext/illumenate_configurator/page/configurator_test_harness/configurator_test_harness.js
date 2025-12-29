@@ -37,19 +37,48 @@ frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
 				},
 			};
 		},
+		change: function () {
+			// Load available tape attribute combinations
+			update_tape_attribute_options(page);
+		},
 	});
 
-	page.dimming_field = page.add_field({
-		label: "Dimming Protocol",
-		fieldname: "dimming_protocol",
+	page.tape_attribute_field = page.add_field({
+		label: "Tape Attribute Combination",
+		fieldname: "tape_attribute_combination",
 		fieldtype: "Select",
-		options: ["", "0-10V", "DALI", "DMX", "TRIAC", "PWM", "Other"],
+		options: [""],
 	});
 
 	page.length_field = page.add_field({
 		label: "Requested Overall Length (inches)",
 		fieldname: "requested_overall_in",
 		fieldtype: "Float",
+	});
+
+	page.driver_field = page.add_field({
+		label: "Driver Spec (optional - auto-selects if empty)",
+		fieldname: "driver_spec",
+		fieldtype: "Link",
+		options: "ILL Driver Spec",
+		get_query: function () {
+			return {
+				filters: {
+					is_active: 1,
+				},
+			};
+		},
+		change: function () {
+			// Load available driver attribute combinations
+			update_driver_attribute_options(page);
+		},
+	});
+
+	page.driver_attribute_field = page.add_field({
+		label: "Driver Attribute Combination",
+		fieldname: "driver_attribute_combination",
+		fieldtype: "Select",
+		options: [""],
 	});
 
 	// Add validate button
@@ -95,6 +124,56 @@ frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
 	page.results_container = $(wrapper).find(".configurator-results");
 };
 
+function update_tape_attribute_options(page) {
+	var tape_spec = page.tape_field.get_value();
+	if (!tape_spec) {
+		page.tape_attribute_field.df.options = [""];
+		page.tape_attribute_field.set_value("");
+		page.tape_attribute_field.refresh();
+		return;
+	}
+
+	frappe.call({
+		method: "custom_erpnext.illumenate_configurator.api.get_tape_spec_variants",
+		args: { tape_spec: tape_spec },
+		callback: function (r) {
+			if (r.message && r.message.variants) {
+				var options = r.message.variants.map(function (v) {
+					return v.attribute_combination;
+				});
+				page.tape_attribute_field.df.options = [""].concat(options);
+				page.tape_attribute_field.set_value("");
+				page.tape_attribute_field.refresh();
+			}
+		},
+	});
+}
+
+function update_driver_attribute_options(page) {
+	var driver_spec = page.driver_field.get_value();
+	if (!driver_spec) {
+		page.driver_attribute_field.df.options = [""];
+		page.driver_attribute_field.set_value("");
+		page.driver_attribute_field.refresh();
+		return;
+	}
+
+	frappe.call({
+		method: "custom_erpnext.illumenate_configurator.api.get_driver_spec_variants",
+		args: { driver_spec: driver_spec },
+		callback: function (r) {
+			if (r.message && r.message.variants) {
+				var options = r.message.variants.map(function (v) {
+					return v.attribute_combination;
+				});
+				page.driver_attribute_field.df.options = [""].concat(options);
+				page.driver_attribute_field.set_value("");
+				page.driver_attribute_field.refresh();
+			}
+		},
+	});
+}
+
 function update_endcap_filter(page) {
 	var template_code = page.template_field.get_value();
 	if (!template_code) {
@@ -128,9 +207,11 @@ function update_endcap_filter(page) {
 function validate_configuration(page) {
 	var template_code = page.template_field.get_value();
 	var tape_spec = page.tape_field.get_value();
-	var dimming_protocol = page.dimming_field.get_value();
+	var tape_attribute_combination = page.tape_attribute_field.get_value();
 	var requested_overall_in = page.length_field.get_value();
 	var endcap_item = page.endcap_field.get_value();
+	var driver_spec = page.driver_field.get_value();
+	var driver_attribute_combination = page.driver_attribute_field.get_value();
 
 	// Validate required fields
 	if (!template_code) {
@@ -141,8 +222,8 @@ function validate_configuration(page) {
 		frappe.msgprint("Please select a Tape Spec");
 		return;
 	}
-	if (!dimming_protocol) {
-		frappe.msgprint("Please select a Dimming Protocol");
+	if (!tape_attribute_combination) {
+		frappe.msgprint("Please select a Tape Attribute Combination");
 		return;
 	}
 	if (!requested_overall_in || requested_overall_in <= 0) {
@@ -150,15 +231,24 @@ function validate_configuration(page) {
 		return;
 	}
 
+	// Build args
+	var args = {
+		template_code: template_code,
+		tape_spec: tape_spec,
+		tape_attribute_combination: tape_attribute_combination,
+		requested_overall_in: requested_overall_in,
+		endcap_item: endcap_item || null,
+	};
+
+	// Add optional driver params
+	if (driver_spec && driver_attribute_combination) {
+		args.driver_spec = driver_spec;
+		args.driver_attribute_combination = driver_attribute_combination;
+	}
+
 	frappe.call({
 		method: "custom_erpnext.illumenate_configurator.api.validate_configuration",
-		args: {
-			template_code: template_code,
-			tape_spec: tape_spec,
-			requested_overall_in: requested_overall_in,
-			dimming_protocol: dimming_protocol,
-			endcap_item: endcap_item || null,
-		},
+		args: args,
 		freeze: true,
 		freeze_message: "Validating configuration...",
 		callback: function (r) {
