@@ -4,6 +4,7 @@
 frappe.ui.form.on("ILL Driver Spec", {
 	refresh: function(frm) {
 		frm.trigger("render_available_attributes");
+		frm.trigger("add_attribute_builder_button");
 	},
 
 	driver_item: function(frm) {
@@ -12,6 +13,148 @@ frappe.ui.form.on("ILL Driver Spec", {
 		frm.refresh_field("variant_specs");
 
 		frm.trigger("render_available_attributes");
+	},
+
+	add_attribute_builder_button: function(frm) {
+		// Add a custom button to build attribute combinations
+		if (frm.doc.driver_item) {
+			frm.add_custom_button(__("Add Variant Spec"), function() {
+				frm.trigger("open_attribute_builder");
+			}, __("Tools"));
+		}
+	},
+
+	open_attribute_builder: function(frm) {
+		if (!frm.doc.driver_item) {
+			frappe.msgprint(__("Please select a Driver Item Template first."));
+			return;
+		}
+
+		frappe.call({
+			method: "custom_erpnext.illumenate_configurator.api.get_item_template_attributes",
+			args: { item: frm.doc.driver_item },
+			callback: function(r) {
+				if (r.message && r.message.has_variants) {
+					frm.trigger("show_attribute_builder_dialog", r.message.attributes);
+				} else {
+					// No variants - just add a row with empty combination
+					let row = frm.add_child("variant_specs", {
+						attribute_combination: "(No variants - single item)"
+					});
+					frm.refresh_field("variant_specs");
+					frappe.show_alert({
+						message: __("Added row for single item (no variants)."),
+						indicator: "green"
+					});
+				}
+			}
+		});
+	},
+
+	show_attribute_builder_dialog: function(frm, attributes) {
+		let fields = [];
+		
+		// Build the dialog fields based on attributes
+		attributes.forEach((attr, idx) => {
+			if (attr.numeric_values) {
+				// Numeric attribute - use a field with range info
+				fields.push({
+					fieldtype: "Float",
+					fieldname: `attr_${idx}`,
+					label: attr.attribute,
+					description: `Range: ${attr.from_range} to ${attr.to_range} (increment: ${attr.increment})`,
+					reqd: 1
+				});
+			} else {
+				// Select from predefined values
+				let options = attr.values.map(v => ({ label: v, value: v }));
+				fields.push({
+					fieldtype: "Select",
+					fieldname: `attr_${idx}`,
+					label: attr.attribute,
+					options: [{ label: "-- Select --", value: "" }].concat(options),
+					reqd: 1
+				});
+			}
+		});
+
+		// Add separator and spec fields
+		fields.push({ fieldtype: "Section Break", label: "Driver Specifications" });
+		fields.push({
+			fieldtype: "Select",
+			fieldname: "voltage_out",
+			label: "Output Voltage",
+			options: ["", "12", "24", "48"],
+			reqd: 1
+		});
+		fields.push({
+			fieldtype: "Select",
+			fieldname: "dimming_protocol",
+			label: "Dimming Protocol",
+			options: ["", "0-10V", "DALI", "DMX", "TRIAC", "PWM", "Other"],
+			reqd: 1
+		});
+		fields.push({ fieldtype: "Column Break" });
+		fields.push({
+			fieldtype: "Float",
+			fieldname: "max_wattage",
+			label: "Max Wattage",
+			reqd: 1
+		});
+		fields.push({
+			fieldtype: "Int",
+			fieldname: "outputs_count",
+			label: "Number of Outputs",
+			reqd: 1,
+			default: 1
+		});
+
+		let d = new frappe.ui.Dialog({
+			title: __("Build Variant Specification"),
+			fields: fields,
+			size: "large",
+			primary_action_label: __("Add Variant Spec"),
+			primary_action: function(values) {
+				// Build the attribute combination string
+				let combination_parts = [];
+				attributes.forEach((attr, idx) => {
+					let val = values[`attr_${idx}`];
+					if (val) {
+						combination_parts.push(`${attr.attribute}: ${val}`);
+					}
+				});
+
+				let combination_str = combination_parts.join(", ");
+
+				// Check for duplicates
+				let exists = (frm.doc.variant_specs || []).some(
+					row => row.attribute_combination === combination_str
+				);
+				if (exists) {
+					frappe.msgprint(__("This attribute combination already exists."));
+					return;
+				}
+
+				// Add the new row
+				let row = frm.add_child("variant_specs", {
+					attribute_combination: combination_str,
+					voltage_out: values.voltage_out,
+					dimming_protocol: values.dimming_protocol,
+					max_wattage: values.max_wattage,
+					outputs_count: values.outputs_count
+				});
+
+				frm.refresh_field("variant_specs");
+				d.hide();
+
+				frappe.show_alert({
+					message: __("Added variant spec: {0}", [combination_str]),
+					indicator: "green"
+				});
+			}
+		});
+
+		d.show();
 	},
 
 	render_available_attributes: function(frm) {
@@ -76,8 +219,7 @@ frappe.ui.form.on("ILL Driver Spec", {
 								</tbody>
 							</table>
 							<p class="text-muted">
-								<small>Use these attributes to create combinations in the Variant Specs table below. 
-								Format: "Attribute1: Value1, Attribute2: Value2"</small>
+								<small>Use the <strong>Tools → Add Variant Spec</strong> button to easily add variant specifications.</small>
 							</p>
 						</div>
 					`;
@@ -86,5 +228,25 @@ frappe.ui.form.on("ILL Driver Spec", {
 				}
 			}
 		});
+	}
+});
+
+// Child table events for ILL Driver Variant
+frappe.ui.form.on("ILL Driver Variant", {
+	variant_specs_add: function(frm, cdt, cdn) {
+		// When a new row is added manually, offer to use the builder
+		if (frm.doc.driver_item) {
+			frappe.confirm(
+				__("Would you like to use the Attribute Builder to fill this row?"),
+				function() {
+					// Yes - remove the empty row and open builder
+					frm.get_field("variant_specs").grid.grid_rows_by_docname[cdn].remove();
+					frm.trigger("open_attribute_builder");
+				},
+				function() {
+					// No - let them fill manually
+				}
+			);
+		}
 	}
 });
