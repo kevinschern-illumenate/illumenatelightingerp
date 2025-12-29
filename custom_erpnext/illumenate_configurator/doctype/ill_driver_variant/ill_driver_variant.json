@@ -38,7 +38,7 @@
 			"fieldtype": "Select",
 			"in_list_view": 1,
 			"label": "Dimming Protocol",
-			"options": "\n0-10V\nDALI\nDMX\nTRIAC\nPWM\nOther",
+			"options": "\nUniversal (ELV, TRIAC, MLV, 0-10V, PWM)\nDMX512\nDALI-2\nBluetooth",
 			"reqd": 1
 		},
 		{

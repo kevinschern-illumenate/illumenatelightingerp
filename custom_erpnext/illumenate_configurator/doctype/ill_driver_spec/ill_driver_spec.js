@@ -94,7 +94,7 @@ frappe.ui.form.on("ILL Driver Spec", {
 			fieldtype: "Select",
 			fieldname: "dimming_protocol",
 			label: "Dimming Protocol",
-			options: ["", "0-10V", "DALI", "DMX", "TRIAC", "PWM", "Other"],
+			options: ["", "Universal (ELV, TRIAC, MLV, 0-10V, PWM)", "DMX512", "DALI-2", "Bluetooth"],
 			reqd: 1
 		});
 		fields.push({ fieldtype: "Column Break" });
