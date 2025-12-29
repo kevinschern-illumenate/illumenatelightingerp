@@ -8,8 +8,18 @@ from frappe.model.document import Document
 
 class ILLFixtureTemplate(Document):
 	def validate(self):
+		self.validate_profile_item()
 		self.validate_endcap_options()
 		self.compute_max_assembled_length_mm()
+
+	def validate_profile_item(self):
+		"""Validate that the profile item has Stock UOM = Meter."""
+		if self.profile_item:
+			item = frappe.get_doc("Item", self.profile_item)
+			if item.stock_uom != "Meter":
+				frappe.throw(
+					_("Profile item must have Stock UOM = Meter. Current UOM: {0}").format(item.stock_uom)
+				)
 
 	def validate_endcap_options(self):
 		if not self.endcap_options:

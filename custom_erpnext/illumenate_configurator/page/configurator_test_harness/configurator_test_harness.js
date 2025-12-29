@@ -113,6 +113,11 @@ frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
 					</div>
 				</div>
 			</div>
+			<div class="create-package-section" style="display: none; margin-bottom: 15px;">
+				<button class="btn btn-success btn-create-package">
+					<i class="fa fa-plus"></i> Create Manufacturing Package
+				</button>
+			</div>
 			<div class="errors-container alert alert-danger" style="display: none;"></div>
 			<div class="results-json" style="display: none;">
 				<h5>Full Response (JSON)</h5>
@@ -122,6 +127,11 @@ frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
 	`);
 
 	page.results_container = $(wrapper).find(".configurator-results");
+
+	// Attach click handler for Create Manufacturing Package button
+	page.results_container.find(".btn-create-package").on("click", function () {
+		create_manufacturing_package(page);
+	});
 };
 
 function update_tape_attribute_options(page) {
@@ -270,11 +280,13 @@ function display_results(page, result) {
 	var errors_container = page.results_container.find(".errors-container");
 	var json_container = page.results_container.find(".results-json");
 	var json_output = page.results_container.find(".json-output");
+	var create_package_section = page.results_container.find(".create-package-section");
 
 	// Reset
 	summary.hide();
 	errors_container.hide();
 	json_container.hide();
+	create_package_section.hide();
 
 	if (result.errors && result.errors.length > 0) {
 		var error_html = "<strong>Validation Errors:</strong><ul>";
@@ -341,9 +353,84 @@ function display_results(page, result) {
 		}
 
 		summary.show();
+
+		// Show "Create Manufacturing Package" button after successful validation
+		page.results_container.find(".create-package-section").show();
 	}
 
 	// Always show JSON
 	json_output.text(JSON.stringify(result, null, 2));
 	json_container.show();
+}
+
+function create_manufacturing_package(page) {
+	var args = {
+		template_code: page.template_field.get_value(),
+		tape_spec: page.tape_field.get_value(),
+		tape_attribute_combination: page.tape_attribute_field.get_value(),
+		requested_overall_in: page.length_field.get_value(),
+		endcap_item: page.endcap_field.get_value() || null,
+		driver_spec: page.driver_field.get_value() || null,
+		driver_attribute_combination: page.driver_attribute_field.get_value() || null,
+		qty: 1,
+	};
+
+	frappe.call({
+		method: "custom_erpnext.illumenate_configurator.api.create_manufacturing_package",
+		args: args,
+		freeze: true,
+		freeze_message: "Creating manufacturing package...",
+		callback: function (r) {
+			if (r.message && !r.message.error) {
+				// Escape values to prevent XSS
+				var escape_html = function(str) {
+					if (!str) return '';
+					return String(str)
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;')
+						.replace(/"/g, '&quot;')
+						.replace(/'/g, '&#39;');
+				};
+				var configured_fixture = escape_html(r.message.configured_fixture);
+				var item_code = escape_html(r.message.item_code);
+				var bom_no = escape_html(r.message.bom_no);
+				var message_text = r.message.message ? escape_html(r.message.message) : '';
+				
+				frappe.msgprint({
+					title: "Manufacturing Package Created",
+					message: `
+						<p><strong>Configured Fixture:</strong> <a href="/app/ill-configured-fixture/${configured_fixture}" target="_blank">${configured_fixture}</a></p>
+						<p><strong>Item:</strong> <a href="/app/item/${item_code}" target="_blank">${item_code}</a></p>
+						<p><strong>BOM:</strong> <a href="/app/bom/${bom_no}" target="_blank">${bom_no}</a></p>
+						${message_text ? '<p class="text-muted">' + message_text + "</p>" : ""}
+					`,
+					indicator: "green",
+				});
+			} else if (r.message && r.message.error) {
+				var error_html = "<strong>Errors:</strong><ul>";
+				r.message.errors.forEach(function (err) {
+					// Escape error messages to prevent XSS
+					var safe_msg = String(err.message || '')
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;');
+					error_html += "<li>" + safe_msg + "</li>";
+				});
+				error_html += "</ul>";
+				frappe.msgprint({
+					title: "Error Creating Package",
+					message: error_html,
+					indicator: "red",
+				});
+			}
+		},
+		error: function (r) {
+			frappe.msgprint({
+				title: "Error",
+				message: r.message || "An unexpected error occurred",
+				indicator: "red",
+			});
+		},
+	});
 }

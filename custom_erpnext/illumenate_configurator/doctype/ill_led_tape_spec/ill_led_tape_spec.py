@@ -15,11 +15,16 @@ class ILLLEDTapeSpec(Document):
 		self.set_help_html()
 
 	def validate_tape_item(self):
-		"""Validate that the tape item is active and preferably a template."""
+		"""Validate that the tape item is active and has correct UOM."""
 		if self.tape_item:
 			item = frappe.get_doc("Item", self.tape_item)
 			if item.disabled:
 				frappe.throw(_("The selected Tape Item is disabled. Please select an active item."))
+			# UOM validation
+			if item.stock_uom != "Meter":
+				frappe.throw(
+					_("Tape item must have Stock UOM = Meter. Current UOM: {0}").format(item.stock_uom)
+				)
 
 	def validate_variant_specs(self):
 		"""Validate each variant spec row."""

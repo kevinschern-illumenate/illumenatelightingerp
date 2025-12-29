@@ -552,3 +552,312 @@ def get_or_create_variant(template_item, variant_attributes):
 	except Exception as e:
 		frappe.log_error(f"Failed to create variant: {e}")
 		return None
+
+
+def create_or_get_configured_item(sku: str, description: str) -> str:
+	"""
+	Create or retrieve an Item for the configured fixture.
+
+	Args:
+		sku: The item code (SKU) for the configured fixture
+		description: The item description
+
+	Returns:
+		The item code of the created or existing item
+	"""
+	if frappe.db.exists("Item", sku):
+		return sku
+
+	# Ensure item group exists
+	if not frappe.db.exists("Item Group", "Configured Fixtures"):
+		frappe.get_doc(
+			{
+				"doctype": "Item Group",
+				"item_group_name": "Configured Fixtures",
+				"parent_item_group": "All Item Groups",
+			}
+		).insert(ignore_permissions=True)
+
+	item = frappe.get_doc(
+		{
+			"doctype": "Item",
+			"item_code": sku,
+			"item_name": description,
+			"item_group": "Configured Fixtures",
+			"stock_uom": "Nos",
+			"is_stock_item": 1,
+			"has_serial_no": 1,
+		}
+	)
+	item.insert(ignore_permissions=True)
+	return sku
+
+
+def create_bom(configured_fixture) -> str:
+	"""
+	Create BOM for configured fixture.
+
+	Args:
+		configured_fixture: The ILL Configured Fixture document
+
+	Returns:
+		The BOM name
+	"""
+	cf = configured_fixture
+	template = frappe.get_doc("ILL Fixture Template", cf.fixture_template)
+	tape_spec = frappe.get_doc("ILL LED Tape Spec", cf.tape_spec)
+	driver_spec = (
+		frappe.get_doc("ILL Driver Spec", cf.selected_driver_spec) if cf.selected_driver_spec else None
+	)
+
+	# Check for existing BOM with same signature
+	existing_bom = frappe.db.get_value(
+		"BOM",
+		{
+			"item": cf.configured_item,
+			"is_active": 1,
+			"is_default": 1,
+		},
+		"name",
+	)
+	if existing_bom:
+		return existing_bom
+
+	bom_items = []
+
+	# 1. Profile (meters)
+	bom_items.append(
+		{
+			"item_code": template.profile_item,
+			"qty": round(cf.manufacturable_overall_mm / 1000, 3),
+			"uom": "Meter",
+		}
+	)
+
+	# 2. LED Tape (meters)
+	bom_items.append(
+		{
+			"item_code": tape_spec.tape_item,
+			"qty": round(cf.tape_cut_length_mm / 1000, 3),
+			"uom": "Meter",
+		}
+	)
+
+	# 3. Endcaps (qty 4 = 2 required + 2 extra)
+	bom_items.append(
+		{
+			"item_code": cf.endcap_item,
+			"qty": 4,
+			"uom": "Nos",
+		}
+	)
+
+	# 4. Leader Cable (qty = runs_count)
+	# Only add if leader cable item exists
+	leader_item = "FML-2C-6"
+	if frappe.db.exists("Item", leader_item):
+		bom_items.append(
+			{
+				"item_code": leader_item,
+				"qty": cf.runs_count,
+				"uom": "Nos",
+			}
+		)
+
+	# 5. Driver(s)
+	if driver_spec:
+		bom_items.append(
+			{
+				"item_code": driver_spec.driver_item,
+				"qty": cf.selected_driver_qty,
+				"uom": "Nos",
+			}
+		)
+
+	bom = frappe.get_doc(
+		{
+			"doctype": "BOM",
+			"item": cf.configured_item,
+			"quantity": 1,
+			"is_active": 1,
+			"is_default": 1,
+			"items": bom_items,
+		}
+	)
+	bom.insert(ignore_permissions=True)
+	bom.submit()
+
+	return bom.name
+
+
+@frappe.whitelist()
+def create_manufacturing_package(
+	template_code: str,
+	tape_spec: str,
+	tape_attribute_combination: str,
+	requested_overall_in: float,
+	endcap_item: str | None = None,
+	driver_spec: str | None = None,
+	driver_attribute_combination: str | None = None,
+	qty: int = 1,
+):
+	"""
+	Orchestrate creation of configured fixture, item, BOM, and work order.
+	Reuses validate_configuration logic internally.
+
+	Args:
+		template_code: The fixture template code
+		tape_spec: The ILL LED Tape Spec name
+		tape_attribute_combination: Attribute combination string for tape
+		requested_overall_in: Requested overall length in inches
+		endcap_item: Optional endcap Item name
+		driver_spec: Optional ILL Driver Spec name
+		driver_attribute_combination: Attribute combination string for driver
+		qty: Quantity for work order (default 1)
+
+	Returns:
+		Dict with configured_fixture, item_code, bom_no, and optionally work_order
+	"""
+	errors = []
+
+	# Validate inputs
+	try:
+		requested_overall_in = float(requested_overall_in)
+	except (TypeError, ValueError):
+		errors.append(
+			{
+				"code": "INVALID_INPUT",
+				"message": "Requested overall length must be a number.",
+				"field": "requested_overall_in",
+			}
+		)
+
+	if requested_overall_in <= 0:
+		errors.append(
+			{
+				"code": "INVALID_INPUT",
+				"message": "Requested overall length must be greater than 0.",
+				"field": "requested_overall_in",
+			}
+		)
+
+	# Validate template exists
+	if not frappe.db.exists("ILL Fixture Template", template_code):
+		errors.append(
+			{
+				"code": "TEMPLATE_NOT_FOUND",
+				"message": f"Fixture template '{template_code}' not found.",
+				"field": "template_code",
+			}
+		)
+
+	# Validate tape spec exists and is active
+	tape_doc = None
+	if frappe.db.exists("ILL LED Tape Spec", tape_spec):
+		tape_doc = frappe.get_doc("ILL LED Tape Spec", tape_spec)
+		if not tape_doc.is_active:
+			errors.append(
+				{
+					"code": "TAPE_INACTIVE",
+					"message": f"Tape spec '{tape_spec}' is not active.",
+					"field": "tape_spec",
+				}
+			)
+		elif not tape_doc.get_spec_for_attributes(tape_attribute_combination):
+			errors.append(
+				{
+					"code": "TAPE_VARIANT_NOT_FOUND",
+					"message": f"No specification found for attribute combination '{tape_attribute_combination}'.",
+					"field": "tape_attribute_combination",
+				}
+			)
+	else:
+		errors.append(
+			{
+				"code": "TAPE_NOT_FOUND",
+				"message": f"LED tape spec '{tape_spec}' not found.",
+				"field": "tape_spec",
+			}
+		)
+
+	if errors:
+		return {"error": True, "errors": errors}
+
+	# Resolve endcap if not provided
+	template = frappe.get_doc("ILL Fixture Template", template_code)
+	if not endcap_item:
+		endcap_item = template.get_default_endcap_item()
+
+	if not endcap_item:
+		return {
+			"error": True,
+			"errors": [
+				{
+					"code": "NO_ENDCAP",
+					"message": "No endcap item specified and no default endcap configured.",
+					"field": "endcap_item",
+				}
+			],
+		}
+
+	# Create or find Configured Fixture
+	cf = frappe.new_doc("ILL Configured Fixture")
+	cf.fixture_template = template_code
+	cf.tape_spec = tape_spec
+	cf.tape_attribute_combination = tape_attribute_combination
+	cf.endcap_item = endcap_item
+	cf.requested_overall_in = requested_overall_in
+
+	if driver_spec:
+		cf.driver_spec = driver_spec
+	if driver_attribute_combination:
+		cf.driver_attribute_combination = driver_attribute_combination
+
+	# Compute all values
+	try:
+		cf.compute_all()
+	except Exception as e:
+		return {
+			"error": True,
+			"errors": [{"code": "COMPUTATION_ERROR", "message": str(e)}],
+		}
+
+	# Check if a fixture with this signature already exists
+	existing_cf = frappe.db.get_value(
+		"ILL Configured Fixture",
+		{"configuration_signature": cf.configuration_signature},
+		["name", "configured_item", "bom"],
+		as_dict=True,
+	)
+
+	if existing_cf:
+		return {
+			"error": False,
+			"configured_fixture": existing_cf.name,
+			"item_code": existing_cf.configured_item,
+			"bom_no": existing_cf.bom,
+			"message": "Using existing configuration",
+		}
+
+	# Save the configured fixture
+	cf.insert(ignore_permissions=True)
+
+	# Generate SKU and create/get Item
+	sku = cf.generate_sku()
+	description = f"Configured Fixture: {template_code} - {cf.manufacturable_overall_in}\""
+
+	item_code = create_or_get_configured_item(sku, description)
+	cf.configured_item = item_code
+
+	# Create BOM
+	bom_name = create_bom(cf)
+	cf.bom = bom_name
+
+	cf.save(ignore_permissions=True)
+
+	return {
+		"error": False,
+		"configured_fixture": cf.name,
+		"item_code": item_code,
+		"bom_no": bom_name,
+	}
