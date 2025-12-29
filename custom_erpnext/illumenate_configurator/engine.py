@@ -14,15 +14,22 @@ All internal math is in mm. Inputs are in inches. Outputs display to nearest 1/1
 
 import math
 
+# Constants
+SIXTEENTHS_PER_INCH = 16  # Precision for inch fraction formatting
+MM_PER_INCH = 25.4
+MM_PER_FOOT = 304.8
+MAX_WATTS_PER_RUN = 85.0
+DRIVER_DERATING_FACTOR = 0.8
+
 
 def inches_to_mm(inches: float) -> float:
 	"""Convert inches to millimeters."""
-	return inches * 25.4
+	return inches * MM_PER_INCH
 
 
 def mm_to_inches(mm: float) -> float:
 	"""Convert millimeters to inches."""
-	return mm / 25.4
+	return mm / MM_PER_INCH
 
 
 def format_to_16th(inches: float) -> float:
@@ -30,7 +37,7 @@ def format_to_16th(inches: float) -> float:
 	Round inches to the nearest 1/16" increment.
 	in_display = round(in_value * 16) / 16
 	"""
-	return round(inches * 16) / 16
+	return round(inches * SIXTEENTHS_PER_INCH) / SIXTEENTHS_PER_INCH
 
 
 def format_length_output(mm: float) -> dict:
@@ -121,10 +128,6 @@ def compute_runs(tape_cut_mm: float, watts_per_ft: float, voltage_drop_max_run_f
 
 	Returns a dict with electrical calculations.
 	"""
-	# Constants
-	MAX_WATTS_PER_RUN = 85.0
-	MM_PER_FOOT = 304.8
-
 	total_ft = tape_cut_mm / MM_PER_FOOT
 	w_total = total_ft * watts_per_ft
 	max_run_ft_by_85w = MAX_WATTS_PER_RUN / watts_per_ft
@@ -189,7 +192,7 @@ def select_driver(
 	for driver in eligible_drivers:
 		max_wattage = driver.get("max_wattage", 0)
 		outputs_count = driver.get("outputs_count", 1)
-		usable_wattage = max_wattage * 0.8
+		usable_wattage = max_wattage * DRIVER_DERATING_FACTOR
 
 		if usable_wattage <= 0:
 			continue
@@ -247,17 +250,17 @@ def format_length_as_fraction(inches: float) -> str:
 	- if rem == 0: return "50"
 	- else: reduce fraction, format as "50-1_16"
 	"""
-	x16 = round(inches * 16)
-	whole = x16 // 16
-	rem = x16 % 16
+	x16 = round(inches * SIXTEENTHS_PER_INCH)
+	whole = x16 // SIXTEENTHS_PER_INCH
+	rem = x16 % SIXTEENTHS_PER_INCH
 
 	if rem == 0:
 		return str(whole)
 
 	# Reduce fraction
-	gcd = math.gcd(rem, 16)
+	gcd = math.gcd(rem, SIXTEENTHS_PER_INCH)
 	num = rem // gcd
-	den = 16 // gcd
+	den = SIXTEENTHS_PER_INCH // gcd
 
 	return f"{whole}-{num}_{den}"
 

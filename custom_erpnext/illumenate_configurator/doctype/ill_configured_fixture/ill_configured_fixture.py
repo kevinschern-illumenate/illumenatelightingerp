@@ -242,9 +242,10 @@ Profile Segmentation:
 		else:
 			lens_note = f"- Lens: Segmented, {cf.lens_piece_count} pieces @ 2m each"
 
+	header = "Configuration Instructions"
 	return f"""
-Configuration Instructions
-==========================
+{header}
+{"=" * len(header)}
 Requested Overall Length: {cf.requested_overall_in}" ({cf.requested_overall_mm} mm)
 Manufacturable Overall Length: {cf.manufacturable_overall_in}" ({cf.manufacturable_overall_mm} mm)
 Delta (rounded down): {round(cf.delta_mm / 25.4, 4)}" ({cf.delta_mm} mm)

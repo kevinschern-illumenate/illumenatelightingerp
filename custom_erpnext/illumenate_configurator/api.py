@@ -1055,8 +1055,13 @@ def create_manufacturing_package(
 	# Resolve joiner
 	if mounting_method and joiner_angle and seg["joiner_qty_target"] > 0:
 		joiner_result = resolve_joiner(template_code, mounting_method, joiner_angle)
-		cf.joiner_item = joiner_result.get("joiner_item")
-		cf.joiner_qty = seg["joiner_qty_target"]
+		if joiner_result.get("found"):
+			cf.joiner_item = joiner_result.get("joiner_item")
+			cf.joiner_qty = seg["joiner_qty_target"]
+		else:
+			# No joiner found - log warning but continue
+			cf.joiner_item = None
+			cf.joiner_qty = 0
 	else:
 		cf.joiner_qty = 0
 
@@ -1156,12 +1161,14 @@ def compute_mounting_hardware(mounting_method_name: str, manufacturable_m: float
 	if not mm.hardware_item:
 		return {"hardware_item": None, "qty": 0}
 
+	qty_per_unit = mm.hardware_qty_per_unit or 0
+
 	if mm.hardware_qty_rule == "Per Fixture":
-		qty = math.ceil(mm.hardware_qty_per_unit or 0)
+		qty = math.ceil(qty_per_unit)
 	elif mm.hardware_qty_rule == "Per Meter":
-		qty = math.ceil(manufacturable_m * (mm.hardware_qty_per_unit or 0))
+		qty = math.ceil(manufacturable_m * qty_per_unit)
 	elif mm.hardware_qty_rule == "Per 2m Piece":
-		qty = math.ceil(profile_pieces_count * (mm.hardware_qty_per_unit or 0))
+		qty = math.ceil(profile_pieces_count * qty_per_unit)
 	else:
 		qty = 0
 
