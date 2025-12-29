@@ -382,20 +382,40 @@ function create_manufacturing_package(page) {
 		freeze_message: "Creating manufacturing package...",
 		callback: function (r) {
 			if (r.message && !r.message.error) {
+				// Escape values to prevent XSS
+				var escape_html = function(str) {
+					if (!str) return '';
+					return String(str)
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;')
+						.replace(/"/g, '&quot;')
+						.replace(/'/g, '&#39;');
+				};
+				var configured_fixture = escape_html(r.message.configured_fixture);
+				var item_code = escape_html(r.message.item_code);
+				var bom_no = escape_html(r.message.bom_no);
+				var message_text = r.message.message ? escape_html(r.message.message) : '';
+				
 				frappe.msgprint({
 					title: "Manufacturing Package Created",
 					message: `
-						<p><strong>Configured Fixture:</strong> <a href="/app/ill-configured-fixture/${r.message.configured_fixture}" target="_blank">${r.message.configured_fixture}</a></p>
-						<p><strong>Item:</strong> <a href="/app/item/${r.message.item_code}" target="_blank">${r.message.item_code}</a></p>
-						<p><strong>BOM:</strong> <a href="/app/bom/${r.message.bom_no}" target="_blank">${r.message.bom_no}</a></p>
-						${r.message.message ? '<p class="text-muted">' + r.message.message + "</p>" : ""}
+						<p><strong>Configured Fixture:</strong> <a href="/app/ill-configured-fixture/${configured_fixture}" target="_blank">${configured_fixture}</a></p>
+						<p><strong>Item:</strong> <a href="/app/item/${item_code}" target="_blank">${item_code}</a></p>
+						<p><strong>BOM:</strong> <a href="/app/bom/${bom_no}" target="_blank">${bom_no}</a></p>
+						${message_text ? '<p class="text-muted">' + message_text + "</p>" : ""}
 					`,
 					indicator: "green",
 				});
 			} else if (r.message && r.message.error) {
 				var error_html = "<strong>Errors:</strong><ul>";
 				r.message.errors.forEach(function (err) {
-					error_html += "<li>" + err.message + "</li>";
+					// Escape error messages to prevent XSS
+					var safe_msg = String(err.message || '')
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;');
+					error_html += "<li>" + safe_msg + "</li>";
 				});
 				error_html += "</ul>";
 				frappe.msgprint({

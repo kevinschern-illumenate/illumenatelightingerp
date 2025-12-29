@@ -104,7 +104,7 @@ class TestSKUGeneration(unittest.TestCase):
 		length_str = f"{length_16ths:.2f}".replace(".", "_")
 		sku = f"ILL-{template_code}-NA-NA-NA-NA-NA-NA-NA-{length_str}"
 
-		self.assertEqual(sku, "ILL-SH01-NA-NA-NA-NA-NA-NA-NA-48_19")  # 48.1875 rounds to 48.1875
+		self.assertEqual(sku, "ILL-SH01-NA-NA-NA-NA-NA-NA-NA-48_19")  # 48.1875 becomes 48.19 when formatted
 
 	def test_sku_rounding_to_16th(self):
 		"""Test that non-1/16" values are properly rounded."""
