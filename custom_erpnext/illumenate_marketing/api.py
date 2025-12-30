@@ -740,3 +740,251 @@ def _send_webhook_request(webhook_url, payload, headers):
 			)
 	except Exception as e:
 		frappe.log_error(f"n8n webhook request failed: {e}", "n8n Webhook Error")
+
+
+# ============================================================================
+# Customer Lifetime Value (LTV) APIs - Sprint 6
+# ============================================================================
+
+
+@frappe.whitelist()
+def get_customer_ltv(customer_name):
+	"""
+	Return lifetime value metrics for a customer.
+
+	This API is designed for n8n workflows to consume customer LTV data
+	for targeted promotions and marketing automation.
+
+	Args:
+		customer_name: The Customer doctype name/ID
+
+	Returns:
+		dict with lifetime_value, order_count, last_order, product_categories
+	"""
+	if not customer_name:
+		frappe.throw(_("Customer name is required"))
+
+	# Validate customer exists
+	if not frappe.db.exists("Customer", customer_name):
+		frappe.throw(_("Customer not found: {0}").format(customer_name))
+
+	# Query Sales Invoice for LTV metrics
+	result = frappe.db.sql(
+		"""
+		SELECT
+			COALESCE(SUM(grand_total), 0) as lifetime_value,
+			COUNT(*) as order_count,
+			MAX(posting_date) as last_order
+		FROM `tabSales Invoice`
+		WHERE customer = %s AND docstatus = 1
+		""",
+		customer_name,
+		as_dict=True,
+	)
+
+	ltv_data = result[0] if result else {"lifetime_value": 0, "order_count": 0, "last_order": None}
+
+	# Get distinct product categories from Sales Invoice Items
+	categories = frappe.db.sql(
+		"""
+		SELECT DISTINCT sii.item_group
+		FROM `tabSales Invoice Item` sii
+		JOIN `tabSales Invoice` si ON sii.parent = si.name
+		WHERE si.customer = %s AND si.docstatus = 1 AND sii.item_group IS NOT NULL
+		""",
+		customer_name,
+	)
+
+	ltv_data["product_categories"] = [row[0] for row in categories] if categories else []
+	ltv_data["customer_name"] = customer_name
+
+	return ltv_data
+
+
+@frappe.whitelist()
+def get_high_ltv_customers(min_lifetime_value=1000, limit=100):
+	"""
+	Query customers who have spent at or above a minimum lifetime value.
+
+	This API is designed for n8n workflows to identify high-value customers
+	for targeted promotions.
+
+	Args:
+		min_lifetime_value: Minimum lifetime value threshold (default $1000)
+		limit: Maximum number of customers to return (default 100)
+
+	Returns:
+		list of customers with their LTV metrics
+	"""
+	min_lifetime_value = float(min_lifetime_value)
+	limit = int(limit)
+
+	# Query customers with LTV >= threshold
+	customers = frappe.db.sql(
+		"""
+		SELECT
+			si.customer as customer_name,
+			c.customer_name as customer_display_name,
+			c.email_id as customer_email,
+			SUM(si.grand_total) as lifetime_value,
+			COUNT(si.name) as order_count,
+			MAX(si.posting_date) as last_order
+		FROM `tabSales Invoice` si
+		JOIN `tabCustomer` c ON si.customer = c.name
+		WHERE si.docstatus = 1
+		GROUP BY si.customer, c.customer_name, c.email_id
+		HAVING SUM(si.grand_total) >= %s
+		ORDER BY lifetime_value DESC
+		LIMIT %s
+		""",
+		(min_lifetime_value, limit),
+		as_dict=True,
+	)
+
+	return customers
+
+
+@frappe.whitelist()
+def generate_promo_code(customer_name, discount_percent, valid_days=30, campaign=None):
+	"""
+	Generate a unique promotional code for a customer.
+
+	This API creates a unique discount code that can be used for
+	lifetime value-based promotions via n8n workflows.
+
+	Args:
+		customer_name: The Customer doctype name/ID
+		discount_percent: Discount percentage (0-100)
+		valid_days: Number of days the code is valid (default 30)
+		campaign: Optional campaign name for tracking
+
+	Returns:
+		dict with promo_code and validity information
+	"""
+	import secrets
+
+	if not customer_name:
+		frappe.throw(_("Customer name is required"))
+
+	# Validate customer exists
+	if not frappe.db.exists("Customer", customer_name):
+		frappe.throw(_("Customer not found: {0}").format(customer_name))
+
+	# Validate discount percent
+	discount_percent = float(discount_percent)
+	if discount_percent < 0 or discount_percent > 100:
+		frappe.throw(_("Discount percent must be between 0 and 100"))
+
+	valid_days = int(valid_days)
+	if valid_days < 1:
+		frappe.throw(_("Valid days must be at least 1"))
+
+	# Generate unique code
+	code = f"ILL-{secrets.token_hex(4).upper()}"
+
+	# Ensure uniqueness
+	while frappe.db.exists("ILL Promo Code", code):
+		code = f"ILL-{secrets.token_hex(4).upper()}"
+
+	# Calculate validity dates
+	from frappe.utils import add_days, today
+
+	valid_from = today()
+	valid_until = add_days(valid_from, valid_days)
+
+	# Create Promo Code record
+	promo = frappe.new_doc("ILL Promo Code")
+	promo.promo_code = code
+	promo.customer = customer_name
+	promo.discount_percent = discount_percent
+	promo.valid_from = valid_from
+	promo.valid_until = valid_until
+	promo.campaign = campaign
+	promo.insert(ignore_permissions=True)
+
+	return {
+		"promo_code": code,
+		"customer": customer_name,
+		"discount_percent": discount_percent,
+		"valid_from": valid_from,
+		"valid_until": valid_until,
+		"campaign": campaign,
+	}
+
+
+@frappe.whitelist()
+def validate_promo_code(promo_code, customer_name=None):
+	"""
+	Validate a promo code and optionally check if it belongs to a specific customer.
+
+	Args:
+		promo_code: The promo code string
+		customer_name: Optional customer to validate ownership
+
+	Returns:
+		dict with validation result and promo code details
+	"""
+	if not promo_code:
+		return {"valid": False, "error": "Promo code is required"}
+
+	if not frappe.db.exists("ILL Promo Code", promo_code):
+		return {"valid": False, "error": "Promo code not found"}
+
+	doc = frappe.get_doc("ILL Promo Code", promo_code)
+
+	# Check customer if provided
+	if customer_name and doc.customer != customer_name:
+		return {"valid": False, "error": "Promo code does not belong to this customer"}
+
+	# Check if already used
+	if doc.is_used:
+		return {"valid": False, "error": "Promo code has already been used"}
+
+	# Check validity dates
+	from frappe.utils import getdate, today
+
+	today_date = getdate(today())
+
+	if doc.valid_from and getdate(doc.valid_from) > today_date:
+		return {"valid": False, "error": "Promo code is not yet valid"}
+
+	if doc.valid_until and getdate(doc.valid_until) < today_date:
+		return {"valid": False, "error": "Promo code has expired"}
+
+	return {
+		"valid": True,
+		"promo_code": doc.promo_code,
+		"customer": doc.customer,
+		"discount_percent": doc.discount_percent,
+		"valid_from": str(doc.valid_from),
+		"valid_until": str(doc.valid_until),
+	}
+
+
+@frappe.whitelist()
+def redeem_promo_code(promo_code, customer_name):
+	"""
+	Redeem a promo code, marking it as used.
+
+	Args:
+		promo_code: The promo code string
+		customer_name: The customer redeeming the code
+
+	Returns:
+		dict with redemption result
+	"""
+	# First validate the code
+	validation = validate_promo_code(promo_code, customer_name)
+
+	if not validation.get("valid"):
+		return {"success": False, "error": validation.get("error")}
+
+	# Mark as used
+	doc = frappe.get_doc("ILL Promo Code", promo_code)
+	doc.mark_as_used()
+
+	return {
+		"success": True,
+		"message": "Promo code redeemed successfully",
+		"discount_percent": doc.discount_percent,
+	}

@@ -1,0 +1,218 @@
+{
+	"name": "LTV Promo Code Generator",
+	"nodes": [
+		{
+			"parameters": {
+				"rule": {
+					"interval": [
+						{
+							"field": "cronExpression",
+							"expression": "0 8 * * *"
+						}
+					]
+				}
+			},
+			"id": "schedule-trigger",
+			"name": "Daily 8 AM Trigger",
+			"type": "n8n-nodes-base.scheduleTrigger",
+			"typeVersion": 1.2,
+			"position": [180, 260]
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "={{$env.ERPNEXT_URL}}/api/method/custom_erpnext.illumenate_marketing.api.get_high_ltv_customers",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "{ \"min_lifetime_value\": 1000, \"limit\": 100 }",
+				"options": {}
+			},
+			"id": "get-high-ltv-customers",
+			"name": "Get High LTV Customers",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [400, 260],
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "erpnext-api-key",
+					"name": "ERPNext API Key"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict"
+					},
+					"conditions": [
+						{
+							"leftValue": "={{ $json.message.length }}",
+							"rightValue": 0,
+							"operator": {
+								"type": "number",
+								"operation": "gt"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "check-customers-exist",
+			"name": "Has Customers?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [620, 260]
+		},
+		{
+			"parameters": {
+				"fieldToSplitOut": "message",
+				"options": {}
+			},
+			"id": "split-customers",
+			"name": "Split Customer List",
+			"type": "n8n-nodes-base.splitOut",
+			"typeVersion": 1,
+			"position": [840, 160]
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "={{$env.ERPNEXT_URL}}/api/method/custom_erpnext.illumenate_marketing.api.generate_promo_code",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={{ JSON.stringify({ customer_name: $json.customer_name, discount_percent: 50, valid_days: 30, campaign: 'LTV Promotion' }) }}",
+				"options": {}
+			},
+			"id": "generate-promo-code",
+			"name": "Generate Promo Code",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1060, 160],
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "erpnext-api-key",
+					"name": "ERPNext API Key"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"fromEmail": "marketing@illumenate.lighting",
+				"toEmail": "={{ $('Split Customer List').item.json.customer_email }}",
+				"subject": "You've earned 50% off! 🎉",
+				"emailType": "html",
+				"html": "<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    .container { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }\n    .header { background: #2E7D32; color: white; padding: 20px; text-align: center; }\n    .content { padding: 20px; background: #f5f5f5; }\n    .code { font-size: 24px; font-weight: bold; color: #2E7D32; background: white; padding: 15px; text-align: center; border: 2px dashed #2E7D32; margin: 20px 0; }\n    .footer { padding: 15px; text-align: center; color: #666; font-size: 12px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Thank You for Being a Valued Customer!</h1>\n    </div>\n    <div class=\"content\">\n      <p>Dear {{ $('Split Customer List').item.json.customer_display_name }},</p>\n      <p>As a special thank you for your continued loyalty to ilLumenate Lighting, we're excited to offer you an exclusive discount!</p>\n      <p>Use this code on your next purchase:</p>\n      <div class=\"code\">{{ $json.message.promo_code }}</div>\n      <p><strong>50% OFF</strong> your next order!</p>\n      <p>This offer is valid until {{ $json.message.valid_until }}.</p>\n      <p>Happy shopping!</p>\n      <p>Best regards,<br>The ilLumenate Lighting Team</p>\n    </div>\n    <div class=\"footer\">\n      <p>ilLumenate Lighting | <a href=\"https://illumenate.lighting\">illumenate.lighting</a></p>\n      <p><a href=\"{{$env.ERPNEXT_URL}}/unsubscribe\">Unsubscribe</a></p>\n    </div>\n  </div>\n</body>\n</html>",
+				"options": {}
+			},
+			"id": "send-promo-email",
+			"name": "Send Promo Email",
+			"type": "n8n-nodes-base.emailSend",
+			"typeVersion": 2.1,
+			"position": [1280, 160],
+			"credentials": {
+				"smtp": {
+					"id": "smtp-credentials",
+					"name": "SMTP Credentials"
+				}
+			}
+		},
+		{
+			"parameters": {},
+			"id": "no-customers",
+			"name": "No Customers Found",
+			"type": "n8n-nodes-base.noOp",
+			"typeVersion": 1,
+			"position": [840, 360]
+		}
+	],
+	"connections": {
+		"Daily 8 AM Trigger": {
+			"main": [
+				[
+					{
+						"node": "Get High LTV Customers",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Get High LTV Customers": {
+			"main": [
+				[
+					{
+						"node": "Has Customers?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Has Customers?": {
+			"main": [
+				[
+					{
+						"node": "Split Customer List",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "No Customers Found",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Split Customer List": {
+			"main": [
+				[
+					{
+						"node": "Generate Promo Code",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Generate Promo Code": {
+			"main": [
+				[
+					{
+						"node": "Send Promo Email",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"meta": {
+		"instanceId": "illumenate-lighting-erp",
+		"templateCredsSetupCompleted": true
+	},
+	"tags": [
+		{
+			"name": "marketing",
+			"createdAt": "2024-01-01T00:00:00.000Z"
+		},
+		{
+			"name": "ltv",
+			"createdAt": "2024-01-01T00:00:00.000Z"
+		}
+	]
+}
