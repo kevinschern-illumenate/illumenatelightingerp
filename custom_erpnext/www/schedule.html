@@ -221,6 +221,88 @@
 {% if is_editable %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+	// Add Line button handlers
+	function addNewLine() {
+		frappe.call({
+			method: 'custom_erpnext.illumenate_configurator.api.add_schedule_line',
+			args: {
+				schedule_name: '{{ schedule.name }}',
+				line_type: 'ilLumenate'
+			},
+			freeze: true,
+			freeze_message: 'Adding line...',
+			callback: function(r) {
+				if (r.message && r.message.success) {
+					// Reload the page to show the new line
+					window.location.reload();
+				} else {
+					frappe.msgprint({
+						title: 'Error',
+						message: r.message ? r.message.error : 'Failed to add line',
+						indicator: 'red'
+					});
+				}
+			},
+			error: function(r) {
+				frappe.msgprint({
+					title: 'Error',
+					message: 'Failed to add line. Please try again.',
+					indicator: 'red'
+				});
+			}
+		});
+	}
+
+	const addLineBtn = document.getElementById('add-line-btn');
+	if (addLineBtn) {
+		addLineBtn.addEventListener('click', addNewLine);
+	}
+
+	const addFirstLineBtn = document.getElementById('add-first-line-btn');
+	if (addFirstLineBtn) {
+		addFirstLineBtn.addEventListener('click', addNewLine);
+	}
+
+	// Delete line button handlers
+	document.querySelectorAll('.delete-line-btn').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			const idx = this.getAttribute('data-idx');
+			if (!confirm('Are you sure you want to delete this line?')) {
+				return;
+			}
+
+			frappe.call({
+				method: 'custom_erpnext.illumenate_configurator.api.delete_schedule_line',
+				args: {
+					schedule_name: '{{ schedule.name }}',
+					idx: idx
+				},
+				freeze: true,
+				freeze_message: 'Deleting line...',
+				callback: function(r) {
+					if (r.message && r.message.success) {
+						window.location.reload();
+					} else {
+						frappe.msgprint({
+							title: 'Error',
+							message: r.message ? r.message.error : 'Failed to delete line',
+							indicator: 'red'
+						});
+					}
+				}
+			});
+		});
+	});
+
+	// Configure button handlers
+	document.querySelectorAll('.configure-btn').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			const idx = this.getAttribute('data-idx');
+			// Navigate to configurator page with schedule and line info
+			window.location.href = '/configurator?schedule={{ schedule.name }}&idx=' + idx;
+		});
+	});
+
 	// Create Sales Order button
 	const createOrderBtn = document.getElementById('create-order-btn');
 	if (createOrderBtn) {

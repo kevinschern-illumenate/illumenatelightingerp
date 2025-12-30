@@ -2132,3 +2132,104 @@ def create_schedule(project, schedule_name):
 	frappe.db.commit()
 
 	return {"name": schedule.name, "schedule_name": schedule.schedule_name}
+
+
+@frappe.whitelist()
+def add_schedule_line(schedule_name, line_type="ilLumenate", qty=1):
+	"""
+	Add a new line to a fixture schedule.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name (required)
+		line_type: Type of line - 'ilLumenate' or 'Third Party' (default: ilLumenate)
+		qty: Quantity (default: 1)
+
+	Returns:
+		dict with success status and line idx on success
+	"""
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	customer = get_customer_for_portal_user()
+
+	if not customer:
+		return {"success": False, "error": "No customer linked to your account."}
+
+	# Validate schedule exists and user has access
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		return {"success": False, "error": "Schedule not found."}
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Check if schedule is editable
+	if schedule.status == "Ordered":
+		return {"success": False, "error": "Cannot modify an ordered schedule."}
+
+	# Check customer access via project
+	if schedule.project:
+		project_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
+		if project_customer != customer:
+			return {"success": False, "error": "You do not have permission to modify this schedule."}
+
+	# Add a new line
+	new_line = schedule.append("lines", {
+		"line_type": line_type,
+		"qty": int(qty),
+	})
+
+	schedule.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {"success": True, "idx": new_line.idx}
+
+
+@frappe.whitelist()
+def delete_schedule_line(schedule_name, idx):
+	"""
+	Delete a line from a fixture schedule.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name (required)
+		idx: The line index to delete (required)
+
+	Returns:
+		dict with success status
+	"""
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	customer = get_customer_for_portal_user()
+
+	if not customer:
+		return {"success": False, "error": "No customer linked to your account."}
+
+	# Validate schedule exists
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		return {"success": False, "error": "Schedule not found."}
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Check if schedule is editable
+	if schedule.status == "Ordered":
+		return {"success": False, "error": "Cannot modify an ordered schedule."}
+
+	# Check customer access via project
+	if schedule.project:
+		project_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
+		if project_customer != customer:
+			return {"success": False, "error": "You do not have permission to modify this schedule."}
+
+	# Find and remove the line
+	idx = int(idx)
+	line_to_remove = None
+	for line in schedule.lines:
+		if line.idx == idx:
+			line_to_remove = line
+			break
+
+	if not line_to_remove:
+		return {"success": False, "error": "Line not found."}
+
+	schedule.remove(line_to_remove)
+	schedule.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {"success": True}
