@@ -39,7 +39,7 @@ def get_context(context):
 	schedule_customer = schedule.customer
 	if not schedule_customer and schedule.project:
 		schedule_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
-	
+
 	if schedule_customer != customer:
 		context.error = "You do not have permission to view this schedule."
 		return context

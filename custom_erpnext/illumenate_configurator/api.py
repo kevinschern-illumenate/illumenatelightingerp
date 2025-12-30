@@ -2266,6 +2266,7 @@ def get_schedule_line(schedule_name, idx):
 		dict with success status and line data
 	"""
 	import json
+
 	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
 
 	customer = get_customer_for_portal_user()
@@ -2352,6 +2353,7 @@ def save_schedule_line(
 		dict with success status
 	"""
 	import json
+
 	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
 
 	customer = get_customer_for_portal_user()
@@ -2418,7 +2420,7 @@ def save_schedule_line(
 		# TODO: Call pricing engine to calculate unit_msrp, unit_net, line_total
 		# For now, set placeholder values
 		# This should integrate with validate_configuration and pricing logic
-		
+
 	else:
 		# Other Manufacturer
 		target_line.fixture_template = None

@@ -233,7 +233,8 @@ function update_tape_attribute_options(page) {
 				// Store mapping from abbreviated to full attribute combination
 				page._tape_attribute_map = {};
 				var options = r.message.variants.map(function (v) {
-					page._tape_attribute_map[v.attribute_combination] = v.attribute_combination_full;
+					page._tape_attribute_map[v.attribute_combination] =
+						v.attribute_combination_full;
 					return v.attribute_combination;
 				});
 				page.tape_attribute_field.df.options = [""].concat(options);
@@ -262,7 +263,8 @@ function update_driver_attribute_options(page) {
 				// Store mapping from abbreviated to full attribute combination
 				page._driver_attribute_map = {};
 				var options = r.message.variants.map(function (v) {
-					page._driver_attribute_map[v.attribute_combination] = v.attribute_combination_full;
+					page._driver_attribute_map[v.attribute_combination] =
+						v.attribute_combination_full;
 					return v.attribute_combination;
 				});
 				page.driver_attribute_field.df.options = [""].concat(options);
@@ -345,8 +347,14 @@ function validate_configuration(page) {
 	}
 
 	// Resolve abbreviated attribute combinations to full versions for API
-	var tape_attribute_combination = resolveAttributeCombination(page._tape_attribute_map, tape_attribute_combination_abbr);
-	var driver_attribute_combination = resolveAttributeCombination(page._driver_attribute_map, driver_attribute_combination_abbr);
+	var tape_attribute_combination = resolveAttributeCombination(
+		page._tape_attribute_map,
+		tape_attribute_combination_abbr
+	);
+	var driver_attribute_combination = resolveAttributeCombination(
+		page._driver_attribute_map,
+		driver_attribute_combination_abbr
+	);
 
 	// Build args
 	var args = {
@@ -435,12 +443,11 @@ function display_results(page, result) {
 			</table>
 		`;
 
-		var voltage_drop_row = electrical.max_run_ft_by_voltage_drop 
+		var voltage_drop_row = electrical.max_run_ft_by_voltage_drop
 			? `<tr><td>Max Run (V-Drop):</td><td>${electrical.max_run_ft_by_voltage_drop} ft</td></tr>`
 			: "";
-		var limiting_factor_display = electrical.limiting_factor === "voltage_drop" 
-			? "Voltage Drop" 
-			: "85W Rule";
+		var limiting_factor_display =
+			electrical.limiting_factor === "voltage_drop" ? "Voltage Drop" : "85W Rule";
 
 		var electrical_html = `
 			<table class="table table-sm table-borderless">
@@ -468,7 +475,9 @@ function display_results(page, result) {
 		if (result.pricing) {
 			var p = result.pricing;
 			if (p.error) {
-				pricing_html = `<div class="text-muted">${p.message || "Pricing unavailable"}</div>`;
+				pricing_html = `<div class="text-muted">${
+					p.message || "Pricing unavailable"
+				}</div>`;
 			} else {
 				pricing_html = `
 					<table class="table table-sm table-borderless">
@@ -495,7 +504,10 @@ function display_results(page, result) {
 		summary.find(".pricing-summary").html(pricing_html);
 
 		if (length.warning) {
-			summary.find(".warning-message").html("<strong>Note:</strong> " + length.warning).show();
+			summary
+				.find(".warning-message")
+				.html("<strong>Note:</strong> " + length.warning)
+				.show();
 		} else {
 			summary.find(".warning-message").hide();
 		}
@@ -515,8 +527,14 @@ function create_manufacturing_package(page) {
 	// Resolve abbreviated attribute combinations to full versions for API
 	var tape_attribute_combination_abbr = page.tape_attribute_field.get_value();
 	var driver_attribute_combination_abbr = page.driver_attribute_field.get_value();
-	var tape_attribute_combination = resolveAttributeCombination(page._tape_attribute_map, tape_attribute_combination_abbr);
-	var driver_attribute_combination = resolveAttributeCombination(page._driver_attribute_map, driver_attribute_combination_abbr);
+	var tape_attribute_combination = resolveAttributeCombination(
+		page._tape_attribute_map,
+		tape_attribute_combination_abbr
+	);
+	var driver_attribute_combination = resolveAttributeCombination(
+		page._driver_attribute_map,
+		driver_attribute_combination_abbr
+	);
 
 	var args = {
 		template_code: page.template_field.get_value(),
@@ -549,20 +567,20 @@ function create_manufacturing_package(page) {
 		callback: function (r) {
 			if (r.message && !r.message.error) {
 				// Escape values to prevent XSS
-				var escape_html = function(str) {
-					if (!str) return '';
+				var escape_html = function (str) {
+					if (!str) return "";
 					return String(str)
-						.replace(/&/g, '&amp;')
-						.replace(/</g, '&lt;')
-						.replace(/>/g, '&gt;')
-						.replace(/"/g, '&quot;')
-						.replace(/'/g, '&#39;');
+						.replace(/&/g, "&amp;")
+						.replace(/</g, "&lt;")
+						.replace(/>/g, "&gt;")
+						.replace(/"/g, "&quot;")
+						.replace(/'/g, "&#39;");
 				};
 				var configured_fixture = escape_html(r.message.configured_fixture);
 				var item_code = escape_html(r.message.item_code);
 				var bom_no = escape_html(r.message.bom_no);
-				var message_text = r.message.message ? escape_html(r.message.message) : '';
-				
+				var message_text = r.message.message ? escape_html(r.message.message) : "";
+
 				frappe.msgprint({
 					title: "Manufacturing Package Created",
 					message: `
@@ -577,10 +595,10 @@ function create_manufacturing_package(page) {
 				var error_html = "<strong>Errors:</strong><ul>";
 				r.message.errors.forEach(function (err) {
 					// Escape error messages to prevent XSS
-					var safe_msg = String(err.message || '')
-						.replace(/&/g, '&amp;')
-						.replace(/</g, '&lt;')
-						.replace(/>/g, '&gt;');
+					var safe_msg = String(err.message || "")
+						.replace(/&/g, "&amp;")
+						.replace(/</g, "&lt;")
+						.replace(/>/g, "&gt;");
 					error_html += "<li>" + safe_msg + "</li>";
 				});
 				error_html += "</ul>";
@@ -612,5 +630,6 @@ function resolveAttributeCombination(map, abbreviatedValue) {
 		return abbreviatedValue;
 	}
 	var fullValue = (map || {})[abbreviatedValue];
-	return fullValue || abbreviatedValue;
+	// Use explicit undefined check to allow empty strings (e.g., "(Default)" -> "")
+	return fullValue !== undefined ? fullValue : abbreviatedValue;
 }
