@@ -5,8 +5,7 @@ frappe.ui.form.on("ILL Fixture Schedule Line", {
 	fixture_template: function (frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		if (row.fixture_template && row.line_type === "ilLumenate") {
-			update_template_filters(frm, row);
-			load_template_defaults(frm, row);
+			load_template_data(frm, row);
 		}
 	},
 
@@ -52,27 +51,8 @@ frappe.ui.form.on("ILL Fixture Schedule Line", {
 	},
 });
 
-function update_template_filters(frm, row) {
-	// Update endcap filter based on template
-	frappe.call({
-		method: "frappe.client.get",
-		args: {
-			doctype: "ILL Fixture Template",
-			name: row.fixture_template,
-		},
-		callback: function (r) {
-			if (r.message && r.message.endcap_options) {
-				var endcap_items = r.message.endcap_options.map(function (opt) {
-					return opt.endcap_item;
-				});
-				// Store for later use
-				row._allowed_endcaps = endcap_items;
-			}
-		},
-	});
-}
-
-function load_template_defaults(frm, row) {
+function load_template_data(frm, row) {
+	// Combined function: loads template data, sets filters and defaults in a single API call
 	frappe.call({
 		method: "frappe.client.get",
 		args: {
@@ -83,8 +63,13 @@ function load_template_defaults(frm, row) {
 			if (r.message) {
 				var template = r.message;
 
-				// Set default endcap if available
+				// Store allowed endcaps for filter
 				if (template.endcap_options && template.endcap_options.length > 0) {
+					row._allowed_endcaps = template.endcap_options.map(function (opt) {
+						return opt.endcap_item;
+					});
+
+					// Set default endcap
 					for (var i = 0; i < template.endcap_options.length; i++) {
 						if (template.endcap_options[i].is_default) {
 							row.endcap_item = template.endcap_options[i].endcap_item;
@@ -259,7 +244,8 @@ function handle_validation_result(frm, row, cdt, cdn, result, args) {
 		frappe.model.set_value(cdt, cdn, "unit_net", pricing.unit_net_price);
 		frappe.model.set_value(cdt, cdn, "tier_name", pricing.tier_name);
 		frappe.model.set_value(cdt, cdn, "discount_percent", pricing.discount_percent);
-		frappe.model.set_value(cdt, cdn, "line_total", pricing.unit_net_price * row.qty);
+		var qty = row.qty || 1;
+		frappe.model.set_value(cdt, cdn, "line_total", pricing.unit_net_price * qty);
 	}
 
 	// Store full configuration JSON

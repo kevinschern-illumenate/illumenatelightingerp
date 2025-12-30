@@ -2495,6 +2495,15 @@ def validate_schedule_line_configuration(
 
 	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
 
+	def safe_int(value):
+		"""Safely convert value to int, returning None if invalid."""
+		if value is None:
+			return None
+		try:
+			return int(value)
+		except (ValueError, TypeError):
+			return None
+
 	# Check customer access
 	customer = get_customer_for_portal_user()
 	if not customer:
@@ -2539,8 +2548,8 @@ def validate_schedule_line_configuration(
 		tape_type_token=tape_type_token,
 		environment_token=environment_token,
 		cct_token=cct_token,
-		cri_value=int(cri_value) if cri_value else None,
-		output_token=int(output_token) if output_token else None,
+		cri_value=safe_int(cri_value),
+		output_token=safe_int(output_token),
 		finish_token=finish_token,
 		lens_option=lens_option,
 		mounting_method=mounting_method,
@@ -2568,8 +2577,8 @@ def validate_schedule_line_configuration(
 	target_line.tape_type_token = tape_type_token
 	target_line.environment_token = environment_token
 	target_line.cct_token = cct_token
-	target_line.cri_value = int(cri_value) if cri_value else None
-	target_line.output_token = int(output_token) if output_token else None
+	target_line.cri_value = safe_int(cri_value)
+	target_line.output_token = safe_int(output_token)
 	target_line.finish_token = finish_token
 	target_line.lens_option = lens_option
 	target_line.mounting_method = mounting_method

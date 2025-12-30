@@ -20,7 +20,7 @@ class ILLFixtureScheduleLine(Document):
 		if self.configuration_valid:
 			if not self.configuration_json:
 				self.configuration_valid = 0
-			elif not self.manufacturable_length_in or not self.manufacturable_length_mm:
+			elif self.manufacturable_length_in is None or self.manufacturable_length_mm is None:
 				self.configuration_valid = 0
 
 		# Generate configuration summary if missing but we have config
