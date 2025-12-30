@@ -1,0 +1,155 @@
+{
+	"actions": [],
+	"autoname": "field:promo_code",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"promo_code",
+		"customer",
+		"column_break_main",
+		"discount_percent",
+		"is_used",
+		"section_break_validity",
+		"valid_from",
+		"valid_until",
+		"column_break_validity",
+		"used_at",
+		"section_break_tracking",
+		"lead_source",
+		"campaign",
+		"column_break_tracking",
+		"notes"
+	],
+	"fields": [
+		{
+			"fieldname": "promo_code",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Promo Code",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "customer",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Customer",
+			"options": "Customer",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "discount_percent",
+			"fieldtype": "Percent",
+			"in_list_view": 1,
+			"label": "Discount Percent",
+			"reqd": 1,
+			"default": "10"
+		},
+		{
+			"fieldname": "is_used",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Is Used",
+			"default": "0"
+		},
+		{
+			"fieldname": "section_break_validity",
+			"fieldtype": "Section Break",
+			"label": "Validity"
+		},
+		{
+			"fieldname": "valid_from",
+			"fieldtype": "Date",
+			"label": "Valid From",
+			"reqd": 1
+		},
+		{
+			"fieldname": "valid_until",
+			"fieldtype": "Date",
+			"label": "Valid Until",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_validity",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "used_at",
+			"fieldtype": "Datetime",
+			"label": "Used At",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_tracking",
+			"fieldtype": "Section Break",
+			"label": "Tracking"
+		},
+		{
+			"fieldname": "lead_source",
+			"fieldtype": "Link",
+			"label": "Lead Source",
+			"options": "ILL Lead Source"
+		},
+		{
+			"fieldname": "campaign",
+			"fieldtype": "Data",
+			"label": "Campaign",
+			"description": "Campaign name or identifier for tracking"
+		},
+		{
+			"fieldname": "column_break_tracking",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "notes",
+			"fieldtype": "Small Text",
+			"label": "Notes"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Promo Code",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

@@ -1,0 +1,268 @@
+{
+	"name": "Lead Welcome Journey",
+	"nodes": [
+		{
+			"parameters": {
+				"httpMethod": "POST",
+				"path": "marketing-events",
+				"options": {}
+			},
+			"id": "webhook-trigger",
+			"name": "Marketing Events Webhook",
+			"type": "n8n-nodes-base.webhook",
+			"typeVersion": 2,
+			"position": [180, 260],
+			"webhookId": "marketing-events"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict"
+					},
+					"conditions": [
+						{
+							"leftValue": "={{ $json.event_type }}",
+							"rightValue": "lead_created",
+							"operator": {
+								"type": "string",
+								"operation": "equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "check-event-type",
+			"name": "Is Lead Created?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [400, 260]
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "={{$env.ERPNEXT_URL}}/api/method/custom_erpnext.illumenate_marketing.api.n8n_webhook_handler",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={{ JSON.stringify({ action: 'update_journey_stage', email: $json.document.email, stage: 'Lead', reason: 'Lead created via form submission' }) }}",
+				"options": {}
+			},
+			"id": "update-journey",
+			"name": "Update Journey to Lead",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [620, 160],
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "erpnext-api-key",
+					"name": "ERPNext API Key"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"amount": 2,
+				"unit": "days"
+			},
+			"id": "wait-2-days",
+			"name": "Wait 2 Days",
+			"type": "n8n-nodes-base.wait",
+			"typeVersion": 1.1,
+			"position": [840, 160]
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "={{$env.ERPNEXT_URL}}/api/method/custom_erpnext.illumenate_marketing.api.get_customer_ltv",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={{ JSON.stringify({ customer_name: $('Marketing Events Webhook').item.json.document.name }) }}",
+				"options": {}
+			},
+			"id": "check-ltv",
+			"name": "Check Customer LTV",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1060, 160],
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "erpnext-api-key",
+					"name": "ERPNext API Key"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict"
+					},
+					"conditions": [
+						{
+							"leftValue": "={{ $json.message.order_count }}",
+							"rightValue": 0,
+							"operator": {
+								"type": "number",
+								"operation": "equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "has-purchased",
+			"name": "Has Purchased?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [1280, 160]
+		},
+		{
+			"parameters": {
+				"fromEmail": "marketing@illumenate.lighting",
+				"toEmail": "={{ $('Marketing Events Webhook').item.json.document.email }}",
+				"subject": "Still exploring? Here's 10% off your first order!",
+				"emailType": "html",
+				"html": "<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    .container { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }\n    .header { background: #2E7D32; color: white; padding: 20px; text-align: center; }\n    .content { padding: 20px; background: #f5f5f5; }\n    .cta { display: inline-block; background: #2E7D32; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }\n    .footer { padding: 15px; text-align: center; color: #666; font-size: 12px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>We Miss You!</h1>\n    </div>\n    <div class=\"content\">\n      <p>Hello!</p>\n      <p>We noticed you haven't made a purchase yet. We'd love to help you find the perfect lighting solution!</p>\n      <p>Use code <strong>WELCOME10</strong> for 10% off your first order.</p>\n      <a href=\"https://illumenate.lighting/shop\" class=\"cta\">Shop Now</a>\n      <p>Need help? Reply to this email and our team will be happy to assist.</p>\n      <p>Best regards,<br>The ilLumenate Lighting Team</p>\n    </div>\n    <div class=\"footer\">\n      <p>ilLumenate Lighting | <a href=\"https://illumenate.lighting\">illumenate.lighting</a></p>\n    </div>\n  </div>\n</body>\n</html>",
+				"options": {}
+			},
+			"id": "send-nurture-email",
+			"name": "Send Nurture Email",
+			"type": "n8n-nodes-base.emailSend",
+			"typeVersion": 2.1,
+			"position": [1500, 60],
+			"credentials": {
+				"smtp": {
+					"id": "smtp-credentials",
+					"name": "SMTP Credentials"
+				}
+			}
+		},
+		{
+			"parameters": {},
+			"id": "already-customer",
+			"name": "Already a Customer",
+			"type": "n8n-nodes-base.noOp",
+			"typeVersion": 1,
+			"position": [1500, 260]
+		},
+		{
+			"parameters": {},
+			"id": "other-event",
+			"name": "Other Event Type",
+			"type": "n8n-nodes-base.noOp",
+			"typeVersion": 1,
+			"position": [620, 360]
+		}
+	],
+	"connections": {
+		"Marketing Events Webhook": {
+			"main": [
+				[
+					{
+						"node": "Is Lead Created?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is Lead Created?": {
+			"main": [
+				[
+					{
+						"node": "Update Journey to Lead",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Other Event Type",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Update Journey to Lead": {
+			"main": [
+				[
+					{
+						"node": "Wait 2 Days",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Wait 2 Days": {
+			"main": [
+				[
+					{
+						"node": "Check Customer LTV",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Check Customer LTV": {
+			"main": [
+				[
+					{
+						"node": "Has Purchased?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Has Purchased?": {
+			"main": [
+				[
+					{
+						"node": "Send Nurture Email",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Already a Customer",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"meta": {
+		"instanceId": "illumenate-lighting-erp",
+		"templateCredsSetupCompleted": true
+	},
+	"tags": [
+		{
+			"name": "marketing",
+			"createdAt": "2024-01-01T00:00:00.000Z"
+		},
+		{
+			"name": "lead-nurturing",
+			"createdAt": "2024-01-01T00:00:00.000Z"
+		}
+	]
+}
