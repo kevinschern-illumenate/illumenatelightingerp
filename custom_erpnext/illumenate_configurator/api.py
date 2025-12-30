@@ -631,9 +631,13 @@ def get_tape_spec_variants(tape_spec):
 
 	variants = []
 	for row in tape.variant_specs:
+		abbreviated = abbreviate_attribute_combination(row.attribute_combination)
+		# Use "(Default)" as display value when attribute_combination is empty
+		# This ensures the dropdown shows a selectable option for items without variants
+		display_value = abbreviated if abbreviated else "(Default)"
 		variants.append({
-			"attribute_combination": abbreviate_attribute_combination(row.attribute_combination),
-			"attribute_combination_full": row.attribute_combination,
+			"attribute_combination": display_value,
+			"attribute_combination_full": row.attribute_combination or "",
 			"voltage": row.voltage,
 			"watts_per_ft": row.watts_per_ft,
 			"cut_increment_in": row.cut_increment_in,
@@ -666,9 +670,13 @@ def get_driver_spec_variants(driver_spec):
 
 	variants = []
 	for row in driver.variant_specs:
+		abbreviated = abbreviate_attribute_combination(row.attribute_combination)
+		# Use "(Default)" as display value when attribute_combination is empty
+		# This ensures the dropdown shows a selectable option for items without variants
+		display_value = abbreviated if abbreviated else "(Default)"
 		variants.append({
-			"attribute_combination": abbreviate_attribute_combination(row.attribute_combination),
-			"attribute_combination_full": row.attribute_combination,
+			"attribute_combination": display_value,
+			"attribute_combination_full": row.attribute_combination or "",
 			"voltage_out": row.voltage_out,
 			"dimming_protocol": row.dimming_protocol,
 			"max_wattage": row.max_wattage,
