@@ -71,7 +71,6 @@ def get_context(context):
 
 	# Add pricing tier for the current user (Sprint 4 - auto-detect tier)
 	pricing_info = get_customer_price_list_for_user()
-	context.price_list = pricing_info["price_list"]
 	context.pricing_tier = pricing_info["price_list"]
 
 	return context

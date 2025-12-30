@@ -192,10 +192,28 @@ def _create_user(app, contact_name):
 	# Check if user already exists
 	if frappe.db.exists("User", app.email):
 		user = frappe.get_doc("User", app.email)
+
+		# Log that we're reusing an existing user account
+		frappe.log_error(
+			f"Dealer provisioning: User {app.email} already exists. Generating new password for dealer application {app.name}.",
+			"Dealer Provisioning - Existing User",
+		)
+
 		# Generate new password for existing user
 		password = secrets.token_urlsafe(12)
 		user.new_password = password
 		user.save(ignore_permissions=True)
+
+		# Make sure they have Customer role
+		if not user.has_role("Customer"):
+			user.add_roles("Customer")
+
+		# Link to contact if not already linked
+		contact = frappe.get_doc("Contact", contact_name)
+		if not contact.user:
+			contact.user = user.name
+			contact.save(ignore_permissions=True)
+
 		return user, password
 
 	# Generate secure password
@@ -228,6 +246,9 @@ def send_dealer_welcome_email(user, password, app):
 	"""
 	Send welcome email with login credentials to new dealer.
 
+	Note: The password is sent as a temporary credential. The email
+	instructs the user to change it immediately upon first login.
+
 	Args:
 		user: User document
 		password: Plaintext password
@@ -259,6 +280,8 @@ def send_dealer_welcome_email(user, password, app):
 			<td style="padding: 8px; border: 1px solid #ddd;">{app.requested_tier or "Dealer D"}</td>
 		</tr>
 	</table>
+
+	<p style="color: #c00; font-weight: bold;">⚠️ Security Notice: This is a temporary password. Please change it immediately after your first login.</p>
 
 	<p>Please log in at <a href="{site_url}">{site_url}</a> and change your password immediately.</p>
 
