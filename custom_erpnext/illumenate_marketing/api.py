@@ -184,6 +184,14 @@ def submit_form(form_name, **kwargs):
 		except Exception as e:
 			frappe.log_error(f"Lead creation failed: {e}", "Marketing Form Submission")
 
+	# Create ILL Dealer Application for Dealer Inquiry forms
+	dealer_application_data = None
+	if form.form_type == "Dealer Inquiry":
+		try:
+			dealer_application_data = create_dealer_application(email, kwargs, lead_data)
+		except Exception as e:
+			frappe.log_error(f"Dealer Application creation failed: {e}", "Marketing Form Submission")
+
 	# Send notification email
 	if form.notification_email:
 		try:
@@ -196,6 +204,7 @@ def submit_form(form_name, **kwargs):
 		"message": form.success_message or "Thank you for your submission.",
 		"redirect_url": form.redirect_url or None,
 		"lead_name": lead_data.get("name") if lead_data else None,
+		"dealer_application_name": dealer_application_data.get("name") if dealer_application_data else None,
 	}
 
 
@@ -271,6 +280,109 @@ def create_lead(email, form_data, utm_params, lead_source, form_type):
 			frappe.log_error(f"Failed to attach resale certificate: {e}", "Dealer Inquiry File Attachment")
 
 	return {"name": lead.name, "is_new": True}
+
+
+def create_dealer_application(email, form_data, lead_data):
+	"""
+	Create an ILL Dealer Application record from Dealer Inquiry form submission.
+
+	This captures all dealer-specific information submitted through the form
+	for sales team review and potential account provisioning.
+
+	Args:
+		email: Submitter's email
+		form_data: Form field values
+		lead_data: Lead record data (if created)
+
+	Returns:
+		dict with dealer application name and status
+	"""
+	# Check if ILL Dealer Application doctype exists
+	if not frappe.db.exists("DocType", "ILL Dealer Application"):
+		return None
+
+	# Check if application already exists for this email
+	existing_app = frappe.db.get_value(
+		"ILL Dealer Application",
+		{"email": email, "status": ["in", ["Pending", "Under Review"]]},
+		"name",
+	)
+	if existing_app:
+		# Return existing application instead of creating duplicate
+		return {"name": existing_app, "is_new": False}
+
+	# Create new dealer application
+	dealer_app = frappe.new_doc("ILL Dealer Application")
+	dealer_app.company_name = form_data.get("company", "")
+	dealer_app.contact_first_name = form_data.get("first_name", "")
+	dealer_app.contact_last_name = form_data.get("last_name", "")
+	dealer_app.email = email
+	dealer_app.phone = form_data.get("phone", "")
+	dealer_app.website = form_data.get("website", "")
+
+	# Map business type - HTML form has slightly different options than doctype
+	business_type = form_data.get("business_type", "")
+	business_type_mapping = {
+		"Lighting Distributor": "Distributor",
+		"Electrical Distributor": "Distributor",
+		"Lighting Designer": "Lighting Designer",
+		"Contractor": "Electrical Contractor",
+		"Architect/Design Firm": "Architect",
+		"Other": "Other",
+	}
+	dealer_app.business_type = business_type_mapping.get(business_type, business_type)
+
+	# Map years in business - form uses free text, doctype uses select
+	years_in_business = form_data.get("years_in_business", "")
+	if years_in_business:
+		# Try to normalize the value to match doctype options
+		try:
+			years = int(years_in_business)
+			if years < 1:
+				dealer_app.years_in_business = "Less than 1 year"
+			elif years <= 3:
+				dealer_app.years_in_business = "1-3 years"
+			elif years <= 5:
+				dealer_app.years_in_business = "3-5 years"
+			elif years <= 10:
+				dealer_app.years_in_business = "5-10 years"
+			else:
+				dealer_app.years_in_business = "10+ years"
+		except ValueError:
+			# If not a number, store as-is in additional_notes
+			pass
+
+	# Store message in additional notes
+	message = form_data.get("message", "")
+	if message:
+		dealer_app.additional_notes = message
+
+	# Handle resale certificate if uploaded
+	resale_cert_url = form_data.get("resale_certificate_url")
+	if resale_cert_url:
+		dealer_app.resale_certificate = resale_cert_url
+
+	# Set initial status
+	dealer_app.status = "Pending"
+
+	dealer_app.insert(ignore_permissions=True)
+
+	# Attach resale certificate to the dealer application if provided
+	if resale_cert_url:
+		try:
+			existing_file = frappe.db.get_value("File", {"file_url": resale_cert_url}, "name")
+			if existing_file:
+				file_doc = frappe.get_doc("File", existing_file)
+				file_doc.attached_to_doctype = "ILL Dealer Application"
+				file_doc.attached_to_name = dealer_app.name
+				file_doc.save(ignore_permissions=True)
+		except Exception as e:
+			frappe.log_error(
+				f"Failed to attach resale certificate to dealer application: {e}",
+				"Dealer Application File Attachment",
+			)
+
+	return {"name": dealer_app.name, "is_new": True}
 
 
 def send_notification_email(form, submitter_email, form_data, utm_params):

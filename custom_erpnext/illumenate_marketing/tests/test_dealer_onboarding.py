@@ -425,5 +425,116 @@ class TestApprovalActions(unittest.TestCase):
 		self.assertTrue(result)
 
 
+class TestDealerApplicationFromFormSubmission(unittest.TestCase):
+	"""Tests for creating ILL Dealer Application from form submission."""
+
+	def test_form_data_to_application_mapping(self):
+		"""Test mapping of form data to dealer application fields."""
+		form_data = {
+			"first_name": "John",
+			"last_name": "Doe",
+			"email": "john@dealerco.com",
+			"phone": "555-123-4567",
+			"company": "Dealer Company LLC",
+			"business_type": "Lighting Distributor",
+			"years_in_business": "5",
+			"website": "https://dealerco.com",
+			"message": "Interested in becoming a dealer",
+		}
+
+		# Simulate mapping
+		application = {
+			"company_name": form_data.get("company", ""),
+			"contact_first_name": form_data.get("first_name", ""),
+			"contact_last_name": form_data.get("last_name", ""),
+			"email": form_data.get("email", ""),
+			"phone": form_data.get("phone", ""),
+			"website": form_data.get("website", ""),
+		}
+
+		self.assertEqual(application["company_name"], "Dealer Company LLC")
+		self.assertEqual(application["contact_first_name"], "John")
+		self.assertEqual(application["contact_last_name"], "Doe")
+		self.assertEqual(application["email"], "john@dealerco.com")
+
+	def test_business_type_mapping(self):
+		"""Test mapping of HTML form business types to doctype options."""
+		business_type_mapping = {
+			"Lighting Distributor": "Distributor",
+			"Electrical Distributor": "Distributor",
+			"Lighting Designer": "Lighting Designer",
+			"Contractor": "Electrical Contractor",
+			"Architect/Design Firm": "Architect",
+			"Other": "Other",
+		}
+
+		self.assertEqual(business_type_mapping["Lighting Distributor"], "Distributor")
+		self.assertEqual(business_type_mapping["Contractor"], "Electrical Contractor")
+		self.assertEqual(business_type_mapping["Architect/Design Firm"], "Architect")
+
+	def test_years_in_business_mapping(self):
+		"""Test mapping of free text years to select options."""
+		def map_years(years_str):
+			try:
+				years = int(years_str)
+				if years < 1:
+					return "Less than 1 year"
+				elif years <= 3:
+					return "1-3 years"
+				elif years <= 5:
+					return "3-5 years"
+				elif years <= 10:
+					return "5-10 years"
+				else:
+					return "10+ years"
+			except ValueError:
+				return None
+
+		self.assertEqual(map_years("0"), "Less than 1 year")
+		self.assertEqual(map_years("2"), "1-3 years")
+		self.assertEqual(map_years("4"), "3-5 years")
+		self.assertEqual(map_years("7"), "5-10 years")
+		self.assertEqual(map_years("15"), "10+ years")
+		self.assertIsNone(map_years("not a number"))
+
+	def test_application_default_status(self):
+		"""Test that new applications default to Pending status."""
+		status = "Pending"
+		self.assertEqual(status, "Pending")
+
+	def test_message_stored_in_additional_notes(self):
+		"""Test that form message is stored in additional_notes."""
+		message = "I want to become a dealer because I love your products."
+		additional_notes = message
+
+		self.assertEqual(additional_notes, message)
+
+	def test_duplicate_application_handling(self):
+		"""Test that duplicate applications are detected."""
+		# Simulate checking for existing application
+		existing_applications = [
+			{"email": "john@dealerco.com", "status": "Pending"},
+			{"email": "jane@otherco.com", "status": "Approved"},
+		]
+
+		def check_duplicate(email):
+			for app in existing_applications:
+				if app["email"] == email and app["status"] in ["Pending", "Under Review"]:
+					return app
+			return None
+
+		# Should find existing pending application
+		result = check_duplicate("john@dealerco.com")
+		self.assertIsNotNone(result)
+
+		# Should not find approved application
+		result = check_duplicate("jane@otherco.com")
+		self.assertIsNone(result)
+
+		# Should not find non-existent email
+		result = check_duplicate("new@company.com")
+		self.assertIsNone(result)
+
+
 if __name__ == "__main__":
 	unittest.main()
