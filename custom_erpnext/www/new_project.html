@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	if (createBtn) {
 		createBtn.addEventListener('click', function(e) {
 			e.preventDefault();
-			
+
 			var project_name = document.getElementById('project_name').value;
 			if (!project_name) {
 				frappe.msgprint('Project Name is required');

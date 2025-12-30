@@ -41,7 +41,7 @@
 							<form id="dealer-inquiry-form" method="POST">
 								<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
 								<input type="hidden" id="form_name" name="form_name" value="Dealer Inquiry">
-								
+
 								<!-- Hidden UTM fields -->
 								<input type="hidden" id="utm_source" name="utm_source" value="">
 								<input type="hidden" id="utm_medium" name="utm_medium" value="">
@@ -49,13 +49,13 @@
 								<input type="hidden" id="utm_content" name="utm_content" value="">
 								<input type="hidden" id="utm_term" name="utm_term" value="">
 								<input type="hidden" id="lead_source" name="lead_source" value="">
-								
+
 								{% if error %}
 								<div class="alert alert-danger" role="alert">
 									{{ error }}
 								</div>
 								{% endif %}
-								
+
 								<h5 class="mb-3">Contact Information</h5>
 								<div class="row">
 									<div class="col-md-6 mb-3">
@@ -67,24 +67,24 @@
 										<input type="text" class="form-control" id="last_name" name="last_name" required>
 									</div>
 								</div>
-								
+
 								<div class="mb-3">
 									<label for="email" class="form-label">Email Address *</label>
 									<input type="email" class="form-control" id="email" name="email" required>
 								</div>
-								
+
 								<div class="mb-3">
 									<label for="phone" class="form-label">Phone *</label>
 									<input type="tel" class="form-control" id="phone" name="phone" required>
 								</div>
-								
+
 								<h5 class="mt-4 mb-3">Company Information</h5>
-								
+
 								<div class="mb-3">
 									<label for="company" class="form-label">Company Name *</label>
 									<input type="text" class="form-control" id="company" name="company" required>
 								</div>
-								
+
 								<div class="row">
 									<div class="col-md-6 mb-3">
 										<label for="business_type" class="form-label">Business Type</label>
@@ -103,23 +103,23 @@
 										<input type="text" class="form-control" id="years_in_business" name="years_in_business">
 									</div>
 								</div>
-								
+
 								<div class="mb-3">
 									<label for="website" class="form-label">Company Website</label>
 									<input type="url" class="form-control" id="website" name="website" placeholder="https://">
 								</div>
-								
+
 								<div class="mb-3">
 									<label for="message" class="form-label">Tell us about your business</label>
 									<textarea class="form-control" id="message" name="message" rows="3" placeholder="Please describe your company and how you plan to sell ilLumenate products..."></textarea>
 								</div>
-								
+
 								<div class="mb-3">
 									<label for="resale_certificate" class="form-label">Resale Certificate</label>
 									<input type="file" class="form-control" id="resale_certificate" name="resale_certificate" accept=".pdf,.jpg,.jpeg,.png">
 									<div class="form-text">Please upload your resale certificate (PDF, JPG, or PNG, max 5MB)</div>
 								</div>
-								
+
 								{% if require_consent %}
 								<div class="mb-3 form-check">
 									<input type="checkbox" class="form-check-input" id="gdpr_consent" name="gdpr_consent" required>
@@ -131,7 +131,7 @@
 									</label>
 								</div>
 								{% endif %}
-								
+
 								<div class="d-grid">
 									<button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Submit Application</button>
 								</div>
@@ -151,11 +151,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	const MAX_FILE_SIZE_MB = 5;
 	const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 	const UPLOAD_FOLDER = 'Home/Dealer Applications';
-	
+
 	// Parse UTM parameters from URL and populate hidden fields
 	const urlParams = new URLSearchParams(window.location.search);
 	const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
-	
+
 	utmFields.forEach(function(field) {
 		const value = urlParams.get(field);
 		const input = document.getElementById(field);
@@ -163,23 +163,23 @@ document.addEventListener('DOMContentLoaded', function() {
 			input.value = value;
 		}
 	});
-	
+
 	// Check for lead_source param
 	const leadSource = urlParams.get('source') || urlParams.get('lead_source');
 	if (leadSource) {
 		document.getElementById('lead_source').value = leadSource;
 	}
-	
+
 	// Form submission handling
 	const form = document.getElementById('dealer-inquiry-form');
 	if (form) {
 		form.addEventListener('submit', function(e) {
 			e.preventDefault();
-			
+
 			const submitBtn = document.getElementById('submit-btn');
 			submitBtn.disabled = true;
 			submitBtn.textContent = 'Submitting...';
-			
+
 			const formData = new FormData(form);
 			const data = {};
 			formData.forEach((value, key) => {
@@ -188,11 +188,11 @@ document.addEventListener('DOMContentLoaded', function() {
 					data[key] = value;
 				}
 			});
-			
+
 			// Handle file upload first if a file is selected
 			const fileInput = document.getElementById('resale_certificate');
 			const file = fileInput.files[0];
-			
+
 			if (file) {
 				// Validate file size
 				if (file.size > MAX_FILE_SIZE_BYTES) {
@@ -201,13 +201,13 @@ document.addEventListener('DOMContentLoaded', function() {
 					submitBtn.textContent = 'Submit Application';
 					return;
 				}
-				
+
 				// Upload file first using Frappe's file upload
 				const fileFormData = new FormData();
 				fileFormData.append('file', file);
 				fileFormData.append('is_private', '1');
 				fileFormData.append('folder', UPLOAD_FOLDER);
-				
+
 				fetch('/api/method/upload_file', {
 					method: 'POST',
 					body: fileFormData,
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
-	
+
 	function showError(message) {
 		const form = document.getElementById('dealer-inquiry-form');
 		const existingAlert = form.querySelector('.alert-danger');
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			form.insertBefore(alertDiv, form.firstChild);
 		}
 	}
-	
+
 	function submitFormData(data, submitBtn, form) {
 		frappe.call({
 			method: 'custom_erpnext.illumenate_marketing.api.submit_form',

@@ -28,57 +28,57 @@
 					</div>
 					{% elif preferences %}
 					<p class="text-muted mb-4">Manage your email preferences for <strong>{{ email }}</strong></p>
-					
+
 					<form id="preferences-form" method="POST">
 						<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
 						<input type="hidden" name="token" value="{{ token }}">
-						
+
 						<div class="mb-4">
 							<div class="form-check form-switch mb-3">
-								<input class="form-check-input" type="checkbox" id="global_unsubscribe" 
+								<input class="form-check-input" type="checkbox" id="global_unsubscribe"
 									name="global_unsubscribe" {{ "checked" if preferences.global_unsubscribe else "" }}>
 								<label class="form-check-label" for="global_unsubscribe">
 									<strong>Unsubscribe from all emails</strong>
 								</label>
 							</div>
 						</div>
-						
+
 						<hr>
-						
+
 						<h5 class="mb-3">Or manage individual preferences:</h5>
-						
+
 						<div class="form-check form-switch mb-3">
-							<input class="form-check-input pref-switch" type="checkbox" id="marketing_emails" 
+							<input class="form-check-input pref-switch" type="checkbox" id="marketing_emails"
 								name="marketing_emails" {{ "checked" if preferences.marketing_emails else "" }}>
 							<label class="form-check-label" for="marketing_emails">
 								Marketing emails
 							</label>
 						</div>
-						
+
 						<div class="form-check form-switch mb-3">
-							<input class="form-check-input pref-switch" type="checkbox" id="newsletter_emails" 
+							<input class="form-check-input pref-switch" type="checkbox" id="newsletter_emails"
 								name="newsletter_emails" {{ "checked" if preferences.newsletter_emails else "" }}>
 							<label class="form-check-label" for="newsletter_emails">
 								Newsletter
 							</label>
 						</div>
-						
+
 						<div class="form-check form-switch mb-3">
-							<input class="form-check-input pref-switch" type="checkbox" id="product_updates" 
+							<input class="form-check-input pref-switch" type="checkbox" id="product_updates"
 								name="product_updates" {{ "checked" if preferences.product_updates else "" }}>
 							<label class="form-check-label" for="product_updates">
 								Product updates
 							</label>
 						</div>
-						
+
 						<div class="form-check form-switch mb-3">
-							<input class="form-check-input pref-switch" type="checkbox" id="dealer_communications" 
+							<input class="form-check-input pref-switch" type="checkbox" id="dealer_communications"
 								name="dealer_communications" {{ "checked" if preferences.dealer_communications else "" }}>
 							<label class="form-check-label" for="dealer_communications">
 								Dealer communications
 							</label>
 						</div>
-						
+
 						<div class="d-grid mt-4">
 							<button type="submit" class="btn btn-primary" id="submit-btn">Update Preferences</button>
 						</div>
@@ -99,12 +99,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Toggle individual preferences when global unsubscribe is checked
 	const globalUnsubscribe = document.getElementById('global_unsubscribe');
 	const prefSwitches = document.querySelectorAll('.pref-switch');
-	
+
 	// Helper function to show inline error message
 	function showErrorMessage(message) {
 		const form = document.getElementById('preferences-form');
 		if (!form) return;
-		
+
 		let existingAlert = form.querySelector('.alert-danger');
 		if (existingAlert) {
 			existingAlert.textContent = message;
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			form.insertBefore(alertDiv, form.firstChild);
 		}
 	}
-	
+
 	if (globalUnsubscribe) {
 		globalUnsubscribe.addEventListener('change', function() {
 			prefSwitches.forEach(function(switchEl) {
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			});
 		});
-		
+
 		// Initialize state
 		if (globalUnsubscribe.checked) {
 			prefSwitches.forEach(function(switchEl) {
@@ -134,27 +134,27 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 		}
 	}
-	
+
 	// Form submission
 	const form = document.getElementById('preferences-form');
 	if (form) {
 		form.addEventListener('submit', function(e) {
 			e.preventDefault();
-			
+
 			const submitBtn = document.getElementById('submit-btn');
 			submitBtn.disabled = true;
 			submitBtn.textContent = 'Saving...';
-			
+
 			const formData = new FormData(form);
 			const data = {token: formData.get('token')};
-			
+
 			// Get checkbox values
-			['global_unsubscribe', 'marketing_emails', 'newsletter_emails', 
+			['global_unsubscribe', 'marketing_emails', 'newsletter_emails',
 			 'product_updates', 'dealer_communications'].forEach(function(field) {
 				const el = document.getElementById(field);
 				data[field] = el ? el.checked : false;
 			});
-			
+
 			frappe.call({
 				method: 'custom_erpnext.illumenate_marketing.api.update_email_preferences',
 				args: data,

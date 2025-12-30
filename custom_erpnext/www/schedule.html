@@ -161,7 +161,7 @@
 									</td>
 									{% if is_editable %}
 									<td>
-										<button class="btn btn-sm btn-outline-primary configure-btn" 
+										<button class="btn btn-sm btn-outline-primary configure-btn"
 												data-idx="{{ line.idx }}"
 												data-line-type="{{ line.line_type }}">
 											<i class="fa fa-cog"></i>
@@ -229,7 +229,7 @@
 				</div>
 				<div class="modal-body">
 					<input type="hidden" id="edit-line-idx">
-					
+
 					<div class="form-group">
 						<label for="edit-line-type">Line Type</label>
 						<select class="form-control" id="edit-line-type">
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		btn.addEventListener('click', function() {
 			const idx = this.getAttribute('data-idx');
 			const lineType = this.getAttribute('data-line-type');
-			
+
 			// Fetch line data from API
 			frappe.call({
 				method: 'custom_erpnext.illumenate_configurator.api.get_schedule_line',
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						document.getElementById('edit-line-idx').value = idx;
 						document.getElementById('editLineModalLabel').textContent = 'Edit Line #' + idx;
 						document.getElementById('edit-line-type').value = line.line_type || 'ilLumenate';
-						
+
 						if (line.line_type === 'ilLumenate') {
 							document.getElementById('edit-fixture-template').value = line.fixture_template || '';
 							document.getElementById('edit-length').value = line.length_inches || '';
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
 							document.getElementById('illumenate-fields').style.display = 'none';
 							document.getElementById('other-mfr-fields').style.display = 'block';
 						}
-						
+
 						document.getElementById('pricing-preview').style.display = 'none';
 						$('#editLineModal').modal('show');
 					} else {
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		saveLineBtn.addEventListener('click', function() {
 			const idx = document.getElementById('edit-line-idx').value;
 			const lineType = document.getElementById('edit-line-type').value;
-			
+
 			let args = {
 				schedule_name: '{{ schedule.name }}',
 				idx: idx || null,
@@ -415,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				const template = document.getElementById('edit-fixture-template').value;
 				const length = document.getElementById('edit-length').value;
 				const qty = document.getElementById('edit-qty').value;
-				
+
 				if (!template) {
 					frappe.msgprint('Please select a fixture template');
 					return;

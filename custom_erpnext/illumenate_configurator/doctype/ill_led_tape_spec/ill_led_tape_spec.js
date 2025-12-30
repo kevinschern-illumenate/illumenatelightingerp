@@ -56,7 +56,7 @@ frappe.ui.form.on("ILL LED Tape Spec", {
 	show_attribute_builder_dialog: function(frm) {
 		let attributes = frm._variant_attributes || [];
 		let fields = [];
-		
+
 		// Build the dialog fields based on attributes
 		attributes.forEach((attr, idx) => {
 			if (attr.numeric_values) {
@@ -182,7 +182,7 @@ frappe.ui.form.on("ILL LED Tape Spec", {
 						frm.get_field("available_attributes_html").$wrapper.html(`
 							<div class="alert alert-info">
 								<i class="fa fa-info-circle"></i>
-								<strong>${frm.doc.tape_item}</strong> is not an Item Template. 
+								<strong>${frm.doc.tape_item}</strong> is not an Item Template.
 								It does not have variants, so all specifications will apply to this single item.
 							</div>
 						`);

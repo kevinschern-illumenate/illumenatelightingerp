@@ -23,7 +23,7 @@
 					<form id="contact-form" method="POST">
 						<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
 						<input type="hidden" id="form_name" name="form_name" value="Contact">
-						
+
 						<!-- Hidden UTM fields - populated by JavaScript -->
 						<input type="hidden" id="utm_source" name="utm_source" value="">
 						<input type="hidden" id="utm_medium" name="utm_medium" value="">
@@ -31,13 +31,13 @@
 						<input type="hidden" id="utm_content" name="utm_content" value="">
 						<input type="hidden" id="utm_term" name="utm_term" value="">
 						<input type="hidden" id="lead_source" name="lead_source" value="">
-						
+
 						{% if error %}
 						<div class="alert alert-danger" role="alert">
 							{{ error }}
 						</div>
 						{% endif %}
-						
+
 						<div class="row">
 							<div class="col-md-6 mb-3">
 								<label for="first_name" class="form-label">First Name *</label>
@@ -48,27 +48,27 @@
 								<input type="text" class="form-control" id="last_name" name="last_name" required>
 							</div>
 						</div>
-						
+
 						<div class="mb-3">
 							<label for="email" class="form-label">Email Address *</label>
 							<input type="email" class="form-control" id="email" name="email" required>
 						</div>
-						
+
 						<div class="mb-3">
 							<label for="company" class="form-label">Company</label>
 							<input type="text" class="form-control" id="company" name="company">
 						</div>
-						
+
 						<div class="mb-3">
 							<label for="phone" class="form-label">Phone</label>
 							<input type="tel" class="form-control" id="phone" name="phone">
 						</div>
-						
+
 						<div class="mb-3">
 							<label for="message" class="form-label">Message *</label>
 							<textarea class="form-control" id="message" name="message" rows="4" required></textarea>
 						</div>
-						
+
 						{% if require_consent %}
 						<div class="mb-3 form-check">
 							<input type="checkbox" class="form-check-input" id="gdpr_consent" name="gdpr_consent" required>
@@ -80,7 +80,7 @@
 							</label>
 						</div>
 						{% endif %}
-						
+
 						<div class="d-grid">
 							<button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Send Message</button>
 						</div>
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Parse UTM parameters from URL and populate hidden fields
 	const urlParams = new URLSearchParams(window.location.search);
 	const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
-	
+
 	utmFields.forEach(function(field) {
 		const value = urlParams.get(field);
 		const input = document.getElementById(field);
@@ -105,27 +105,27 @@ document.addEventListener('DOMContentLoaded', function() {
 			input.value = value;
 		}
 	});
-	
+
 	// Check for lead_source param
 	const leadSource = urlParams.get('source') || urlParams.get('lead_source');
 	if (leadSource) {
 		document.getElementById('lead_source').value = leadSource;
 	}
-	
+
 	// Form submission handling
 	const form = document.getElementById('contact-form');
 	if (form) {
 		form.addEventListener('submit', function(e) {
 			e.preventDefault();
-			
+
 			const submitBtn = document.getElementById('submit-btn');
 			submitBtn.disabled = true;
 			submitBtn.textContent = 'Sending...';
-			
+
 			const formData = new FormData(form);
 			const data = {};
 			formData.forEach((value, key) => data[key] = value);
-			
+
 			frappe.call({
 				method: 'custom_erpnext.illumenate_marketing.api.submit_form',
 				args: data,
