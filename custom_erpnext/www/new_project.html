@@ -89,15 +89,20 @@
 
 {% block page_script %}
 <script>
-frappe.ready(function() {
+$(document).ready(function() {
+	console.log('new_project.js loaded');
+	
 	$('#new-project-form').on('submit', function(e) {
 		e.preventDefault();
+		console.log('Form submit triggered');
 
 		var project_name = $('#project_name').val();
 		if (!project_name) {
 			frappe.msgprint(__('Project Name is required'));
 			return;
 		}
+
+		console.log('Creating project:', project_name);
 
 		frappe.call({
 			method: 'custom_erpnext.illumenate_configurator.api.create_project',
@@ -111,6 +116,7 @@ frappe.ready(function() {
 			freeze: true,
 			freeze_message: __('Creating Project...'),
 			callback: function(r) {
+				console.log('Response:', r);
 				if (r.message) {
 					frappe.msgprint({
 						title: __('Success'),
@@ -129,6 +135,7 @@ frappe.ready(function() {
 				}
 			},
 			error: function(r) {
+				console.log('Error:', r);
 				var error_message = __('Failed to create project. Please try again.');
 				if (r && r.responseJSON && r.responseJSON._server_messages) {
 					try {

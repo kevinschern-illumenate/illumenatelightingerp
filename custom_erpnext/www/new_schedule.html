@@ -94,9 +94,12 @@
 
 {% block page_script %}
 <script>
-frappe.ready(function() {
+$(document).ready(function() {
+	console.log('new_schedule.js loaded');
+	
 	$('#new-schedule-form').on('submit', function(e) {
 		e.preventDefault();
+		console.log('Form submit triggered');
 
 		var project = $('#project').val();
 		var schedule_name = $('#schedule_name').val();
@@ -111,6 +114,8 @@ frappe.ready(function() {
 			return;
 		}
 
+		console.log('Creating schedule:', schedule_name, 'for project:', project);
+
 		frappe.call({
 			method: 'custom_erpnext.illumenate_configurator.api.create_schedule',
 			args: {
@@ -120,6 +125,7 @@ frappe.ready(function() {
 			freeze: true,
 			freeze_message: __('Creating Schedule...'),
 			callback: function(r) {
+				console.log('Response:', r);
 				if (r.message) {
 					frappe.msgprint({
 						title: __('Success'),
@@ -130,6 +136,14 @@ frappe.ready(function() {
 						window.location.href = '/schedule?name=' + r.message.name;
 					}, 1500);
 				}
+			},
+			error: function(r) {
+				console.log('Error:', r);
+				frappe.msgprint({
+					title: __('Error'),
+					indicator: 'red',
+					message: __('Failed to create schedule. Please try again.')
+				});
 			}
 		});
 	});
