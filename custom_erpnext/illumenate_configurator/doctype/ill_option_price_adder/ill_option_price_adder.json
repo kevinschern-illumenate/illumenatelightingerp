@@ -1,0 +1,112 @@
+{
+	"actions": [],
+	"autoname": "hash",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"fixture_template",
+		"adder_type",
+		"adder_key",
+		"column_break_main",
+		"adder_mode",
+		"amount",
+		"column_break_status",
+		"is_active"
+	],
+	"fields": [
+		{
+			"fieldname": "fixture_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Fixture Template",
+			"options": "ILL Fixture Template",
+			"reqd": 1
+		},
+		{
+			"fieldname": "adder_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Adder Type",
+			"options": "\nFinish\nLens Option\nMounting Method\nDimming Protocol\nEnvironment\nJoiner Angle",
+			"reqd": 1
+		},
+		{
+			"fieldname": "adder_key",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Adder Key",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "adder_mode",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Adder Mode",
+			"options": "\nFlat Per Fixture\nPer Meter\nPer Joiner\nPer Driver\nPer Run",
+			"reqd": 1
+		},
+		{
+			"fieldname": "amount",
+			"fieldtype": "Currency",
+			"in_list_view": 1,
+			"label": "Amount",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_status",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Option Price Adder",
+	"naming_rule": "Random",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

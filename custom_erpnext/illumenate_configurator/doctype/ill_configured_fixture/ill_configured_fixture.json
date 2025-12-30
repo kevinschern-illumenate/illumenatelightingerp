@@ -54,6 +54,13 @@
 		"section_break_driver",
 		"selected_driver_spec",
 		"selected_driver_qty",
+		"section_break_pricing",
+		"unit_msrp_at_time",
+		"unit_net_price_at_time",
+		"column_break_pricing",
+		"tier_at_time",
+		"discount_percent_at_time",
+		"pricing_breakdown_json",
 		"section_break_output",
 		"configured_item",
 		"bom",
@@ -343,6 +350,46 @@
 			"fieldname": "selected_driver_qty",
 			"fieldtype": "Int",
 			"label": "Selected Driver Quantity",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_pricing",
+			"fieldtype": "Section Break",
+			"label": "Pricing Snapshot"
+		},
+		{
+			"fieldname": "unit_msrp_at_time",
+			"fieldtype": "Currency",
+			"label": "Unit MSRP at Time",
+			"read_only": 1
+		},
+		{
+			"fieldname": "unit_net_price_at_time",
+			"fieldtype": "Currency",
+			"label": "Unit Net Price at Time",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_pricing",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "tier_at_time",
+			"fieldtype": "Data",
+			"label": "Tier at Time",
+			"read_only": 1
+		},
+		{
+			"fieldname": "discount_percent_at_time",
+			"fieldtype": "Float",
+			"label": "Discount % at Time",
+			"read_only": 1
+		},
+		{
+			"fieldname": "pricing_breakdown_json",
+			"fieldtype": "Long Text",
+			"hidden": 1,
+			"label": "Pricing Breakdown JSON",
 			"read_only": 1
 		},
 		{

@@ -18,6 +18,7 @@ from custom_erpnext.illumenate_configurator.engine import (
 	compute_segmentation,
 	select_driver,
 )
+from custom_erpnext.illumenate_configurator.pricing import price_configuration_unit
 
 
 def abbreviate_attribute_combination(attribute_combination: str) -> str:
@@ -85,6 +86,9 @@ def validate_configuration(
 	lens_option: str | None = None,
 	mounting_method: str | None = None,
 	joiner_angle: str | None = None,
+	# Sprint 4 additions
+	tier_name: str | None = None,
+	customer: str | None = None,
 ):
 	"""
 	Validate a fixture configuration and return computed results.
@@ -106,6 +110,8 @@ def validate_configuration(
 		lens_option: Optional ILL Lens Option name
 		mounting_method: Optional ILL Mounting Method name
 		joiner_angle: Optional joiner angle (Straight, 90, Other)
+		tier_name: Optional pricing tier name (MSRP, Dealer A/B/C/D)
+		customer: Optional customer name for tier lookup
 
 	Returns:
 		A dict with configuration results or errors.
@@ -412,8 +418,13 @@ def validate_configuration(
 		)
 		return {"errors": errors}
 
+	# Compute joiner_qty for pricing (based on segmentation logic)
+	profile_piece_length_mm = template.profile_piece_length_mm if hasattr(template, 'profile_piece_length_mm') else 2000
+	seg = compute_segmentation(length_result["manufacturable"]["mm"], profile_piece_length_mm or 2000)
+	joiner_qty = seg["joiner_qty_target"]
+
 	# Build response
-	return {
+	response = {
 		"inputs": {
 			"template_code": template_code,
 			"tape_spec": tape_spec,
@@ -422,6 +433,12 @@ def validate_configuration(
 			"requested_overall_in": requested_overall_in,
 			"endcap_item": endcap_item,
 			"voltage": voltage,
+			"output_token": output_token,
+			"finish_token": finish_token,
+			"lens_option": lens_option,
+			"mounting_method": mounting_method,
+			"joiner_angle": joiner_angle,
+			"environment_token": environment_token,
 		},
 		"length": {
 			"requested": length_result["requested"],
@@ -438,6 +455,7 @@ def validate_configuration(
 			"max_run_ft_by_voltage_drop": runs_result["max_run_ft_by_voltage_drop"],
 			"effective_max_run_ft": runs_result["effective_max_run_ft"],
 			"limiting_factor": runs_result["limiting_factor"],
+			"joiner_qty": joiner_qty,
 		},
 		"driver": {
 			"driver_spec": driver_result["driver_spec"],
@@ -448,6 +466,24 @@ def validate_configuration(
 		},
 		"errors": [],
 	}
+
+	# Compute pricing
+	pricing_result = price_configuration_unit(
+		validated_result=response,
+		tier_name=tier_name,
+		customer=customer,
+	)
+
+	if pricing_result.get("error"):
+		# Include pricing error but don't fail the whole validation
+		response["pricing"] = {
+			"error": pricing_result.get("error"),
+			"message": pricing_result.get("message"),
+		}
+	else:
+		response["pricing"] = pricing_result
+
+	return response
 
 
 @frappe.whitelist()
@@ -892,6 +928,9 @@ def create_manufacturing_package(
 	lens_option: str | None = None,
 	mounting_method: str | None = None,
 	joiner_angle: str | None = None,
+	# Sprint 4 additions
+	tier_name: str | None = None,
+	customer: str | None = None,
 ):
 	"""
 	Orchestrate creation of configured fixture, item, BOM, and work order.
@@ -915,6 +954,8 @@ def create_manufacturing_package(
 		lens_option: Optional lens option
 		mounting_method: Optional mounting method
 		joiner_angle: Optional joiner angle
+		tier_name: Optional pricing tier name (MSRP, Dealer A/B/C/D)
+		customer: Optional customer name for tier lookup
 
 	Returns:
 		Dict with configured_fixture, item_code, bom_no, and optionally work_order
@@ -1112,6 +1153,47 @@ def create_manufacturing_package(
 			"bom_no": existing_cf.bom,
 			"message": "Using existing configuration",
 		}
+
+	# Compute pricing for snapshot
+	# Build a minimal validation result for pricing computation
+	validation_data = {
+		"inputs": {
+			"template_code": template_code,
+			"output_token": output_token,
+			"finish_token": finish_token,
+			"lens_option": lens_option,
+			"mounting_method": mounting_method,
+			"joiner_angle": joiner_angle,
+			"environment_token": environment_token,
+		},
+		"length": {
+			"manufacturable": {"mm": cf.manufacturable_overall_mm},
+			"tape_cut": {"mm": cf.tape_cut_length_mm},
+		},
+		"electrical": {
+			"runs_count": cf.runs_count,
+			"joiner_qty": cf.joiner_qty or 0,
+		},
+		"driver": {
+			"driver_item": frappe.db.get_value("ILL Driver Spec", cf.selected_driver_spec, "driver_item") if cf.selected_driver_spec else None,
+			"quantity": cf.selected_driver_qty or 0,
+		},
+	}
+
+	pricing_result = price_configuration_unit(
+		validated_result=validation_data,
+		tier_name=tier_name,
+		customer=customer,
+	)
+
+	# Store pricing snapshot (only if empty - no overwrite on reruns)
+	if not cf.unit_msrp_at_time and not pricing_result.get("error"):
+		cf.unit_msrp_at_time = pricing_result.get("unit_msrp")
+		cf.unit_net_price_at_time = pricing_result.get("unit_net_price")
+		cf.tier_at_time = pricing_result.get("tier_name")
+		cf.discount_percent_at_time = pricing_result.get("discount_percent")
+		if pricing_result.get("breakdown"):
+			cf.pricing_breakdown_json = frappe.as_json(pricing_result["breakdown"])
 
 	# Save the configured fixture
 	cf.insert(ignore_permissions=True)
