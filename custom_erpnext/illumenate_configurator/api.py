@@ -1503,3 +1503,547 @@ def generate_manufacturing_packages_from_so(sales_order_name):
 		"sales_order": sales_order_name,
 		"results": results,
 	}
+
+
+# ============================================================================
+# Sprint 6: PDF Template Management & Export Functions
+# ============================================================================
+
+
+@frappe.whitelist()
+def list_pdf_fields(pdf_template_name: str) -> list:
+	"""
+	List all AcroForm field names in a PDF template.
+
+	Args:
+		pdf_template_name: The ILL PDF Template name
+
+	Returns:
+		List of field names found in the PDF
+	"""
+	from pypdf import PdfReader
+
+	template = frappe.get_doc("ILL PDF Template", pdf_template_name)
+	file_doc = frappe.get_doc("File", {"file_url": template.pdf_file})
+	reader = PdfReader(file_doc.get_full_path())
+
+	fields = reader.get_fields()
+	return list(fields.keys()) if fields else []
+
+
+@frappe.whitelist()
+def export_schedule_csv(schedule_name: str):
+	"""
+	Export schedule as CSV with both line types.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name
+
+	Returns:
+		CSV file download response
+	"""
+	import csv
+	import json
+	from io import StringIO
+
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	# Load the schedule
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		frappe.throw(_("Schedule not found: {0}").format(schedule_name))
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Permission check for portal users
+	if frappe.db.exists("Has Role", {"parent": frappe.session.user, "role": "Customer"}):
+		customer = get_customer_for_portal_user()
+		if not customer or schedule.customer != customer:
+			frappe.throw(_("Unauthorized"))
+
+	# Get project info
+	project = frappe.get_doc("ILL Project", schedule.project) if schedule.project else None
+
+	# Build CSV
+	output = StringIO()
+	writer = csv.writer(output)
+
+	# Headers
+	headers = [
+		"Project Name",
+		"Schedule Name",
+		"Line No",
+		"Line Type",
+		"Qty",
+		"Tag",
+		"Location",
+		"Notes",
+		"Configuration Summary",
+		"Template Code",
+		"Tape Spec",
+		"Output",
+		"CCT",
+		"CRI",
+		"Lens",
+		"Mounting",
+		"Finish",
+		"Driver",
+		"Unit Net",
+		"Line Subtotal",
+		"Manufacturer Name",
+		"Model Number",
+		"Description",
+	]
+	writer.writerow(headers)
+
+	# Data rows
+	for idx, line in enumerate(schedule.lines, start=1):
+		config = {}
+		if line.configuration_json:
+			try:
+				config = json.loads(line.configuration_json)
+			except json.JSONDecodeError:
+				pass
+
+		inputs = config.get("inputs", {})
+
+		row = [
+			project.project_name if project else "",
+			schedule.schedule_name,
+			idx,
+			line.line_type,
+			line.qty,
+			inputs.get("tag", ""),
+			inputs.get("location", ""),
+			inputs.get("notes", ""),
+			line.configuration_summary or "",
+			line.fixture_template or "",
+			inputs.get("tape_spec", ""),
+			inputs.get("output_token", ""),
+			inputs.get("cct_token", ""),
+			inputs.get("cri_value", ""),
+			inputs.get("lens_option", ""),
+			inputs.get("mounting_method", ""),
+			inputs.get("finish_token", ""),
+			inputs.get("driver_spec", ""),
+			line.unit_net if line.line_type == "ilLumenate" else "",
+			line.line_total if line.line_type == "ilLumenate" else "",
+			line.manufacturer_name or "",
+			line.model_number or "",
+			line.description or "",
+		]
+		writer.writerow(row)
+
+	# Return as download
+	output.seek(0)
+	csv_content = output.getvalue()
+
+	frappe.response["filename"] = f"{schedule_name}.csv"
+	frappe.response["filecontent"] = csv_content
+	frappe.response["type"] = "download"
+
+
+@frappe.whitelist()
+def export_schedule_pdf(schedule_name: str, include_pricing: int = 0):
+	"""
+	Export schedule as PDF with optional pricing columns.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name
+		include_pricing: If 1, include pricing columns
+
+	Returns:
+		PDF file download response
+	"""
+	import json
+
+	from frappe.utils.pdf import get_pdf
+
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	# Load the schedule
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		frappe.throw(_("Schedule not found: {0}").format(schedule_name))
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Permission check for portal users
+	if frappe.db.exists("Has Role", {"parent": frappe.session.user, "role": "Customer"}):
+		customer = get_customer_for_portal_user()
+		if not customer or schedule.customer != customer:
+			frappe.throw(_("Unauthorized"))
+
+	# Get project info
+	project = frappe.get_doc("ILL Project", schedule.project) if schedule.project else None
+
+	# Calculate totals
+	schedule_total = sum(
+		line.line_total or 0
+		for line in schedule.lines
+		if line.line_type == "ilLumenate" and line.line_total
+	)
+
+	# Parse configuration data for each line
+	lines_data = []
+	for idx, line in enumerate(schedule.lines, start=1):
+		config = {}
+		if line.configuration_json:
+			try:
+				config = json.loads(line.configuration_json)
+			except json.JSONDecodeError:
+				pass
+
+		lines_data.append({
+			"idx": idx,
+			"line": line,
+			"config": config,
+		})
+
+	# Render HTML template
+	html = frappe.render_template(
+		"custom_erpnext/illumenate_configurator/templates/schedule_pdf.html",
+		{
+			"schedule": schedule,
+			"project": project,
+			"lines_data": lines_data,
+			"include_pricing": int(include_pricing),
+			"schedule_total": schedule_total,
+			"generated_date": frappe.utils.today(),
+		},
+	)
+
+	# Convert to PDF
+	pdf_content = get_pdf(html)
+
+	# Return as download
+	frappe.response["filename"] = f"{schedule_name}.pdf"
+	frappe.response["filecontent"] = pdf_content
+	frappe.response["type"] = "download"
+
+
+@frappe.whitelist()
+def generate_line_submittal(schedule_name: str, line_idx: int) -> bytes:
+	"""
+	Generate spec submittal PDF for a single ilLumenate line.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name
+		line_idx: The line index (1-based)
+
+	Returns:
+		PDF bytes
+	"""
+	import json
+
+	from custom_erpnext.illumenate_configurator.pdf_engine import fill_pdf_template
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	# Load the schedule
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		frappe.throw(_("Schedule not found: {0}").format(schedule_name))
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Permission check for portal users
+	if frappe.db.exists("Has Role", {"parent": frappe.session.user, "role": "Customer"}):
+		customer = get_customer_for_portal_user()
+		if not customer or schedule.customer != customer:
+			frappe.throw(_("Unauthorized"))
+
+	# Get the line
+	line_idx = int(line_idx)
+	if line_idx < 1 or line_idx > len(schedule.lines):
+		frappe.throw(_("Invalid line index"))
+
+	line = schedule.lines[line_idx - 1]
+
+	if line.line_type != "ilLumenate":
+		frappe.throw(_("Submittals can only be generated for ilLumenate lines"))
+
+	if not line.configuration_json:
+		frappe.throw(_("Line has no configuration data"))
+
+	# Parse configuration
+	try:
+		config = json.loads(line.configuration_json)
+	except json.JSONDecodeError:
+		frappe.throw(_("Invalid configuration JSON"))
+
+	inputs = config.get("inputs", {})
+	template_code = inputs.get("template_code") or line.fixture_template
+
+	if not template_code:
+		frappe.throw(_("No fixture template specified for line"))
+
+	# Find active PDF template for this fixture family
+	pdf_template = frappe.db.get_value(
+		"ILL PDF Template",
+		{
+			"template_type": "Fixture Submittal",
+			"applies_to_fixture_template": template_code,
+			"is_active": 1,
+		},
+		"name",
+	)
+
+	if not pdf_template:
+		frappe.throw(
+			_("No active PDF template found for fixture template '{0}'").format(template_code)
+		)
+
+	# Get project info
+	project = frappe.get_doc("ILL Project", schedule.project) if schedule.project else None
+	customer_doc = frappe.get_doc("Customer", schedule.customer) if schedule.customer else None
+
+	# Build context from schedule/project/line/config data
+	context = {
+		# Project/Schedule
+		"project_name": project.project_name if project else "",
+		"project_code": project.name if project else "",
+		"schedule_name": schedule.schedule_name,
+		"customer_name": customer_doc.customer_name if customer_doc else "",
+		"generated_date": frappe.utils.today(),
+		# Line
+		"line_no": line_idx,
+		"qty": line.qty,
+		"tag": inputs.get("tag", ""),
+		"location": inputs.get("location", ""),
+		"line_notes": inputs.get("notes", ""),
+		"configuration_summary": line.configuration_summary or "",
+		# Configuration data
+		"template_code": template_code,
+		"requested_overall_in": inputs.get("requested_overall_in", ""),
+		"manufacturable_overall_in": config.get("length", {}).get("manufacturable", {}).get("in", ""),
+		"requested_overall_mm": config.get("length", {}).get("requested", {}).get("mm", ""),
+		"manufacturable_overall_mm": config.get("length", {}).get("manufacturable", {}).get("mm", ""),
+		"tape_spec": inputs.get("tape_spec", ""),
+		"watts_per_ft": config.get("electrical", {}).get("watts_per_ft", ""),
+		"total_watts": config.get("electrical", {}).get("total_watts", ""),
+		"runs_count": config.get("electrical", {}).get("runs_count", ""),
+		"selected_driver_spec": config.get("driver", {}).get("driver_spec", ""),
+		"selected_driver_qty": config.get("driver", {}).get("quantity", ""),
+		"tape_type_token": inputs.get("tape_type_token", ""),
+		"environment_token": inputs.get("environment_token", ""),
+		"cct_token": inputs.get("cct_token", ""),
+		"cri_value": inputs.get("cri_value", ""),
+		"output_token": inputs.get("output_token", ""),
+		"lens_option": inputs.get("lens_option", ""),
+		"lens_color_token": inputs.get("lens_color_token", ""),
+		"mounting_method": inputs.get("mounting_method", ""),
+		"mounting_token": inputs.get("mounting_token", ""),
+		"finish_token": inputs.get("finish_token", ""),
+		"joiner_angle": inputs.get("joiner_angle", ""),
+		"joiner_item": config.get("electrical", {}).get("joiner_item", ""),
+		"joiner_qty": config.get("electrical", {}).get("joiner_qty", ""),
+		"mounting_hardware_item": "",
+		"mounting_hardware_qty": "",
+		# Pricing (will be blocked by guardrail)
+		"unit_msrp": line.unit_msrp or "",
+		"unit_net": line.unit_net or "",
+		"tier_name": line.tier_name or "",
+		"discount_percent": line.discount_percent or "",
+	}
+
+	# Fill PDF template with guardrail enabled
+	pdf_bytes, _warnings = fill_pdf_template(
+		pdf_template_id=pdf_template,
+		context=context,
+		enforce_submittal_guardrail=True,
+	)
+
+	return pdf_bytes
+
+
+@frappe.whitelist()
+def generate_submittal_package(schedule_name: str, include_pricing_in_schedule: int = 0):
+	"""
+	Generate combined PDF: schedule + all ilLumenate submittals.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name
+		include_pricing_in_schedule: If 1, include pricing in schedule section
+
+	Returns:
+		PDF file download response
+	"""
+	import json
+	from io import BytesIO
+
+	from frappe.utils.pdf import get_pdf
+	from pypdf import PdfReader, PdfWriter
+
+	from custom_erpnext.illumenate_configurator.pdf_engine import fill_pdf_template
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	# Load the schedule
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		frappe.throw(_("Schedule not found: {0}").format(schedule_name))
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Permission check for portal users
+	if frappe.db.exists("Has Role", {"parent": frappe.session.user, "role": "Customer"}):
+		customer = get_customer_for_portal_user()
+		if not customer or schedule.customer != customer:
+			frappe.throw(_("Unauthorized"))
+
+	# Get project info
+	project = frappe.get_doc("ILL Project", schedule.project) if schedule.project else None
+
+	# Calculate totals
+	schedule_total = sum(
+		line.line_total or 0
+		for line in schedule.lines
+		if line.line_type == "ilLumenate" and line.line_total
+	)
+
+	# Parse configuration data for each line
+	lines_data = []
+	for idx, line in enumerate(schedule.lines, start=1):
+		config = {}
+		if line.configuration_json:
+			try:
+				config = json.loads(line.configuration_json)
+			except json.JSONDecodeError:
+				pass
+
+		lines_data.append({
+			"idx": idx,
+			"line": line,
+			"config": config,
+		})
+
+	# Generate schedule PDF
+	html = frappe.render_template(
+		"custom_erpnext/illumenate_configurator/templates/schedule_pdf.html",
+		{
+			"schedule": schedule,
+			"project": project,
+			"lines_data": lines_data,
+			"include_pricing": int(include_pricing_in_schedule),
+			"schedule_total": schedule_total,
+			"generated_date": frappe.utils.today(),
+		},
+	)
+
+	schedule_pdf_bytes = get_pdf(html)
+
+	# Create PDF writer for merging
+	writer = PdfWriter()
+
+	# Add schedule PDF pages
+	schedule_reader = PdfReader(BytesIO(schedule_pdf_bytes))
+	for page in schedule_reader.pages:
+		writer.add_page(page)
+
+	# Generate submittals for each ilLumenate line
+	for idx, line in enumerate(schedule.lines, start=1):
+		if line.line_type != "ilLumenate" or not line.configuration_json:
+			continue
+
+		try:
+			config = json.loads(line.configuration_json)
+		except json.JSONDecodeError:
+			continue
+
+		inputs = config.get("inputs", {})
+		template_code = inputs.get("template_code") or line.fixture_template
+
+		if not template_code:
+			continue
+
+		# Find active PDF template for this fixture family
+		pdf_template = frappe.db.get_value(
+			"ILL PDF Template",
+			{
+				"template_type": "Fixture Submittal",
+				"applies_to_fixture_template": template_code,
+				"is_active": 1,
+			},
+			"name",
+		)
+
+		if not pdf_template:
+			continue
+
+		# Get customer info
+		customer_doc = (
+			frappe.get_doc("Customer", schedule.customer)
+			if schedule.customer
+			else None
+		)
+
+		# Build context
+		context = {
+			"project_name": project.project_name if project else "",
+			"project_code": project.name if project else "",
+			"schedule_name": schedule.schedule_name,
+			"customer_name": customer_doc.customer_name if customer_doc else "",
+			"generated_date": frappe.utils.today(),
+			"line_no": idx,
+			"qty": line.qty,
+			"tag": inputs.get("tag", ""),
+			"location": inputs.get("location", ""),
+			"line_notes": inputs.get("notes", ""),
+			"configuration_summary": line.configuration_summary or "",
+			"template_code": template_code,
+			"requested_overall_in": inputs.get("requested_overall_in", ""),
+			"manufacturable_overall_in": config.get("length", {})
+			.get("manufacturable", {})
+			.get("in", ""),
+			"requested_overall_mm": config.get("length", {})
+			.get("requested", {})
+			.get("mm", ""),
+			"manufacturable_overall_mm": config.get("length", {})
+			.get("manufacturable", {})
+			.get("mm", ""),
+			"tape_spec": inputs.get("tape_spec", ""),
+			"watts_per_ft": config.get("electrical", {}).get("watts_per_ft", ""),
+			"total_watts": config.get("electrical", {}).get("total_watts", ""),
+			"runs_count": config.get("electrical", {}).get("runs_count", ""),
+			"selected_driver_spec": config.get("driver", {}).get("driver_spec", ""),
+			"selected_driver_qty": config.get("driver", {}).get("quantity", ""),
+			"tape_type_token": inputs.get("tape_type_token", ""),
+			"environment_token": inputs.get("environment_token", ""),
+			"cct_token": inputs.get("cct_token", ""),
+			"cri_value": inputs.get("cri_value", ""),
+			"output_token": inputs.get("output_token", ""),
+			"lens_option": inputs.get("lens_option", ""),
+			"lens_color_token": inputs.get("lens_color_token", ""),
+			"mounting_method": inputs.get("mounting_method", ""),
+			"mounting_token": inputs.get("mounting_token", ""),
+			"finish_token": inputs.get("finish_token", ""),
+			"joiner_angle": inputs.get("joiner_angle", ""),
+			"joiner_item": config.get("electrical", {}).get("joiner_item", ""),
+			"joiner_qty": config.get("electrical", {}).get("joiner_qty", ""),
+			"mounting_hardware_item": "",
+			"mounting_hardware_qty": "",
+			"unit_msrp": line.unit_msrp or "",
+			"unit_net": line.unit_net or "",
+			"tier_name": line.tier_name or "",
+			"discount_percent": line.discount_percent or "",
+		}
+
+		try:
+			submittal_bytes, _warnings = fill_pdf_template(
+				pdf_template_id=pdf_template,
+				context=context,
+				enforce_submittal_guardrail=True,
+			)
+
+			# Add submittal pages to writer
+			submittal_reader = PdfReader(BytesIO(submittal_bytes))
+			for page in submittal_reader.pages:
+				writer.add_page(page)
+		except Exception:
+			# Skip lines where submittal generation fails
+			continue
+
+	# Write merged PDF
+	output = BytesIO()
+	writer.write(output)
+	output.seek(0)
+
+	# Return as download
+	frappe.response["filename"] = f"{schedule_name}_submittal_package.pdf"
+	frappe.response["filecontent"] = output.read()
+	frappe.response["type"] = "download"

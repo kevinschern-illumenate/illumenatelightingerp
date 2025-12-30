@@ -1,0 +1,129 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"template_name",
+		"template_type",
+		"column_break_main",
+		"applies_to_fixture_template",
+		"is_active",
+		"section_break_file",
+		"pdf_file",
+		"column_break_metadata",
+		"version",
+		"notes"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-PDFT-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "template_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Template Name",
+			"reqd": 1
+		},
+		{
+			"fieldname": "template_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Template Type",
+			"options": "Fixture Submittal\nSchedule Cover\nOther",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.template_type=='Fixture Submittal'",
+			"fieldname": "applies_to_fixture_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Applies to Fixture Template",
+			"mandatory_depends_on": "eval:doc.template_type=='Fixture Submittal'",
+			"options": "ILL Fixture Template"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		},
+		{
+			"fieldname": "section_break_file",
+			"fieldtype": "Section Break",
+			"label": "PDF File"
+		},
+		{
+			"fieldname": "pdf_file",
+			"fieldtype": "Attach",
+			"label": "PDF File",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_metadata",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "version",
+			"fieldtype": "Data",
+			"label": "Version"
+		},
+		{
+			"fieldname": "notes",
+			"fieldtype": "Text",
+			"label": "Notes"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL PDF Template",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

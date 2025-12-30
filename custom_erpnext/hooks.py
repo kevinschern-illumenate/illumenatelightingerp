@@ -131,11 +131,17 @@ fixtures = [
 permission_query_conditions = {
 	"ILL Project": "custom_erpnext.illumenate_configurator.permissions.get_permission_query_conditions_project",
 	"ILL Fixture Schedule": "custom_erpnext.illumenate_configurator.permissions.get_permission_query_conditions_schedule",
+	"ILL PDF Template": "custom_erpnext.illumenate_configurator.permissions.get_permission_query_conditions_admin_only",
+	"ILL PDF Field Map": "custom_erpnext.illumenate_configurator.permissions.get_permission_query_conditions_admin_only",
+	"ILL Resource Document": "custom_erpnext.illumenate_configurator.permissions.get_permission_query_conditions_resource",
 }
 
 has_permission = {
 	"ILL Project": "custom_erpnext.illumenate_configurator.permissions.has_permission_project",
 	"ILL Fixture Schedule": "custom_erpnext.illumenate_configurator.permissions.has_permission_schedule",
+	"ILL PDF Template": "custom_erpnext.illumenate_configurator.permissions.has_permission_admin_only",
+	"ILL PDF Field Map": "custom_erpnext.illumenate_configurator.permissions.has_permission_admin_only",
+	"ILL Resource Document": "custom_erpnext.illumenate_configurator.permissions.has_permission_resource",
 }
 
 # DocType Class

@@ -48,6 +48,56 @@
 		</div>
 	</div>
 
+	<!-- Export Buttons Section -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="fa fa-download"></i> Export Options</h5>
+				</div>
+				<div class="card-body">
+					<div class="btn-group" role="group">
+						<button class="btn btn-outline-primary" id="export-csv-btn">
+							<i class="fa fa-file-csv"></i> Download CSV
+						</button>
+						<button class="btn btn-outline-primary" id="export-pdf-btn">
+							<i class="fa fa-file-pdf"></i> Download PDF
+						</button>
+						<button class="btn btn-outline-secondary" id="export-submittal-btn">
+							<i class="fa fa-file-archive"></i> Download Submittal Package
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Pricing Modal for PDF/Submittal exports -->
+	<div class="modal fade" id="pricingModal" tabindex="-1" role="dialog" aria-labelledby="pricingModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="pricingModalLabel">Export Options</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="includePricingCheck">
+						<label class="form-check-label" for="includePricingCheck">
+							Include pricing in export
+						</label>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="confirmExportBtn">Export</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="row">
 		<div class="col-12">
 			<div class="card">
@@ -214,4 +264,54 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
+
+<!-- Export functionality scripts (always available) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	let currentExportType = '';
+	const scheduleName = encodeURIComponent('{{ schedule.name | e }}');
+
+	// CSV Export - direct download
+	const exportCsvBtn = document.getElementById('export-csv-btn');
+	if (exportCsvBtn) {
+		exportCsvBtn.addEventListener('click', function() {
+			window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.export_schedule_csv?schedule_name=' + scheduleName;
+		});
+	}
+
+	// PDF Export - show pricing modal
+	const exportPdfBtn = document.getElementById('export-pdf-btn');
+	if (exportPdfBtn) {
+		exportPdfBtn.addEventListener('click', function() {
+			currentExportType = 'pdf';
+			$('#pricingModal').modal('show');
+		});
+	}
+
+	// Submittal Package - show pricing modal
+	const exportSubmittalBtn = document.getElementById('export-submittal-btn');
+	if (exportSubmittalBtn) {
+		exportSubmittalBtn.addEventListener('click', function() {
+			currentExportType = 'submittal';
+			$('#pricingModal').modal('show');
+		});
+	}
+
+	// Confirm export button
+	const confirmExportBtn = document.getElementById('confirmExportBtn');
+	if (confirmExportBtn) {
+		confirmExportBtn.addEventListener('click', function() {
+			const includePricing = document.getElementById('includePricingCheck').checked ? 1 : 0;
+
+			if (currentExportType === 'pdf') {
+				window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.export_schedule_pdf?schedule_name=' + scheduleName + '&include_pricing=' + includePricing;
+			} else if (currentExportType === 'submittal') {
+				window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.generate_submittal_package?schedule_name=' + scheduleName + '&include_pricing_in_schedule=' + includePricing;
+			}
+
+			$('#pricingModal').modal('hide');
+		});
+	}
+});
+</script>
 {% endblock %}

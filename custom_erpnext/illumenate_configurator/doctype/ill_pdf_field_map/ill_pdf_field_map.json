@@ -1,0 +1,112 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"pdf_template",
+		"pdf_field_name",
+		"column_break_main",
+		"data_key",
+		"format_rule",
+		"default_value",
+		"is_active"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-PDFM-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "pdf_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "PDF Template",
+			"options": "ILL PDF Template",
+			"reqd": 1
+		},
+		{
+			"fieldname": "pdf_field_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "PDF Field Name",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "data_key",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Data Key",
+			"options": "project_name\nproject_code\nschedule_name\ncustomer_name\ngenerated_date\nline_no\nqty\ntag\nlocation\nline_notes\nconfiguration_summary\ntemplate_code\nrequested_overall_in\nmanufacturable_overall_in\nrequested_overall_mm\nmanufacturable_overall_mm\ntape_spec\nwatts_per_ft\ntotal_watts\nruns_count\nselected_driver_spec\nselected_driver_qty\ntape_type_token\nenvironment_token\ncct_token\ncri_value\noutput_token\nlens_option\nlens_color_token\nmounting_method\nmounting_token\nfinish_token\njoiner_angle\njoiner_item\njoiner_qty\nmounting_hardware_item\nmounting_hardware_qty\nunit_msrp\nunit_net\ntier_name\ndiscount_percent",
+			"reqd": 1
+		},
+		{
+			"default": "Raw",
+			"fieldname": "format_rule",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Format Rule",
+			"options": "Raw\nUppercase\nCurrency_2dp\nInches_1_16\nMM_0dp\nMeters_3dp\nPercent_0dp\nDate_YYYY_MM_DD"
+		},
+		{
+			"fieldname": "default_value",
+			"fieldtype": "Data",
+			"label": "Default Value"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL PDF Field Map",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
