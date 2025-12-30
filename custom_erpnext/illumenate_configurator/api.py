@@ -635,6 +635,7 @@ def get_tape_spec_variants(tape_spec):
 		# Use "(Default)" as display value when attribute_combination is empty
 		# This ensures the dropdown shows a selectable option for items without variants
 		display_value = abbreviated if abbreviated else "(Default)"
+		# Ensure attribute_combination_full is always a string (handles potential None from database)
 		variants.append({
 			"attribute_combination": display_value,
 			"attribute_combination_full": row.attribute_combination or "",
@@ -674,6 +675,7 @@ def get_driver_spec_variants(driver_spec):
 		# Use "(Default)" as display value when attribute_combination is empty
 		# This ensures the dropdown shows a selectable option for items without variants
 		display_value = abbreviated if abbreviated else "(Default)"
+		# Ensure attribute_combination_full is always a string (handles potential None from database)
 		variants.append({
 			"attribute_combination": display_value,
 			"attribute_combination_full": row.attribute_combination or "",
