@@ -269,12 +269,13 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 	let currentExportType = '';
+	const scheduleName = encodeURIComponent('{{ schedule.name | e }}');
 
 	// CSV Export - direct download
 	const exportCsvBtn = document.getElementById('export-csv-btn');
 	if (exportCsvBtn) {
 		exportCsvBtn.addEventListener('click', function() {
-			window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.export_schedule_csv?schedule_name={{ schedule.name }}';
+			window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.export_schedule_csv?schedule_name=' + scheduleName;
 		});
 	}
 
@@ -303,9 +304,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			const includePricing = document.getElementById('includePricingCheck').checked ? 1 : 0;
 
 			if (currentExportType === 'pdf') {
-				window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.export_schedule_pdf?schedule_name={{ schedule.name }}&include_pricing=' + includePricing;
+				window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.export_schedule_pdf?schedule_name=' + scheduleName + '&include_pricing=' + includePricing;
 			} else if (currentExportType === 'submittal') {
-				window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.generate_submittal_package?schedule_name={{ schedule.name }}&include_pricing_in_schedule=' + includePricing;
+				window.location.href = '/api/method/custom_erpnext.illumenate_configurator.api.generate_submittal_package?schedule_name=' + scheduleName + '&include_pricing_in_schedule=' + includePricing;
 			}
 
 			$('#pricingModal').modal('hide');
