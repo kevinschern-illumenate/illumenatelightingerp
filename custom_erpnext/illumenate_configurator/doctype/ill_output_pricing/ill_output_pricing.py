@@ -13,7 +13,9 @@ class ILLOutputPricing(Document):
 
 	def validate_override_or_adder(self):
 		"""Validate that at least one of override or adder is set."""
-		if not self.tape_rate_per_m_override and not self.tape_adder_per_m:
+		override_set = self.tape_rate_per_m_override is not None and self.tape_rate_per_m_override != ""
+		adder_set = self.tape_adder_per_m is not None and self.tape_adder_per_m != ""
+		if not override_set and not adder_set:
 			frappe.throw(_("At least one of Tape Rate Override or Tape Adder must be set"))
 
 	def validate_uniqueness(self):
