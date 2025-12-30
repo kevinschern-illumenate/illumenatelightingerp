@@ -41,17 +41,11 @@ def get_template_mapping_for_lead_source(lead_source=None, trigger_event="Lead C
 	Returns:
 		ILL Email Template Mapping document or None
 	"""
-	filters = {
-		"is_active": 1,
-		"trigger_event": trigger_event,
-	}
-
 	# First try to find a mapping specific to this lead source
 	if lead_source:
-		filters["lead_source"] = lead_source
 		mapping = frappe.db.get_value(
 			"ILL Email Template Mapping",
-			filters,
+			{"is_active": 1, "trigger_event": trigger_event, "lead_source": lead_source},
 			["name", "email_template", "delay_minutes", "subject_override", "from_email_override"],
 			as_dict=True,
 		)
@@ -59,11 +53,6 @@ def get_template_mapping_for_lead_source(lead_source=None, trigger_event="Lead C
 			return mapping
 
 	# Fall back to a mapping with no lead source (applies to all)
-	filters["lead_source"] = ["in", ["", None]]
-	if lead_source:
-		del filters["lead_source"]
-		filters["lead_source"] = ["in", ["", None]]
-
 	mapping = frappe.db.get_value(
 		"ILL Email Template Mapping",
 		{"is_active": 1, "trigger_event": trigger_event, "lead_source": ["in", ["", None]]},

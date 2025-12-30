@@ -111,9 +111,12 @@ def send_email_from_template(email_log_name, lead_name, mapping):
 		subject = frappe.render_template(subject, context)
 
 		# Get sender email
-		from_email = mapping.get("from_email_override") or frappe.db.get_single_value(
-			"Email Account", "default_outgoing"
-		)
+		from_email = mapping.get("from_email_override")
+		if not from_email:
+			# Get default outgoing email from Email Account that is set as default outgoing
+			from_email = frappe.db.get_value(
+				"Email Account", {"default_outgoing": 1, "enable_outgoing": 1}, "email_id"
+			)
 
 		# Update log with email details
 		email_log.subject = subject
