@@ -1,0 +1,189 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"email",
+		"consent_type",
+		"column_break_main",
+		"consent_given",
+		"consent_timestamp",
+		"section_break_details",
+		"marketing_form",
+		"lead_source",
+		"column_break_details",
+		"ip_address",
+		"user_agent",
+		"section_break_utm",
+		"utm_source",
+		"utm_medium",
+		"column_break_utm",
+		"utm_campaign",
+		"utm_content",
+		"section_break_consent_text",
+		"consent_text_shown"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-CONSENT-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "email",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Email",
+			"options": "Email",
+			"reqd": 1
+		},
+		{
+			"fieldname": "consent_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Consent Type",
+			"options": "Marketing Communications\nNewsletter\nProduct Updates\nDealer Communications",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "consent_given",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Consent Given"
+		},
+		{
+			"fieldname": "consent_timestamp",
+			"fieldtype": "Datetime",
+			"in_list_view": 1,
+			"label": "Consent Timestamp",
+			"reqd": 1
+		},
+		{
+			"fieldname": "section_break_details",
+			"fieldtype": "Section Break",
+			"label": "Source Details"
+		},
+		{
+			"fieldname": "marketing_form",
+			"fieldtype": "Link",
+			"label": "Marketing Form",
+			"options": "ILL Marketing Form"
+		},
+		{
+			"fieldname": "lead_source",
+			"fieldtype": "Link",
+			"label": "Lead Source",
+			"options": "ILL Lead Source"
+		},
+		{
+			"fieldname": "column_break_details",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "ip_address",
+			"fieldtype": "Data",
+			"label": "IP Address",
+			"read_only": 1
+		},
+		{
+			"fieldname": "user_agent",
+			"fieldtype": "Small Text",
+			"label": "User Agent",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_utm",
+			"fieldtype": "Section Break",
+			"label": "UTM Parameters"
+		},
+		{
+			"fieldname": "utm_source",
+			"fieldtype": "Data",
+			"label": "UTM Source",
+			"read_only": 1
+		},
+		{
+			"fieldname": "utm_medium",
+			"fieldtype": "Data",
+			"label": "UTM Medium",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_utm",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "utm_campaign",
+			"fieldtype": "Data",
+			"label": "UTM Campaign",
+			"read_only": 1
+		},
+		{
+			"fieldname": "utm_content",
+			"fieldtype": "Data",
+			"label": "UTM Content",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_consent_text",
+			"fieldtype": "Section Break",
+			"label": "Consent Text Shown"
+		},
+		{
+			"fieldname": "consent_text_shown",
+			"fieldtype": "Text",
+			"label": "Consent Text Shown",
+			"read_only": 1
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Consent Record",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 0
+		},
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 0
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

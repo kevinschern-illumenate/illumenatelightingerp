@@ -1,0 +1,133 @@
+{
+	"actions": [],
+	"autoname": "field:source_name",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"source_name",
+		"source_type",
+		"column_break_main",
+		"is_active",
+		"section_break_details",
+		"description",
+		"section_break_utm",
+		"utm_source",
+		"utm_medium",
+		"column_break_utm",
+		"utm_campaign",
+		"utm_content"
+	],
+	"fields": [
+		{
+			"fieldname": "source_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Source Name",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "source_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Source Type",
+			"options": "Organic\nPaid\nReferral\nDirect\nSocial\nEmail\nEvent\nOther",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		},
+		{
+			"fieldname": "section_break_details",
+			"fieldtype": "Section Break",
+			"label": "Details"
+		},
+		{
+			"fieldname": "description",
+			"fieldtype": "Small Text",
+			"label": "Description"
+		},
+		{
+			"fieldname": "section_break_utm",
+			"fieldtype": "Section Break",
+			"label": "UTM Parameters"
+		},
+		{
+			"fieldname": "utm_source",
+			"fieldtype": "Data",
+			"label": "UTM Source",
+			"description": "The referrer (e.g., google, facebook, newsletter)"
+		},
+		{
+			"fieldname": "utm_medium",
+			"fieldtype": "Data",
+			"label": "UTM Medium",
+			"description": "Marketing medium (e.g., cpc, banner, email)"
+		},
+		{
+			"fieldname": "column_break_utm",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "utm_campaign",
+			"fieldtype": "Data",
+			"label": "UTM Campaign",
+			"description": "Campaign name or code"
+		},
+		{
+			"fieldname": "utm_content",
+			"fieldtype": "Data",
+			"label": "UTM Content",
+			"description": "Content variant (e.g., for A/B testing)"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Lead Source",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

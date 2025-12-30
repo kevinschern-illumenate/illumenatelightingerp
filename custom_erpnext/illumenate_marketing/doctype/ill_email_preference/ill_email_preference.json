@@ -1,0 +1,134 @@
+{
+	"actions": [],
+	"autoname": "field:email",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"email",
+		"column_break_main",
+		"global_unsubscribe",
+		"section_break_preferences",
+		"marketing_emails",
+		"newsletter_emails",
+		"column_break_preferences",
+		"product_updates",
+		"dealer_communications",
+		"section_break_history",
+		"last_updated",
+		"unsubscribe_token"
+	],
+	"fields": [
+		{
+			"fieldname": "email",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Email",
+			"options": "Email",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"fieldname": "global_unsubscribe",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Global Unsubscribe",
+			"description": "Unsubscribe from all emails"
+		},
+		{
+			"fieldname": "section_break_preferences",
+			"fieldtype": "Section Break",
+			"label": "Email Preferences"
+		},
+		{
+			"default": "1",
+			"fieldname": "marketing_emails",
+			"fieldtype": "Check",
+			"label": "Marketing Emails"
+		},
+		{
+			"default": "1",
+			"fieldname": "newsletter_emails",
+			"fieldtype": "Check",
+			"label": "Newsletter Emails"
+		},
+		{
+			"fieldname": "column_break_preferences",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "product_updates",
+			"fieldtype": "Check",
+			"label": "Product Updates"
+		},
+		{
+			"default": "1",
+			"fieldname": "dealer_communications",
+			"fieldtype": "Check",
+			"label": "Dealer Communications"
+		},
+		{
+			"fieldname": "section_break_history",
+			"fieldtype": "Section Break",
+			"label": "System Fields"
+		},
+		{
+			"fieldname": "last_updated",
+			"fieldtype": "Datetime",
+			"label": "Last Updated",
+			"read_only": 1
+		},
+		{
+			"fieldname": "unsubscribe_token",
+			"fieldtype": "Data",
+			"label": "Unsubscribe Token",
+			"read_only": 1,
+			"unique": 1
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Email Preference",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
