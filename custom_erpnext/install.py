@@ -66,4 +66,5 @@ def ensure_marketing_forms_exist():
 		if not frappe.db.exists("ILL Marketing Form", form_name):
 			doc = frappe.get_doc(form_data)
 			doc.insert(ignore_permissions=True)
-			frappe.db.commit()
+
+	frappe.db.commit()
