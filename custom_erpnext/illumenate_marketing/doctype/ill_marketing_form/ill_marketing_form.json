@@ -1,0 +1,190 @@
+{
+	"actions": [],
+	"autoname": "field:form_name",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"form_name",
+		"form_type",
+		"column_break_main",
+		"is_active",
+		"route",
+		"section_break_settings",
+		"lead_source",
+		"default_utm_source",
+		"column_break_settings",
+		"default_utm_medium",
+		"default_utm_campaign",
+		"section_break_gdpr",
+		"require_gdpr_consent",
+		"gdpr_consent_text",
+		"column_break_gdpr",
+		"privacy_policy_url",
+		"section_break_notifications",
+		"notification_email",
+		"success_message",
+		"section_break_redirect",
+		"redirect_url"
+	],
+	"fields": [
+		{
+			"fieldname": "form_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Form Name",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "form_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Form Type",
+			"options": "Contact\nDealer Inquiry\nNewsletter\nQuote Request\nOther",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		},
+		{
+			"fieldname": "route",
+			"fieldtype": "Data",
+			"label": "Route",
+			"description": "URL path for the form (e.g., /contact)"
+		},
+		{
+			"fieldname": "section_break_settings",
+			"fieldtype": "Section Break",
+			"label": "Campaign Settings"
+		},
+		{
+			"fieldname": "lead_source",
+			"fieldtype": "Link",
+			"label": "Default Lead Source",
+			"options": "ILL Lead Source",
+			"description": "Default lead source if none captured from URL"
+		},
+		{
+			"fieldname": "default_utm_source",
+			"fieldtype": "Data",
+			"label": "Default UTM Source"
+		},
+		{
+			"fieldname": "column_break_settings",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "default_utm_medium",
+			"fieldtype": "Data",
+			"label": "Default UTM Medium"
+		},
+		{
+			"fieldname": "default_utm_campaign",
+			"fieldtype": "Data",
+			"label": "Default UTM Campaign"
+		},
+		{
+			"fieldname": "section_break_gdpr",
+			"fieldtype": "Section Break",
+			"label": "GDPR / Consent Settings"
+		},
+		{
+			"default": "1",
+			"fieldname": "require_gdpr_consent",
+			"fieldtype": "Check",
+			"label": "Require GDPR Consent"
+		},
+		{
+			"fieldname": "gdpr_consent_text",
+			"fieldtype": "Small Text",
+			"label": "Consent Text",
+			"default": "I agree to receive communications from ilLumenate Lighting. I understand I can unsubscribe at any time."
+		},
+		{
+			"fieldname": "column_break_gdpr",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "privacy_policy_url",
+			"fieldtype": "Data",
+			"label": "Privacy Policy URL"
+		},
+		{
+			"fieldname": "section_break_notifications",
+			"fieldtype": "Section Break",
+			"label": "Notifications"
+		},
+		{
+			"fieldname": "notification_email",
+			"fieldtype": "Data",
+			"label": "Notification Email",
+			"description": "Email address to notify on form submission"
+		},
+		{
+			"fieldname": "success_message",
+			"fieldtype": "Small Text",
+			"label": "Success Message",
+			"default": "Thank you for your inquiry. We will be in touch shortly."
+		},
+		{
+			"fieldname": "section_break_redirect",
+			"fieldtype": "Section Break",
+			"label": "Redirect Settings"
+		},
+		{
+			"fieldname": "redirect_url",
+			"fieldtype": "Data",
+			"label": "Redirect URL",
+			"description": "URL to redirect to after successful submission (optional)"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Marketing Form",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

@@ -1,0 +1,189 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Email Preferences - ilLumenate Lighting{% endblock %}
+
+{% block page_content %}
+<div class="container py-5">
+	<div class="row justify-content-center">
+		<div class="col-md-6">
+			<div class="card shadow">
+				<div class="card-header">
+					<h3 class="mb-0 text-center">Email Preferences</h3>
+				</div>
+				<div class="card-body p-4">
+					{% if error %}
+					<div class="alert alert-danger" role="alert">
+						{{ error }}
+					</div>
+					<div class="text-center mt-4">
+						<a href="/" class="btn btn-secondary">Return to Home</a>
+					</div>
+					{% elif success %}
+					<div class="alert alert-success" role="alert">
+						<h4 class="alert-heading">Success!</h4>
+						<p>{{ success_message }}</p>
+					</div>
+					<div class="text-center mt-4">
+						<a href="/" class="btn btn-primary">Return to Home</a>
+					</div>
+					{% elif preferences %}
+					<p class="text-muted mb-4">Manage your email preferences for <strong>{{ email }}</strong></p>
+					
+					<form id="preferences-form" method="POST">
+						<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+						<input type="hidden" name="token" value="{{ token }}">
+						
+						<div class="mb-4">
+							<div class="form-check form-switch mb-3">
+								<input class="form-check-input" type="checkbox" id="global_unsubscribe" 
+									name="global_unsubscribe" {{ "checked" if preferences.global_unsubscribe else "" }}>
+								<label class="form-check-label" for="global_unsubscribe">
+									<strong>Unsubscribe from all emails</strong>
+								</label>
+							</div>
+						</div>
+						
+						<hr>
+						
+						<h5 class="mb-3">Or manage individual preferences:</h5>
+						
+						<div class="form-check form-switch mb-3">
+							<input class="form-check-input pref-switch" type="checkbox" id="marketing_emails" 
+								name="marketing_emails" {{ "checked" if preferences.marketing_emails else "" }}>
+							<label class="form-check-label" for="marketing_emails">
+								Marketing emails
+							</label>
+						</div>
+						
+						<div class="form-check form-switch mb-3">
+							<input class="form-check-input pref-switch" type="checkbox" id="newsletter_emails" 
+								name="newsletter_emails" {{ "checked" if preferences.newsletter_emails else "" }}>
+							<label class="form-check-label" for="newsletter_emails">
+								Newsletter
+							</label>
+						</div>
+						
+						<div class="form-check form-switch mb-3">
+							<input class="form-check-input pref-switch" type="checkbox" id="product_updates" 
+								name="product_updates" {{ "checked" if preferences.product_updates else "" }}>
+							<label class="form-check-label" for="product_updates">
+								Product updates
+							</label>
+						</div>
+						
+						<div class="form-check form-switch mb-3">
+							<input class="form-check-input pref-switch" type="checkbox" id="dealer_communications" 
+								name="dealer_communications" {{ "checked" if preferences.dealer_communications else "" }}>
+							<label class="form-check-label" for="dealer_communications">
+								Dealer communications
+							</label>
+						</div>
+						
+						<div class="d-grid mt-4">
+							<button type="submit" class="btn btn-primary" id="submit-btn">Update Preferences</button>
+						</div>
+					</form>
+					{% else %}
+					<div class="text-center">
+						<p>Processing your request...</p>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Toggle individual preferences when global unsubscribe is checked
+	const globalUnsubscribe = document.getElementById('global_unsubscribe');
+	const prefSwitches = document.querySelectorAll('.pref-switch');
+	
+	// Helper function to show inline error message
+	function showErrorMessage(message) {
+		const form = document.getElementById('preferences-form');
+		if (!form) return;
+		
+		let existingAlert = form.querySelector('.alert-danger');
+		if (existingAlert) {
+			existingAlert.textContent = message;
+		} else {
+			const alertDiv = document.createElement('div');
+			alertDiv.className = 'alert alert-danger';
+			alertDiv.setAttribute('role', 'alert');
+			alertDiv.textContent = message;
+			form.insertBefore(alertDiv, form.firstChild);
+		}
+	}
+	
+	if (globalUnsubscribe) {
+		globalUnsubscribe.addEventListener('change', function() {
+			prefSwitches.forEach(function(switchEl) {
+				switchEl.disabled = globalUnsubscribe.checked;
+				if (globalUnsubscribe.checked) {
+					switchEl.checked = false;
+				}
+			});
+		});
+		
+		// Initialize state
+		if (globalUnsubscribe.checked) {
+			prefSwitches.forEach(function(switchEl) {
+				switchEl.disabled = true;
+			});
+		}
+	}
+	
+	// Form submission
+	const form = document.getElementById('preferences-form');
+	if (form) {
+		form.addEventListener('submit', function(e) {
+			e.preventDefault();
+			
+			const submitBtn = document.getElementById('submit-btn');
+			submitBtn.disabled = true;
+			submitBtn.textContent = 'Saving...';
+			
+			const formData = new FormData(form);
+			const data = {token: formData.get('token')};
+			
+			// Get checkbox values
+			['global_unsubscribe', 'marketing_emails', 'newsletter_emails', 
+			 'product_updates', 'dealer_communications'].forEach(function(field) {
+				const el = document.getElementById(field);
+				data[field] = el ? el.checked : false;
+			});
+			
+			frappe.call({
+				method: 'custom_erpnext.illumenate_marketing.api.update_email_preferences',
+				args: data,
+				callback: function(r) {
+					if (r.message && r.message.success) {
+						const cardBody = document.querySelector('.card-body');
+						cardBody.innerHTML = `
+							<div class="alert alert-success" role="alert">
+								<h4 class="alert-heading">Success!</h4>
+								<p>${r.message.message}</p>
+							</div>
+							<div class="text-center mt-4">
+								<a href="/" class="btn btn-primary">Return to Home</a>
+							</div>
+						`;
+					} else {
+						submitBtn.disabled = false;
+						submitBtn.textContent = 'Update Preferences';
+						showErrorMessage(r.message.message || 'An error occurred');
+					}
+				},
+				error: function() {
+					submitBtn.disabled = false;
+					submitBtn.textContent = 'Update Preferences';
+					showErrorMessage('An error occurred. Please try again.');
+				}
+			});
+		});
+	}
+});
+</script>
+{% endblock %}

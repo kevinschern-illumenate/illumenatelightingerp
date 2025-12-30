@@ -1,0 +1,235 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Become a Dealer - ilLumenate Lighting{% endblock %}
+
+{% block page_content %}
+<div class="container py-5">
+	<div class="row justify-content-center">
+		<div class="col-lg-10">
+			<div class="row">
+				<div class="col-md-5 mb-4">
+					<h1 class="display-5 mb-4">Partner with ilLumenate</h1>
+					<p class="lead">
+						Join our network of professional lighting dealers and gain access to premium LED lighting solutions.
+					</p>
+					<div class="mt-4">
+						<h5>Dealer Benefits:</h5>
+						<ul class="list-unstyled">
+							<li class="mb-2"><i class="fa fa-check text-success me-2"></i> Competitive dealer pricing</li>
+							<li class="mb-2"><i class="fa fa-check text-success me-2"></i> Technical support</li>
+							<li class="mb-2"><i class="fa fa-check text-success me-2"></i> Marketing materials</li>
+							<li class="mb-2"><i class="fa fa-check text-success me-2"></i> Project configurator access</li>
+							<li class="mb-2"><i class="fa fa-check text-success me-2"></i> Training and certification</li>
+						</ul>
+					</div>
+				</div>
+				<div class="col-md-7">
+					<div class="card shadow">
+						<div class="card-header bg-primary text-white">
+							<h3 class="mb-0 text-center">Dealer Application</h3>
+						</div>
+						<div class="card-body p-4">
+							{% if success %}
+							<div class="alert alert-success" role="alert">
+								<h4 class="alert-heading">Application Received!</h4>
+								<p>{{ success_message or "Thank you for your interest. Our dealer team will review your application and contact you within 2 business days." }}</p>
+							</div>
+							<div class="text-center mt-4">
+								<a href="/" class="btn btn-primary">Return to Home</a>
+							</div>
+							{% else %}
+							<form id="dealer-inquiry-form" method="POST">
+								<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+								<input type="hidden" id="form_name" name="form_name" value="Dealer Inquiry">
+								
+								<!-- Hidden UTM fields -->
+								<input type="hidden" id="utm_source" name="utm_source" value="">
+								<input type="hidden" id="utm_medium" name="utm_medium" value="">
+								<input type="hidden" id="utm_campaign" name="utm_campaign" value="">
+								<input type="hidden" id="utm_content" name="utm_content" value="">
+								<input type="hidden" id="utm_term" name="utm_term" value="">
+								<input type="hidden" id="lead_source" name="lead_source" value="">
+								
+								{% if error %}
+								<div class="alert alert-danger" role="alert">
+									{{ error }}
+								</div>
+								{% endif %}
+								
+								<h5 class="mb-3">Contact Information</h5>
+								<div class="row">
+									<div class="col-md-6 mb-3">
+										<label for="first_name" class="form-label">First Name *</label>
+										<input type="text" class="form-control" id="first_name" name="first_name" required>
+									</div>
+									<div class="col-md-6 mb-3">
+										<label for="last_name" class="form-label">Last Name *</label>
+										<input type="text" class="form-control" id="last_name" name="last_name" required>
+									</div>
+								</div>
+								
+								<div class="mb-3">
+									<label for="email" class="form-label">Email Address *</label>
+									<input type="email" class="form-control" id="email" name="email" required>
+								</div>
+								
+								<div class="mb-3">
+									<label for="phone" class="form-label">Phone *</label>
+									<input type="tel" class="form-control" id="phone" name="phone" required>
+								</div>
+								
+								<h5 class="mt-4 mb-3">Company Information</h5>
+								
+								<div class="mb-3">
+									<label for="company" class="form-label">Company Name *</label>
+									<input type="text" class="form-control" id="company" name="company" required>
+								</div>
+								
+								<div class="row">
+									<div class="col-md-6 mb-3">
+										<label for="business_type" class="form-label">Business Type</label>
+										<select class="form-control" id="business_type" name="business_type">
+											<option value="">Select...</option>
+											<option value="Lighting Distributor">Lighting Distributor</option>
+											<option value="Electrical Distributor">Electrical Distributor</option>
+											<option value="Lighting Designer">Lighting Designer</option>
+											<option value="Contractor">Contractor</option>
+											<option value="Architect/Design Firm">Architect/Design Firm</option>
+											<option value="Other">Other</option>
+										</select>
+									</div>
+									<div class="col-md-6 mb-3">
+										<label for="years_in_business" class="form-label">Years in Business</label>
+										<input type="text" class="form-control" id="years_in_business" name="years_in_business">
+									</div>
+								</div>
+								
+								<div class="mb-3">
+									<label for="website" class="form-label">Company Website</label>
+									<input type="url" class="form-control" id="website" name="website" placeholder="https://">
+								</div>
+								
+								<div class="mb-3">
+									<label for="message" class="form-label">Tell us about your business</label>
+									<textarea class="form-control" id="message" name="message" rows="3" placeholder="Please describe your company and how you plan to sell ilLumenate products..."></textarea>
+								</div>
+								
+								{% if require_consent %}
+								<div class="mb-3 form-check">
+									<input type="checkbox" class="form-check-input" id="gdpr_consent" name="gdpr_consent" required>
+									<label class="form-check-label" for="gdpr_consent">
+										{{ consent_text or "I agree to receive communications from ilLumenate Lighting regarding my dealer application. I understand I can unsubscribe at any time." }}
+										{% if privacy_url %}
+										<a href="{{ privacy_url }}" target="_blank">Privacy Policy</a>
+										{% endif %}
+									</label>
+								</div>
+								{% endif %}
+								
+								<div class="d-grid">
+									<button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Submit Application</button>
+								</div>
+							</form>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Parse UTM parameters from URL and populate hidden fields
+	const urlParams = new URLSearchParams(window.location.search);
+	const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+	
+	utmFields.forEach(function(field) {
+		const value = urlParams.get(field);
+		const input = document.getElementById(field);
+		if (value && input) {
+			input.value = value;
+		}
+	});
+	
+	// Check for lead_source param
+	const leadSource = urlParams.get('source') || urlParams.get('lead_source');
+	if (leadSource) {
+		document.getElementById('lead_source').value = leadSource;
+	}
+	
+	// Form submission handling
+	const form = document.getElementById('dealer-inquiry-form');
+	if (form) {
+		form.addEventListener('submit', function(e) {
+			e.preventDefault();
+			
+			const submitBtn = document.getElementById('submit-btn');
+			submitBtn.disabled = true;
+			submitBtn.textContent = 'Submitting...';
+			
+			const formData = new FormData(form);
+			const data = {};
+			formData.forEach((value, key) => data[key] = value);
+			
+			frappe.call({
+				method: 'custom_erpnext.illumenate_marketing.api.submit_form',
+				args: data,
+				callback: function(r) {
+					if (r.message && r.message.success) {
+						if (r.message.redirect_url) {
+							window.location.href = r.message.redirect_url;
+						} else {
+							// Show success message
+							const cardBody = document.querySelector('.card-body');
+							cardBody.innerHTML = `
+								<div class="alert alert-success" role="alert">
+									<h4 class="alert-heading">Application Received!</h4>
+									<p>${r.message.message}</p>
+								</div>
+								<div class="text-center mt-4">
+									<a href="/" class="btn btn-primary">Return to Home</a>
+								</div>
+							`;
+						}
+					} else {
+						// Show errors - use textContent to prevent XSS
+						let errorMessages = ['An error occurred. Please try again.'];
+						if (r.message && r.message.errors) {
+							errorMessages = r.message.errors.map(e => e.message);
+						}
+						const existingAlert = form.querySelector('.alert-danger');
+						if (existingAlert) {
+							existingAlert.textContent = errorMessages.join(' | ');
+						} else {
+							const alertDiv = document.createElement('div');
+							alertDiv.className = 'alert alert-danger';
+							alertDiv.setAttribute('role', 'alert');
+							alertDiv.textContent = errorMessages.join(' | ');
+							form.insertBefore(alertDiv, form.firstChild);
+						}
+						submitBtn.disabled = false;
+						submitBtn.textContent = 'Submit Application';
+					}
+				},
+				error: function() {
+					submitBtn.disabled = false;
+					submitBtn.textContent = 'Submit Application';
+					const existingAlert = form.querySelector('.alert-danger');
+					if (existingAlert) {
+						existingAlert.textContent = 'An error occurred. Please try again.';
+					} else {
+						const alertDiv = document.createElement('div');
+						alertDiv.className = 'alert alert-danger';
+						alertDiv.setAttribute('role', 'alert');
+						alertDiv.textContent = 'An error occurred. Please try again.';
+						form.insertBefore(alertDiv, form.firstChild);
+					}
+				}
+			});
+		});
+	}
+});
+</script>
+{% endblock %}
