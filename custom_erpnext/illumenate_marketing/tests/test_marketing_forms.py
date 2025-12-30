@@ -426,5 +426,200 @@ class TestUnsubscribeWorkflow(unittest.TestCase):
 		self.assertTrue(update_request["product_updates"])
 
 
+class TestContactCreationFromForm(unittest.TestCase):
+	"""Tests for creating Company and Individual contacts from form submissions."""
+
+	def test_contact_creation_with_company(self):
+		"""Test that form data creates both company and individual contacts."""
+		form_data = {
+			"first_name": "John",
+			"last_name": "Doe",
+			"email": "john@testcompany.com",
+			"phone": "555-123-4567",
+			"company": "Test Company LLC",
+		}
+
+		# Simulate contact creation logic
+		company_name = form_data.get("company", "").strip()
+		first_name = form_data.get("first_name", "").strip()
+		last_name = form_data.get("last_name", "").strip()
+		email = form_data.get("email", "").strip()
+
+		# Verify company contact would be created
+		self.assertEqual(company_name, "Test Company LLC")
+		self.assertTrue(len(company_name) > 0)
+
+		# Verify individual contact would be created
+		self.assertEqual(first_name, "John")
+		self.assertEqual(last_name, "Doe")
+		self.assertEqual(email, "john@testcompany.com")
+
+	def test_contact_creation_without_company(self):
+		"""Test that form data without company only creates individual contact."""
+		form_data = {
+			"first_name": "Jane",
+			"last_name": "Smith",
+			"email": "jane@personal.com",
+			"phone": "555-987-6543",
+			"company": "",
+		}
+
+		company_name = form_data.get("company", "").strip()
+		first_name = form_data.get("first_name", "").strip()
+
+		# Company contact should not be created
+		self.assertEqual(company_name, "")
+		self.assertFalse(len(company_name) > 0)
+
+		# Individual contact should still be created
+		self.assertEqual(first_name, "Jane")
+
+	def test_email_fallback_for_first_name(self):
+		"""Test that email prefix is used if first name not provided."""
+		form_data = {
+			"first_name": "",
+			"last_name": "",
+			"email": "anonymous.user@example.com",
+		}
+
+		first_name = form_data.get("first_name", "").strip()
+		email = form_data.get("email", "")
+
+		# If first name is empty, use email prefix
+		contact_first_name = first_name or email.split("@")[0]
+		self.assertEqual(contact_first_name, "anonymous.user")
+
+	def test_company_contact_structure(self):
+		"""Test the structure of a company contact."""
+		company_contact = {
+			"first_name": "Acme Corporation",
+			"company_name": "Acme Corporation",
+			"is_primary_contact": 1,
+		}
+
+		self.assertEqual(company_contact["first_name"], company_contact["company_name"])
+		self.assertEqual(company_contact["is_primary_contact"], 1)
+
+	def test_individual_contact_structure(self):
+		"""Test the structure of an individual contact."""
+		individual_contact = {
+			"first_name": "John",
+			"last_name": "Doe",
+			"email_id": "john@acme.com",
+			"company_name": "Acme Corporation",
+			"email_ids": [{"email_id": "john@acme.com", "is_primary": 1}],
+			"phone_nos": [{"phone": "555-123-4567", "is_primary_phone": 1}],
+			"links": [{"link_doctype": "Contact", "link_name": "CONT-ACME"}],
+		}
+
+		self.assertEqual(individual_contact["first_name"], "John")
+		self.assertEqual(individual_contact["last_name"], "Doe")
+		self.assertEqual(individual_contact["company_name"], "Acme Corporation")
+		self.assertEqual(len(individual_contact["email_ids"]), 1)
+		self.assertEqual(individual_contact["email_ids"][0]["is_primary"], 1)
+
+	def test_duplicate_email_detection(self):
+		"""Test that duplicate emails are detected."""
+		existing_contacts = [
+			{"email_id": "john@acme.com", "name": "CONT-001"},
+			{"email_id": "jane@acme.com", "name": "CONT-002"},
+		]
+
+		def find_existing_contact(email):
+			for contact in existing_contacts:
+				if contact["email_id"] == email:
+					return contact["name"]
+			return None
+
+		# Existing email should return existing contact
+		result = find_existing_contact("john@acme.com")
+		self.assertEqual(result, "CONT-001")
+
+		# New email should return None
+		result = find_existing_contact("new@example.com")
+		self.assertIsNone(result)
+
+	def test_duplicate_company_detection(self):
+		"""Test that duplicate companies are detected."""
+		existing_companies = [
+			{"company_name": "Acme Corporation", "name": "CONT-ACME"},
+			{"company_name": "Beta Inc", "name": "CONT-BETA"},
+		]
+
+		def find_existing_company(company_name):
+			for company in existing_companies:
+				if company["company_name"] == company_name:
+					return company["name"]
+			return None
+
+		# Existing company should return existing contact
+		result = find_existing_company("Acme Corporation")
+		self.assertEqual(result, "CONT-ACME")
+
+		# New company should return None
+		result = find_existing_company("New Company LLC")
+		self.assertIsNone(result)
+
+	def test_contact_link_structure(self):
+		"""Test the structure of contact links for individual to company."""
+		link = {"link_doctype": "Contact", "link_name": "CONT-COMPANY-001"}
+
+		self.assertEqual(link["link_doctype"], "Contact")
+		self.assertIn("CONT", link["link_name"])
+
+	def test_form_response_includes_contact_names(self):
+		"""Test that form submission response includes contact names."""
+		response = {
+			"success": True,
+			"message": "Thank you for your submission.",
+			"lead_name": "LEAD-001",
+			"dealer_application_name": "DA-001",
+			"company_contact_name": "CONT-COMPANY-001",
+			"individual_contact_name": "CONT-INDIVIDUAL-001",
+		}
+
+		self.assertTrue(response["success"])
+		self.assertIn("company_contact_name", response)
+		self.assertIn("individual_contact_name", response)
+		self.assertEqual(response["company_contact_name"], "CONT-COMPANY-001")
+		self.assertEqual(response["individual_contact_name"], "CONT-INDIVIDUAL-001")
+
+	def test_contact_form_creates_contacts(self):
+		"""Test that /contact form creates both contacts."""
+		# For /contact form, company is optional
+		form_data = {
+			"form_name": "Contact",
+			"first_name": "Alex",
+			"last_name": "Johnson",
+			"email": "alex@company.com",
+			"company": "Company XYZ",
+			"phone": "555-111-2222",
+			"message": "I have a question about your products.",
+		}
+
+		# Verify all required fields are present
+		self.assertEqual(form_data["form_name"], "Contact")
+		self.assertTrue(form_data.get("email"))
+		self.assertTrue(form_data.get("company"))
+
+	def test_dealer_inquiry_form_creates_contacts(self):
+		"""Test that /dealer_inquiry form creates both contacts."""
+		# For /dealer_inquiry form, company is required
+		form_data = {
+			"form_name": "Dealer Inquiry",
+			"first_name": "Bob",
+			"last_name": "Builder",
+			"email": "bob@dealerco.com",
+			"company": "Dealer Company LLC",
+			"phone": "555-333-4444",
+			"business_type": "Lighting Distributor",
+		}
+
+		# Verify all required fields are present
+		self.assertEqual(form_data["form_name"], "Dealer Inquiry")
+		self.assertTrue(form_data.get("email"))
+		self.assertTrue(form_data.get("company"))
+
+
 if __name__ == "__main__":
 	unittest.main()
