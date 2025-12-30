@@ -32,7 +32,7 @@
 						{% for project in projects %}
 						<tr>
 							<td>
-								<a href="/project?name={{ project.name }}">{{ project.project_name }}</a>
+								<a href="/view_project?name={{ project.name }}">{{ project.project_name }}</a>
 							</td>
 							<td>{{ project.project_code or '-' }}</td>
 							<td>
@@ -43,7 +43,7 @@
 							<td>{{ frappe.format_date(project.expected_start_date) if project.expected_start_date else '-' }}</td>
 							<td>{{ frappe.format_date(project.expected_end_date) if project.expected_end_date else '-' }}</td>
 							<td>
-								<a href="/project?name={{ project.name }}" class="btn btn-sm btn-outline-primary">
+								<a href="/view_project?name={{ project.name }}" class="btn btn-sm btn-outline-primary">
 									<i class="fa fa-eye"></i> View
 								</a>
 							</td>

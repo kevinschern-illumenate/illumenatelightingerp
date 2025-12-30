@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
 							message: 'Project "' + r.message.project_name + '" created successfully!'
 						});
 						setTimeout(function() {
-							window.location.href = '/project?name=' + r.message.name;
+							window.location.href = '/view_project?name=' + r.message.name;
 						}, 1500);
 					} else {
 						frappe.msgprint({

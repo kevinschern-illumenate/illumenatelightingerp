@@ -16,7 +16,7 @@
 				<ol class="breadcrumb">
 					<li class="breadcrumb-item"><a href="/projects">Projects</a></li>
 					{% if project %}
-					<li class="breadcrumb-item"><a href="/project?name={{ project.name }}">{{ project.project_name }}</a></li>
+					<li class="breadcrumb-item"><a href="/view_project?name={{ project.name }}">{{ project.project_name }}</a></li>
 					{% endif %}
 					<li class="breadcrumb-item active">{{ schedule.schedule_name }}</li>
 				</ol>
