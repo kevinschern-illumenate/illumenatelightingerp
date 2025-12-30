@@ -419,3 +419,301 @@ def get_active_lead_sources():
 		fields=["source_name", "source_type"],
 		order_by="source_name",
 	)
+
+
+# ============================================================================
+# n8n Integration Endpoints
+# ============================================================================
+
+
+def _validate_n8n_api_key():
+	"""
+	Validate the API key from the request against stored settings.
+
+	Returns:
+		bool indicating if the API key is valid
+
+	Raises:
+		frappe.AuthenticationError if API key is missing or invalid
+	"""
+	from custom_erpnext.illumenate_marketing.doctype.ill_n8n_settings.ill_n8n_settings import (
+		get_n8n_settings,
+	)
+
+	settings = get_n8n_settings()
+	if not settings.get("api_key"):
+		frappe.throw(_("n8n API Key is not configured"), frappe.AuthenticationError)
+
+	# Get API key from request headers or body
+	request_api_key = None
+	if frappe.request:
+		request_api_key = frappe.request.headers.get("X-API-Key") or frappe.request.headers.get(
+			"Authorization"
+		)
+		if request_api_key and request_api_key.startswith("Bearer "):
+			request_api_key = request_api_key[7:]
+
+	if not request_api_key:
+		# Try getting from form data
+		request_api_key = frappe.form_dict.get("api_key")
+
+	if not request_api_key or request_api_key != settings["api_key"]:
+		frappe.throw(_("Invalid API Key"), frappe.AuthenticationError)
+
+	return True
+
+
+@frappe.whitelist(allow_guest=False)
+def n8n_webhook_handler(action=None, **kwargs):
+	"""
+	Receive callbacks from n8n workflows.
+
+	This endpoint allows n8n to update contact status, journey stages,
+	and other marketing data in ERPNext.
+
+	Args:
+		action: The action to perform. Supported actions:
+			- update_journey_stage: Update a contact's journey stage
+			- update_contact_status: Update contact/lead status
+			- log_event: Log a marketing event
+		**kwargs: Action-specific parameters
+
+	Returns:
+		dict with success status and result data
+	"""
+	from custom_erpnext.illumenate_marketing.doctype.ill_n8n_settings.ill_n8n_settings import (
+		is_n8n_enabled,
+	)
+
+	if not is_n8n_enabled():
+		return {"success": False, "error": "n8n integration is not enabled"}
+
+	# Validate API key
+	_validate_n8n_api_key()
+
+	if not action:
+		return {"success": False, "error": "Action is required"}
+
+	# Handle different actions
+	if action == "update_journey_stage":
+		return _handle_update_journey_stage(kwargs)
+	elif action == "update_contact_status":
+		return _handle_update_contact_status(kwargs)
+	elif action == "log_event":
+		return _handle_log_event(kwargs)
+	else:
+		return {"success": False, "error": f"Unknown action: {action}"}
+
+
+def _handle_update_journey_stage(data):
+	"""Handle updating a contact's journey stage."""
+	from custom_erpnext.illumenate_marketing.doctype.ill_marketing_journey.ill_marketing_journey import (
+		get_or_create_journey,
+	)
+
+	email = data.get("email")
+	new_stage = data.get("stage")
+	reason = data.get("reason", "Updated via n8n webhook")
+
+	if not email:
+		return {"success": False, "error": "Email is required"}
+	if not new_stage:
+		return {"success": False, "error": "Stage is required"}
+
+	try:
+		journey = get_or_create_journey(email)
+		journey.update_stage(new_stage, reason)
+		return {
+			"success": True,
+			"message": f"Journey updated to {new_stage}",
+			"journey_name": journey.name,
+		}
+	except Exception as e:
+		frappe.log_error(f"n8n webhook error: {e}", "n8n Webhook Handler")
+		return {"success": False, "error": str(e)}
+
+
+def _handle_update_contact_status(data):
+	"""Handle updating a contact or lead status."""
+	doctype = data.get("doctype", "Lead")
+	docname = data.get("docname")
+	email = data.get("email")
+	status = data.get("status")
+
+	if not (docname or email):
+		return {"success": False, "error": "Either docname or email is required"}
+	if not status:
+		return {"success": False, "error": "Status is required"}
+
+	try:
+		# Find the document
+		if not docname and email:
+			if doctype == "Lead":
+				docname = frappe.db.get_value("Lead", {"email_id": email}, "name")
+			elif doctype == "Contact":
+				docname = frappe.db.get_value("Contact", {"email_id": email}, "name")
+
+		if not docname:
+			return {"success": False, "error": f"{doctype} not found"}
+
+		doc = frappe.get_doc(doctype, docname)
+
+		# Update status field (if it exists)
+		if hasattr(doc, "status"):
+			doc.status = status
+			doc.save(ignore_permissions=True)
+			return {"success": True, "message": f"{doctype} status updated to {status}"}
+		else:
+			return {"success": False, "error": f"{doctype} does not have a status field"}
+
+	except Exception as e:
+		frappe.log_error(f"n8n webhook error: {e}", "n8n Webhook Handler")
+		return {"success": False, "error": str(e)}
+
+
+def _handle_log_event(data):
+	"""Handle logging a marketing event."""
+	event_type = data.get("event_type")
+	email = data.get("email")
+	event_data = data.get("data", {})
+
+	if not event_type:
+		return {"success": False, "error": "Event type is required"}
+
+	try:
+		# Log the event using info logging (not error)
+		frappe.logger("n8n").info(f"Marketing Event: {event_type} for {email} - Data: {event_data}")
+		return {"success": True, "message": f"Event {event_type} logged"}
+	except Exception as e:
+		frappe.log_error(f"n8n webhook error: {e}", "n8n Webhook Handler")
+		return {"success": False, "error": str(e)}
+
+
+@frappe.whitelist()
+def emit_marketing_event(event_type, doctype=None, docname=None, data=None):
+	"""
+	Push events to n8n webhook URL.
+
+	This function emits marketing events that n8n can consume to trigger
+	automated workflows.
+
+	Args:
+		event_type: Type of event (e.g., 'lead_created', 'purchase_completed', 'journey_changed')
+		doctype: Optional DocType that triggered the event
+		docname: Optional document name that triggered the event
+		data: Optional additional data to include in the event
+
+	Returns:
+		dict with success status
+	"""
+	import json
+
+	import requests
+
+	from custom_erpnext.illumenate_marketing.doctype.ill_n8n_settings.ill_n8n_settings import (
+		get_n8n_settings,
+	)
+
+	settings = get_n8n_settings()
+
+	if not settings.get("enabled"):
+		return {"success": False, "message": "n8n integration is not enabled"}
+
+	if not settings.get("n8n_webhook_url"):
+		return {"success": False, "message": "n8n webhook URL is not configured"}
+
+	# Check if this event type should be emitted
+	event_settings_map = {
+		"lead_created": "emit_lead_created",
+		"lead_converted": "emit_lead_converted",
+		"purchase_completed": "emit_purchase_completed",
+		"journey_changed": "emit_journey_changed",
+	}
+
+	if event_type in event_settings_map:
+		setting_key = event_settings_map[event_type]
+		if not settings.get(setting_key):
+			return {"success": False, "message": f"Event type {event_type} is disabled"}
+
+	# Prepare the payload
+	payload = {
+		"event_type": event_type,
+		"timestamp": frappe.utils.now(),
+		"source": "erpnext",
+		"doctype": doctype,
+		"docname": docname,
+		"data": data or {},
+	}
+
+	# Add document data if doctype and docname are provided
+	if doctype and docname and frappe.db.exists(doctype, docname):
+		try:
+			doc = frappe.get_doc(doctype, docname)
+			# Include basic document fields
+			payload["document"] = {
+				"name": doc.name,
+				"doctype": doc.doctype,
+				"creation": str(doc.creation) if doc.creation else None,
+				"modified": str(doc.modified) if doc.modified else None,
+			}
+			# Add email if available
+			email_fields = ["email", "email_id", "contact_email"]
+			for field in email_fields:
+				if hasattr(doc, field) and getattr(doc, field):
+					payload["document"]["email"] = getattr(doc, field)
+					break
+		except Exception:
+			pass
+
+	# Send to n8n webhook
+	webhook_url = f"{settings['n8n_webhook_url']}/marketing-events"
+
+	try:
+		headers = {"Content-Type": "application/json"}
+		if settings.get("api_key"):
+			headers["X-API-Key"] = settings["api_key"]
+
+		# Use frappe's background job for async HTTP request
+		frappe.enqueue(
+			_send_webhook_request,
+			queue="short",
+			webhook_url=webhook_url,
+			payload=json.dumps(payload),
+			headers=headers,
+			now=frappe.flags.in_test,
+		)
+
+		return {"success": True, "message": f"Event {event_type} queued for delivery"}
+
+	except Exception as e:
+		frappe.log_error(f"Failed to emit marketing event: {e}", "n8n Event Emission")
+		return {"success": False, "error": str(e)}
+
+
+def _send_webhook_request(webhook_url, payload, headers):
+	"""
+	Send webhook request to n8n.
+
+	This runs as a background job to avoid blocking the main request.
+
+	Args:
+		webhook_url: The n8n webhook endpoint URL
+		payload: JSON-serialized payload string
+		headers: HTTP headers dict
+	"""
+	import requests
+
+	try:
+		response = requests.post(
+			webhook_url,
+			data=payload.encode("utf-8") if isinstance(payload, str) else payload,
+			headers=headers,
+			timeout=30,
+		)
+		if response.status_code >= 400:
+			frappe.log_error(
+				f"n8n webhook failed: {response.status_code} - {response.text}",
+				"n8n Webhook Error",
+			)
+	except Exception as e:
+		frappe.log_error(f"n8n webhook request failed: {e}", "n8n Webhook Error")

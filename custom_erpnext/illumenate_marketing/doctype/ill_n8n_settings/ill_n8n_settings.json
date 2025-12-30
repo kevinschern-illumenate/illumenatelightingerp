@@ -1,0 +1,120 @@
+{
+	"actions": [],
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"enabled",
+		"section_break_webhook",
+		"n8n_webhook_url",
+		"column_break_webhook",
+		"api_key",
+		"section_break_events",
+		"emit_lead_created",
+		"emit_lead_converted",
+		"column_break_events",
+		"emit_purchase_completed",
+		"emit_journey_changed"
+	],
+	"fields": [
+		{
+			"default": "0",
+			"fieldname": "enabled",
+			"fieldtype": "Check",
+			"label": "Enable n8n Integration"
+		},
+		{
+			"fieldname": "section_break_webhook",
+			"fieldtype": "Section Break",
+			"label": "Webhook Configuration"
+		},
+		{
+			"fieldname": "n8n_webhook_url",
+			"fieldtype": "Data",
+			"label": "n8n Webhook URL",
+			"description": "Base URL for n8n webhook endpoints (e.g., https://n8n.example.com/webhook/)",
+			"reqd": 0
+		},
+		{
+			"fieldname": "column_break_webhook",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "api_key",
+			"fieldtype": "Password",
+			"label": "API Key",
+			"description": "Shared secret for authenticating requests between ERPNext and n8n"
+		},
+		{
+			"fieldname": "section_break_events",
+			"fieldtype": "Section Break",
+			"label": "Event Settings"
+		},
+		{
+			"default": "1",
+			"fieldname": "emit_lead_created",
+			"fieldtype": "Check",
+			"label": "Emit Lead Created Events"
+		},
+		{
+			"default": "1",
+			"fieldname": "emit_lead_converted",
+			"fieldtype": "Check",
+			"label": "Emit Lead Converted Events"
+		},
+		{
+			"fieldname": "column_break_events",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "emit_purchase_completed",
+			"fieldtype": "Check",
+			"label": "Emit Purchase Completed Events"
+		},
+		{
+			"default": "1",
+			"fieldname": "emit_journey_changed",
+			"fieldtype": "Check",
+			"label": "Emit Journey Changed Events"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"issingle": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL n8n Settings",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 0,
+			"export": 0,
+			"print": 0,
+			"read": 1,
+			"report": 0,
+			"role": "Illumenate Admin",
+			"share": 0,
+			"write": 1
+		},
+		{
+			"create": 0,
+			"delete": 0,
+			"email": 0,
+			"export": 0,
+			"print": 0,
+			"read": 1,
+			"report": 0,
+			"role": "System Manager",
+			"share": 0,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
