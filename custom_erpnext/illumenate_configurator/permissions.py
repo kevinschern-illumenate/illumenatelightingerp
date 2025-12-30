@@ -12,6 +12,22 @@ import frappe
 from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
 
 
+def _is_admin_or_manager(user=None):
+	"""Check if user has admin or product manager role."""
+	if not user:
+		user = frappe.session.user
+
+	if user == "Administrator":
+		return True
+
+	if frappe.db.exists("Has Role", {"parent": user, "role": "Illumenate Admin"}):
+		return True
+	if frappe.db.exists("Has Role", {"parent": user, "role": "Illumenate Product Manager"}):
+		return True
+
+	return False
+
+
 def has_permission_project(doc, ptype=None, user=None):
 	"""
 	Permission hook for ILL Project.
@@ -154,3 +170,117 @@ def get_permission_query_conditions_schedule(user=None):
 	# Use frappe.db.escape() for SQL safety
 	escaped_customer = frappe.db.escape(customer)
 	return f"`tabILL Fixture Schedule`.customer = {escaped_customer}"
+
+
+# ============================================================================
+# Sprint 6: Permission hooks for new DocTypes
+# ============================================================================
+
+
+def has_permission_admin_only(doc, ptype=None, user=None):
+	"""
+	Permission hook for admin-only DocTypes (ILL PDF Template, ILL PDF Field Map).
+
+	Only Illumenate Admin and Illumenate Product Manager have access.
+
+	Args:
+		doc: The document
+		ptype: Permission type (read, write, create, delete, etc.)
+		user: Optional user email. Defaults to current session user.
+
+	Returns:
+		True if user has permission, False otherwise.
+	"""
+	if not user:
+		user = frappe.session.user
+
+	return _is_admin_or_manager(user)
+
+
+def get_permission_query_conditions_admin_only(user=None):
+	"""
+	Permission query conditions for admin-only DocTypes.
+
+	Only Illumenate Admin and Illumenate Product Manager see records.
+
+	Args:
+		user: Optional user email. Defaults to current session user.
+
+	Returns:
+		SQL WHERE clause string or None for unrestricted access.
+	"""
+	if not user:
+		user = frappe.session.user
+
+	if _is_admin_or_manager(user):
+		return None
+
+	return "1=0"  # No access for non-admin users
+
+
+def has_permission_resource(doc, ptype=None, user=None):
+	"""
+	Permission hook for ILL Resource Document.
+
+	- Public users can read is_public=1 resources
+	- Portal users can read all active resources
+	- Admins have full access
+
+	Args:
+		doc: The ILL Resource Document
+		ptype: Permission type (read, write, create, delete, etc.)
+		user: Optional user email. Defaults to current session user.
+
+	Returns:
+		True if user has permission, False otherwise.
+	"""
+	if not user:
+		user = frappe.session.user
+
+	# Admin/managers have full access
+	if _is_admin_or_manager(user):
+		return True
+
+	# Write operations require admin
+	if ptype in ("write", "create", "delete"):
+		return False
+
+	# Read access for active documents
+	if not doc.is_active:
+		return False
+
+	# Guest users can only see public resources
+	if user == "Guest":
+		return doc.is_public == 1
+
+	# Logged-in users (portal users) can see all active resources
+	return True
+
+
+def get_permission_query_conditions_resource(user=None):
+	"""
+	Permission query conditions for ILL Resource Document.
+
+	- Guests see only is_public=1 AND is_active=1
+	- Portal users see all is_active=1
+	- Admins see all
+
+	Args:
+		user: Optional user email. Defaults to current session user.
+
+	Returns:
+		SQL WHERE clause string or None for unrestricted access.
+	"""
+	if not user:
+		user = frappe.session.user
+
+	# Admin/managers see all
+	if _is_admin_or_manager(user):
+		return None
+
+	# Guest users only see public + active resources
+	if user == "Guest":
+		return "`tabILL Resource Document`.is_public = 1 AND `tabILL Resource Document`.is_active = 1"
+
+	# Logged-in portal users see all active resources
+	return "`tabILL Resource Document`.is_active = 1"

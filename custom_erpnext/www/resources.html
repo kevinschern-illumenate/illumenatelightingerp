@@ -1,0 +1,82 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="container">
+	<div class="row mb-4">
+		<div class="col-12">
+			<h2>Resources</h2>
+			<p class="text-muted">
+				{% if is_logged_in %}
+				Download documentation, installation guides, and technical resources.
+				{% else %}
+				Public resources and documentation. <a href="/login">Log in</a> to access additional resources.
+				{% endif %}
+			</p>
+		</div>
+	</div>
+
+	{% if categories %}
+	{% for category in categories %}
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-header">
+					<h4 class="mb-0">
+						{% if category.name == 'Installation' %}
+						<i class="fa fa-wrench text-primary"></i>
+						{% elif category.name == 'Cut Sheet' %}
+						<i class="fa fa-file-alt text-info"></i>
+						{% elif category.name == 'Warranty' %}
+						<i class="fa fa-shield-alt text-success"></i>
+						{% elif category.name == 'Certifications' %}
+						<i class="fa fa-certificate text-warning"></i>
+						{% elif category.name == 'Wiring Diagrams' %}
+						<i class="fa fa-project-diagram text-danger"></i>
+						{% else %}
+						<i class="fa fa-file text-secondary"></i>
+						{% endif %}
+						{{ category.name }}
+					</h4>
+				</div>
+				<div class="card-body">
+					<div class="list-group list-group-flush">
+						{% for resource in category.resources %}
+						<a href="{{ resource.file }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" target="_blank">
+							<div>
+								<strong>{{ resource.title }}</strong>
+								{% if resource.applies_to_template %}
+								<span class="badge badge-light ml-2">{{ resource.applies_to_template }}</span>
+								{% endif %}
+								{% if resource.applies_to_lens_option %}
+								<span class="badge badge-light ml-2">{{ resource.applies_to_lens_option }}</span>
+								{% endif %}
+								{% if resource.is_public %}
+								<span class="badge badge-success ml-2">Public</span>
+								{% endif %}
+							</div>
+							<span>
+								<i class="fa fa-download"></i>
+							</span>
+						</a>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+	{% else %}
+	<div class="row">
+		<div class="col-12">
+			<div class="text-center py-5">
+				<i class="fa fa-folder-open fa-3x text-muted mb-3"></i>
+				<p class="text-muted">No resources available at this time.</p>
+				{% if not is_logged_in %}
+				<p><a href="/login" class="btn btn-primary">Log in</a> to access more resources.</p>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

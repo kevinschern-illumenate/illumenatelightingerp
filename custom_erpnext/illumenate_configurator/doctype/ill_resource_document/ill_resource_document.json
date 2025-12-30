@@ -1,0 +1,141 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"title",
+		"category",
+		"column_break_main",
+		"applies_to_template",
+		"applies_to_lens_option",
+		"section_break_file",
+		"file",
+		"column_break_settings",
+		"is_public",
+		"is_active",
+		"sort_order"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-RES-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "title",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Title",
+			"reqd": 1
+		},
+		{
+			"fieldname": "category",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Category",
+			"options": "Installation\nCut Sheet\nWarranty\nCertifications\nWiring Diagrams\nOther",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "applies_to_template",
+			"fieldtype": "Link",
+			"label": "Applies to Fixture Template",
+			"options": "ILL Fixture Template"
+		},
+		{
+			"fieldname": "applies_to_lens_option",
+			"fieldtype": "Link",
+			"label": "Applies to Lens Option",
+			"options": "ILL Lens Option"
+		},
+		{
+			"fieldname": "section_break_file",
+			"fieldtype": "Section Break",
+			"label": "Document File"
+		},
+		{
+			"fieldname": "file",
+			"fieldtype": "Attach",
+			"label": "File",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_settings",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"description": "If checked, document is visible to public users without login",
+			"fieldname": "is_public",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Public"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		},
+		{
+			"default": "0",
+			"fieldname": "sort_order",
+			"fieldtype": "Int",
+			"label": "Sort Order"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Resource Document",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "Customer"
+		}
+	],
+	"sort_field": "sort_order",
+	"sort_order": "ASC",
+	"states": [],
+	"track_changes": 1
+}
