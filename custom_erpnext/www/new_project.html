@@ -120,7 +120,33 @@ frappe.ready(function() {
 					setTimeout(function() {
 						window.location.href = '/project?name=' + r.message.name;
 					}, 1500);
+				} else {
+					frappe.msgprint({
+						title: __('Error'),
+						indicator: 'red',
+						message: __('Failed to create project. Please try again.')
+					});
 				}
+			},
+			error: function(r) {
+				var error_message = __('Failed to create project. Please try again.');
+				if (r && r.responseJSON && r.responseJSON._server_messages) {
+					try {
+						var messages = JSON.parse(r.responseJSON._server_messages);
+						if (messages.length > 0) {
+							error_message = JSON.parse(messages[0]).message || error_message;
+						}
+					} catch (e) {
+						// Use default error message
+					}
+				} else if (r && r.exc) {
+					error_message = r.exc;
+				}
+				frappe.msgprint({
+					title: __('Error'),
+					indicator: 'red',
+					message: error_message
+				});
 			}
 		});
 	});

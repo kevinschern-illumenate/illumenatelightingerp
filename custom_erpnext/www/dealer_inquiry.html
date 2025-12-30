@@ -114,6 +114,12 @@
 									<textarea class="form-control" id="message" name="message" rows="3" placeholder="Please describe your company and how you plan to sell ilLumenate products..."></textarea>
 								</div>
 								
+								<div class="mb-3">
+									<label for="resale_certificate" class="form-label">Resale Certificate</label>
+									<input type="file" class="form-control" id="resale_certificate" name="resale_certificate" accept=".pdf,.jpg,.jpeg,.png">
+									<div class="form-text">Please upload your resale certificate (PDF, JPG, or PNG, max 5MB)</div>
+								</div>
+								
 								{% if require_consent %}
 								<div class="mb-3 form-check">
 									<input type="checkbox" class="form-check-input" id="gdpr_consent" name="gdpr_consent" required>
@@ -141,6 +147,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+	// Configuration constants
+	const MAX_FILE_SIZE_MB = 5;
+	const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+	const UPLOAD_FOLDER = 'Home/Dealer Applications';
+	
 	// Parse UTM parameters from URL and populate hidden fields
 	const urlParams = new URLSearchParams(window.location.search);
 	const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
@@ -171,63 +182,108 @@ document.addEventListener('DOMContentLoaded', function() {
 			
 			const formData = new FormData(form);
 			const data = {};
-			formData.forEach((value, key) => data[key] = value);
-			
-			frappe.call({
-				method: 'custom_erpnext.illumenate_marketing.api.submit_form',
-				args: data,
-				callback: function(r) {
-					if (r.message && r.message.success) {
-						if (r.message.redirect_url) {
-							window.location.href = r.message.redirect_url;
-						} else {
-							// Show success message
-							const cardBody = document.querySelector('.card-body');
-							cardBody.innerHTML = `
-								<div class="alert alert-success" role="alert">
-									<h4 class="alert-heading">Application Received!</h4>
-									<p>${r.message.message}</p>
-								</div>
-								<div class="text-center mt-4">
-									<a href="/" class="btn btn-primary">Return to Home</a>
-								</div>
-							`;
-						}
-					} else {
-						// Show errors - use textContent to prevent XSS
-						let errorMessages = ['An error occurred. Please try again.'];
-						if (r.message && r.message.errors) {
-							errorMessages = r.message.errors.map(e => e.message);
-						}
-						const existingAlert = form.querySelector('.alert-danger');
-						if (existingAlert) {
-							existingAlert.textContent = errorMessages.join(' | ');
-						} else {
-							const alertDiv = document.createElement('div');
-							alertDiv.className = 'alert alert-danger';
-							alertDiv.setAttribute('role', 'alert');
-							alertDiv.textContent = errorMessages.join(' | ');
-							form.insertBefore(alertDiv, form.firstChild);
-						}
-						submitBtn.disabled = false;
-						submitBtn.textContent = 'Submit Application';
-					}
-				},
-				error: function() {
-					submitBtn.disabled = false;
-					submitBtn.textContent = 'Submit Application';
-					const existingAlert = form.querySelector('.alert-danger');
-					if (existingAlert) {
-						existingAlert.textContent = 'An error occurred. Please try again.';
-					} else {
-						const alertDiv = document.createElement('div');
-						alertDiv.className = 'alert alert-danger';
-						alertDiv.setAttribute('role', 'alert');
-						alertDiv.textContent = 'An error occurred. Please try again.';
-						form.insertBefore(alertDiv, form.firstChild);
-					}
+			formData.forEach((value, key) => {
+				// Skip file inputs for the data object
+				if (key !== 'resale_certificate') {
+					data[key] = value;
 				}
 			});
+			
+			// Handle file upload first if a file is selected
+			const fileInput = document.getElementById('resale_certificate');
+			const file = fileInput.files[0];
+			
+			if (file) {
+				// Validate file size
+				if (file.size > MAX_FILE_SIZE_BYTES) {
+					showError('File size must be less than ' + MAX_FILE_SIZE_MB + 'MB');
+					submitBtn.disabled = false;
+					submitBtn.textContent = 'Submit Application';
+					return;
+				}
+				
+				// Upload file first using Frappe's file upload
+				const fileFormData = new FormData();
+				fileFormData.append('file', file);
+				fileFormData.append('is_private', '1');
+				fileFormData.append('folder', UPLOAD_FOLDER);
+				
+				fetch('/api/method/upload_file', {
+					method: 'POST',
+					body: fileFormData,
+					headers: {
+						'X-Frappe-CSRF-Token': frappe.csrf_token
+					}
+				})
+				.then(response => response.json())
+				.then(result => {
+					if (result.message && result.message.file_url) {
+						data['resale_certificate_url'] = result.message.file_url;
+					}
+					submitFormData(data, submitBtn, form);
+				})
+				.catch(error => {
+					console.error('File upload error:', error);
+					// Continue with form submission without file
+					submitFormData(data, submitBtn, form);
+				});
+			} else {
+				submitFormData(data, submitBtn, form);
+			}
+		});
+	}
+	
+	function showError(message) {
+		const form = document.getElementById('dealer-inquiry-form');
+		const existingAlert = form.querySelector('.alert-danger');
+		if (existingAlert) {
+			existingAlert.textContent = message;
+		} else {
+			const alertDiv = document.createElement('div');
+			alertDiv.className = 'alert alert-danger';
+			alertDiv.setAttribute('role', 'alert');
+			alertDiv.textContent = message;
+			form.insertBefore(alertDiv, form.firstChild);
+		}
+	}
+	
+	function submitFormData(data, submitBtn, form) {
+		frappe.call({
+			method: 'custom_erpnext.illumenate_marketing.api.submit_form',
+			args: data,
+			callback: function(r) {
+				if (r.message && r.message.success) {
+					if (r.message.redirect_url) {
+						window.location.href = r.message.redirect_url;
+					} else {
+						// Show success message
+						const cardBody = document.querySelector('.card-body');
+						cardBody.innerHTML = `
+							<div class="alert alert-success" role="alert">
+								<h4 class="alert-heading">Application Received!</h4>
+								<p>${r.message.message}</p>
+							</div>
+							<div class="text-center mt-4">
+								<a href="/" class="btn btn-primary">Return to Home</a>
+							</div>
+						`;
+					}
+				} else {
+					// Show errors - use textContent to prevent XSS
+					let errorMessages = ['An error occurred. Please try again.'];
+					if (r.message && r.message.errors) {
+						errorMessages = r.message.errors.map(e => e.message);
+					}
+					showError(errorMessages.join(' | '));
+					submitBtn.disabled = false;
+					submitBtn.textContent = 'Submit Application';
+				}
+			},
+			error: function() {
+				submitBtn.disabled = false;
+				submitBtn.textContent = 'Submit Application';
+				showError('An error occurred. Please try again.');
+			}
 		});
 	}
 });

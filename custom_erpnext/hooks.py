@@ -13,6 +13,12 @@ fixtures = [
 		"filters": [
 			["name", "like", "Sales Order Item-ill_%"]
 		]
+	},
+	{
+		"dt": "ILL Marketing Form",
+		"filters": [
+			["form_name", "in", ["Dealer Inquiry", "Contact"]]
+		]
 	}
 ]
 
