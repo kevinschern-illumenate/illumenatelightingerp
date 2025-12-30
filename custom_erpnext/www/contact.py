@@ -13,7 +13,7 @@ def get_context(context):
 	context.no_cache = 1
 
 	# Try to get the Contact Form configuration
-	form_name = "Contact Form"
+	form_name = "Contact"
 	if frappe.db.exists("ILL Marketing Form", form_name):
 		form = frappe.get_doc("ILL Marketing Form", form_name)
 		context.require_consent = form.require_gdpr_consent
