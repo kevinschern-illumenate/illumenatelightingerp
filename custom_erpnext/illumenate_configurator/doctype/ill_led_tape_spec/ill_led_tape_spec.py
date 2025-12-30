@@ -100,6 +100,7 @@ class ILLLEDTapeSpec(Document):
 
 		Args:
 			attribute_combination: A string like "Color Temperature: 2700K, CRI: 90"
+			                       or an abbreviated version like "2700K-90"
 
 		Returns:
 			Dict with voltage, watts_per_ft, cut_increment_in, cut_increment_mm, voltage_drop_max_run_ft or None if not found
@@ -107,21 +108,34 @@ class ILLLEDTapeSpec(Document):
 		if not self.variant_specs:
 			return None
 
-		# Normalize the input combination
+		# Normalize the input combination for comparison
 		normalized_input = self._normalize_combination(attribute_combination)
 
+		# Import here to avoid circular imports
+		from custom_erpnext.illumenate_configurator.utils import abbreviate_attribute_combination
+
 		for row in self.variant_specs:
+			# First, try matching the full attribute combination (normalized)
 			normalized_row = self._normalize_combination(row.attribute_combination)
 			if normalized_row == normalized_input:
-				return {
-					"voltage": row.voltage,
-					"watts_per_ft": row.watts_per_ft,
-					"cut_increment_in": row.cut_increment_in,
-					"cut_increment_mm": row.cut_increment_mm,
-					"voltage_drop_max_run_ft": row.voltage_drop_max_run_ft,
-				}
+				return self._build_spec_dict(row)
+
+			# Second, try matching the abbreviated version of the row's attribute combination
+			abbreviated_row = abbreviate_attribute_combination(row.attribute_combination)
+			if abbreviated_row and abbreviated_row == attribute_combination:
+				return self._build_spec_dict(row)
 
 		return None
+
+	def _build_spec_dict(self, row) -> dict:
+		"""Build the specification dictionary from a variant spec row."""
+		return {
+			"voltage": row.voltage,
+			"watts_per_ft": row.watts_per_ft,
+			"cut_increment_in": row.cut_increment_in,
+			"cut_increment_mm": row.cut_increment_mm,
+			"voltage_drop_max_run_ft": row.voltage_drop_max_run_ft,
+		}
 
 	def _normalize_combination(self, combination: str) -> str:
 		"""Normalize an attribute combination string for comparison."""
