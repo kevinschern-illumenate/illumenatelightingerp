@@ -147,6 +147,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+	// Configuration constants
+	const MAX_FILE_SIZE_MB = 5;
+	const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+	const UPLOAD_FOLDER = 'Home/Dealer Applications';
+	
 	// Parse UTM parameters from URL and populate hidden fields
 	const urlParams = new URLSearchParams(window.location.search);
 	const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
@@ -189,9 +194,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			const file = fileInput.files[0];
 			
 			if (file) {
-				// Validate file size (max 5MB)
-				if (file.size > 5 * 1024 * 1024) {
-					showError('File size must be less than 5MB');
+				// Validate file size
+				if (file.size > MAX_FILE_SIZE_BYTES) {
+					showError('File size must be less than ' + MAX_FILE_SIZE_MB + 'MB');
 					submitBtn.disabled = false;
 					submitBtn.textContent = 'Submit Application';
 					return;
@@ -201,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				const fileFormData = new FormData();
 				fileFormData.append('file', file);
 				fileFormData.append('is_private', '1');
-				fileFormData.append('folder', 'Home/Dealer Applications');
+				fileFormData.append('folder', UPLOAD_FOLDER);
 				
 				fetch('/api/method/upload_file', {
 					method: 'POST',
