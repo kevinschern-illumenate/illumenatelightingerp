@@ -436,6 +436,7 @@ def create_contacts_from_form(email, form_data):
 			filters={"company_name": company_name, "is_primary_contact": 1},
 			fields=["name"],
 			limit=1,
+			ignore_permissions=True,
 		)
 
 		if existing_company_contacts:
