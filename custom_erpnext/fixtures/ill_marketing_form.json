@@ -1,6 +1,7 @@
 [
 	{
 		"doctype": "ILL Marketing Form",
+		"name": "Dealer Inquiry",
 		"form_name": "Dealer Inquiry",
 		"form_type": "Dealer Inquiry",
 		"is_active": 1,
@@ -11,6 +12,7 @@
 	},
 	{
 		"doctype": "ILL Marketing Form",
+		"name": "Contact",
 		"form_name": "Contact",
 		"form_type": "Contact",
 		"is_active": 1,
