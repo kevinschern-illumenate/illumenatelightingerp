@@ -5,6 +5,17 @@ app_description = "Custom ERP for ilLumenate Lighting"
 app_email = "hi@illumenate.lighting"
 app_license = "mit"
 
+# Fixtures
+# --------
+fixtures = [
+	{
+		"dt": "Custom Field",
+		"filters": [
+			["name", "like", "Sales Order Item-ill_%"]
+		]
+	}
+]
+
 # Apps
 # ------------------
 
@@ -117,13 +128,15 @@ app_license = "mit"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+	"ILL Project": "custom_erpnext.illumenate_configurator.permissions.get_permission_query_conditions_project",
+	"ILL Fixture Schedule": "custom_erpnext.illumenate_configurator.permissions.get_permission_query_conditions_schedule",
+}
+
+has_permission = {
+	"ILL Project": "custom_erpnext.illumenate_configurator.permissions.has_permission_project",
+	"ILL Fixture Schedule": "custom_erpnext.illumenate_configurator.permissions.has_permission_schedule",
+}
 
 # DocType Class
 # ---------------

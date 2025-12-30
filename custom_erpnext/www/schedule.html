@@ -1,0 +1,217 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="container">
+	{% if error %}
+	<div class="alert alert-danger">
+		{{ error }}
+	</div>
+	<a href="/projects" class="btn btn-secondary">
+		<i class="fa fa-arrow-left"></i> Back to Projects
+	</a>
+	{% else %}
+	<div class="row mb-4">
+		<div class="col-12">
+			<nav aria-label="breadcrumb">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+					{% if project %}
+					<li class="breadcrumb-item"><a href="/project?name={{ project.name }}">{{ project.project_name }}</a></li>
+					{% endif %}
+					<li class="breadcrumb-item active">{{ schedule.schedule_name }}</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<div class="row mb-4">
+		<div class="col-md-8">
+			<div class="d-flex justify-content-between align-items-center">
+				<h2>{{ schedule.schedule_name }}</h2>
+				<span class="badge badge-{{ 'success' if schedule.status == 'Ordered' else 'warning' }} badge-lg">
+					{{ schedule.status }}
+				</span>
+			</div>
+		</div>
+		<div class="col-md-4 text-right">
+			{% if is_editable %}
+			<button class="btn btn-success" id="create-order-btn">
+				<i class="fa fa-shopping-cart"></i> Create Sales Order
+			</button>
+			{% else %}
+			{% if schedule.sales_order %}
+			<a href="/app/sales-order/{{ schedule.sales_order }}" class="btn btn-outline-primary">
+				<i class="fa fa-file-alt"></i> View Sales Order
+			</a>
+			{% endif %}
+			{% endif %}
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<h4 class="mb-0">Schedule Lines</h4>
+					{% if is_editable %}
+					<button class="btn btn-primary btn-sm" id="add-line-btn">
+						<i class="fa fa-plus"></i> Add Line
+					</button>
+					{% endif %}
+				</div>
+				<div class="card-body">
+					{% if schedule.lines %}
+					<div class="table-responsive">
+						<table class="table table-hover">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Type</th>
+									<th>Description</th>
+									<th>Template</th>
+									<th>Qty</th>
+									<th>Unit Net</th>
+									<th>Line Total</th>
+									{% if is_editable %}
+									<th>Actions</th>
+									{% endif %}
+								</tr>
+							</thead>
+							<tbody>
+								{% for line in schedule.lines %}
+								<tr>
+									<td>{{ loop.index }}</td>
+									<td>
+										<span class="badge badge-{{ 'primary' if line.line_type == 'ilLumenate' else 'secondary' }}">
+											{{ line.line_type }}
+										</span>
+									</td>
+									<td>
+										{% if line.configuration_summary %}
+										<small>{{ line.configuration_summary[:100] }}{{ '...' if line.configuration_summary|length > 100 else '' }}</small>
+										{% else %}
+										{{ line.description or '-' }}
+										{% endif %}
+									</td>
+									<td>{{ line.fixture_template or '-' }}</td>
+									<td>{{ line.qty }}</td>
+									<td>
+										{% if line.line_type == 'ilLumenate' %}
+										{{ frappe.format_value(line.unit_net, {'fieldtype': 'Currency'}) }}
+										{% else %}
+										-
+										{% endif %}
+									</td>
+									<td>
+										{% if line.line_type == 'ilLumenate' %}
+										{{ frappe.format_value(line.line_total, {'fieldtype': 'Currency'}) }}
+										{% else %}
+										-
+										{% endif %}
+									</td>
+									{% if is_editable %}
+									<td>
+										<button class="btn btn-sm btn-outline-primary configure-btn" 
+												data-idx="{{ line.idx }}"
+												data-line-type="{{ line.line_type }}">
+											<i class="fa fa-cog"></i>
+										</button>
+										<button class="btn btn-sm btn-outline-danger delete-line-btn"
+												data-idx="{{ line.idx }}">
+											<i class="fa fa-trash"></i>
+										</button>
+									</td>
+									{% endif %}
+								</tr>
+								{% endfor %}
+							</tbody>
+							<tfoot>
+								<tr class="table-info">
+									<th colspan="6" class="text-right">Schedule Total (ilLumenate):</th>
+									<th>{{ frappe.format_value(schedule_total, {'fieldtype': 'Currency'}) }}</th>
+									{% if is_editable %}
+									<th></th>
+									{% endif %}
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+					{% else %}
+					<div class="text-center py-4">
+						<i class="fa fa-list-alt fa-2x text-muted mb-2"></i>
+						<p class="text-muted mb-2">No lines added to this schedule yet.</p>
+						{% if is_editable %}
+						<button class="btn btn-primary btn-sm" id="add-first-line-btn">
+							<i class="fa fa-plus"></i> Add First Line
+						</button>
+						{% endif %}
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{% if schedule.status == 'Ordered' %}
+	<div class="row mt-4">
+		<div class="col-12">
+			<div class="alert alert-info">
+				<i class="fa fa-info-circle"></i>
+				This schedule has been ordered and cannot be modified.
+				{% if schedule.sales_order %}
+				<a href="/app/sales-order/{{ schedule.sales_order }}">View Sales Order {{ schedule.sales_order }}</a>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	{% endif %}
+	{% endif %}
+</div>
+
+{% if is_editable %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Create Sales Order button
+	const createOrderBtn = document.getElementById('create-order-btn');
+	if (createOrderBtn) {
+		createOrderBtn.addEventListener('click', function() {
+			if (!confirm('Are you sure you want to create a Sales Order from this schedule? The schedule will be locked after this.')) {
+				return;
+			}
+
+			frappe.call({
+				method: 'custom_erpnext.illumenate_configurator.api.create_sales_order_from_schedule',
+				args: {
+					schedule_name: '{{ schedule.name }}'
+				},
+				callback: function(r) {
+					if (r.message && r.message.success) {
+						frappe.msgprint({
+							title: 'Success',
+							message: 'Sales Order ' + r.message.sales_order + ' created successfully!',
+							primary_action: {
+								label: 'View Sales Order',
+								action: function() {
+									window.location.href = '/app/sales-order/' + r.message.sales_order;
+								}
+							}
+						});
+						// Reload the page to show updated status
+						setTimeout(function() {
+							window.location.reload();
+						}, 2000);
+					} else {
+						frappe.msgprint({
+							title: 'Error',
+							message: r.message || 'Failed to create Sales Order',
+							indicator: 'red'
+						});
+					}
+				}
+			});
+		});
+	}
+});
+</script>
+{% endif %}
+{% endblock %}

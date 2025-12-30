@@ -1,0 +1,132 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"project",
+		"customer",
+		"column_break_main",
+		"schedule_name",
+		"status",
+		"sales_order",
+		"section_break_lines",
+		"lines"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-SCH-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "project",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Project",
+			"options": "ILL Project",
+			"reqd": 1
+		},
+		{
+			"fetch_from": "project.customer",
+			"fieldname": "customer",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Customer",
+			"options": "Customer",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "schedule_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Schedule Name",
+			"reqd": 1
+		},
+		{
+			"default": "Draft",
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Status",
+			"options": "Draft\nOrdered"
+		},
+		{
+			"depends_on": "eval:doc.status=='Ordered'",
+			"fieldname": "sales_order",
+			"fieldtype": "Link",
+			"label": "Sales Order",
+			"options": "Sales Order",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_break_lines",
+			"fieldtype": "Section Break",
+			"label": "Schedule Lines"
+		},
+		{
+			"fieldname": "lines",
+			"fieldtype": "Table",
+			"label": "Lines",
+			"options": "ILL Fixture Schedule Line"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Fixture Schedule",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"role": "Customer",
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
