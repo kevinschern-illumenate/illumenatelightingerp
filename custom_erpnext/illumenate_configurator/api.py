@@ -1340,7 +1340,7 @@ def create_sales_order_from_schedule(schedule_name):
 	return {
 		"success": True,
 		"sales_order": so.name,
-		"message": f"Sales Order {so.name} created successfully",
+		"message": _("Sales Order {0} created successfully").format(so.name),
 	}
 
 
@@ -1364,8 +1364,8 @@ def ensure_placeholder_item_exists():
 		"item_name": "Configured Fixture (Placeholder)",
 		"item_group": "Configured Fixtures",
 		"stock_uom": "Nos",
-		"is_stock_item": 0,  # Not a stock item - just a placeholder
-		"is_sales_item": 1,
+		"is_stock_item": False,  # Not a stock item - just a placeholder
+		"is_sales_item": True,
 		"description": "Placeholder item for ilLumenate configured fixtures. Actual configuration details stored in custom fields.",
 	}).insert(ignore_permissions=True)
 

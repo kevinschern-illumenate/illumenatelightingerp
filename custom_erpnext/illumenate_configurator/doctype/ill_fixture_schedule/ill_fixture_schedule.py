@@ -15,10 +15,9 @@ class ILLFixtureSchedule(Document):
 
 	def validate_status_change(self):
 		"""Prevent modifications when status is Ordered."""
-		if self.get_doc_before_save():
-			old_doc = self.get_doc_before_save()
-			if old_doc.status == "Ordered":
-				frappe.throw(_("Cannot modify schedule after it has been ordered"))
+		old_doc = self.get_doc_before_save()
+		if old_doc and old_doc.status == "Ordered":
+			frappe.throw(_("Cannot modify schedule after it has been ordered"))
 
 	def set_customer_from_project(self):
 		"""Auto-populate customer from project."""

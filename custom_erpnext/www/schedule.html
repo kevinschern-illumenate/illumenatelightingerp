@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	const createOrderBtn = document.getElementById('create-order-btn');
 	if (createOrderBtn) {
 		createOrderBtn.addEventListener('click', function() {
-			if (!confirm('Are you sure you want to create a Sales Order from this schedule? The schedule will be locked after this.')) {
+			if (!confirm('Are you sure you want to create a Sales Order from this schedule? The schedule will be locked after this action.')) {
 				return;
 			}
 

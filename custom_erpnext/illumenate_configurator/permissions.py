@@ -116,7 +116,9 @@ def get_permission_query_conditions_project(user=None):
 	if not customer:
 		return "1=0"  # No access if no customer mapping
 
-	return f"`tabILL Project`.customer = {frappe.db.escape(customer)}"
+	# Use frappe.db.escape() for SQL safety
+	escaped_customer = frappe.db.escape(customer)
+	return f"`tabILL Project`.customer = {escaped_customer}"
 
 
 def get_permission_query_conditions_schedule(user=None):
@@ -149,4 +151,6 @@ def get_permission_query_conditions_schedule(user=None):
 	if not customer:
 		return "1=0"  # No access if no customer mapping
 
-	return f"`tabILL Fixture Schedule`.customer = {frappe.db.escape(customer)}"
+	# Use frappe.db.escape() for SQL safety
+	escaped_customer = frappe.db.escape(customer)
+	return f"`tabILL Fixture Schedule`.customer = {escaped_customer}"
