@@ -1,0 +1,117 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="container">
+	{% if error %}
+	<div class="alert alert-danger">
+		{{ error }}
+	</div>
+	<a href="/projects" class="btn btn-secondary">
+		<i class="fa fa-arrow-left"></i> Back to Projects
+	</a>
+	{% else %}
+	<div class="row mb-4">
+		<div class="col-12">
+			<nav aria-label="breadcrumb">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+					<li class="breadcrumb-item active">{{ project.project_name }}</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-8">
+			<div class="card mb-4">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<h2 class="mb-0">{{ project.project_name }}</h2>
+					<span class="badge badge-{{ 'success' if project.status == 'Active' else 'secondary' if project.status == 'Draft' else 'info' if project.status == 'Completed' else 'danger' }} badge-lg">
+						{{ project.status }}
+					</span>
+				</div>
+				<div class="card-body">
+					{% if project.project_code %}
+					<p><strong>Project Code:</strong> {{ project.project_code }}</p>
+					{% endif %}
+					{% if project.description %}
+					<p><strong>Description:</strong></p>
+					<p>{{ project.description }}</p>
+					{% endif %}
+					<div class="row">
+						<div class="col-md-6">
+							<p><strong>Expected Start:</strong> {{ frappe.format_date(project.expected_start_date) if project.expected_start_date else 'Not set' }}</p>
+						</div>
+						<div class="col-md-6">
+							<p><strong>Expected End:</strong> {{ frappe.format_date(project.expected_end_date) if project.expected_end_date else 'Not set' }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-12">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h3>Fixture Schedules</h3>
+				<a href="/new-schedule?project={{ project.name }}" class="btn btn-primary">
+					<i class="fa fa-plus"></i> New Schedule
+				</a>
+			</div>
+
+			{% if schedules %}
+			<div class="table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>Schedule Name</th>
+							<th>Status</th>
+							<th>Sales Order</th>
+							<th>Created</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for schedule in schedules %}
+						<tr>
+							<td>
+								<a href="/schedule?name={{ schedule.name }}">{{ schedule.schedule_name }}</a>
+							</td>
+							<td>
+								<span class="badge badge-{{ 'success' if schedule.status == 'Ordered' else 'warning' }}">
+									{{ schedule.status }}
+								</span>
+							</td>
+							<td>
+								{% if schedule.sales_order %}
+								<a href="/app/sales-order/{{ schedule.sales_order }}">{{ schedule.sales_order }}</a>
+								{% else %}
+								-
+								{% endif %}
+							</td>
+							<td>{{ frappe.format_date(schedule.creation) }}</td>
+							<td>
+								<a href="/schedule?name={{ schedule.name }}" class="btn btn-sm btn-outline-primary">
+									<i class="fa fa-eye"></i> View
+								</a>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="text-center py-4 bg-light rounded">
+				<i class="fa fa-list-alt fa-2x text-muted mb-2"></i>
+				<p class="text-muted mb-2">No schedules created yet.</p>
+				<a href="/new-schedule?project={{ project.name }}" class="btn btn-primary btn-sm">
+					<i class="fa fa-plus"></i> Create Schedule
+				</a>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

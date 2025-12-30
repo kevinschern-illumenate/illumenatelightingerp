@@ -1,0 +1,96 @@
+[
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_configuration_json",
+		"fieldtype": "Long Text",
+		"hidden": 1,
+		"insert_after": "description",
+		"label": "Configuration JSON"
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_configuration_summary",
+		"fieldtype": "Text",
+		"insert_after": "ill_configuration_json",
+		"label": "Configuration Summary",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_tier_name",
+		"fieldtype": "Data",
+		"insert_after": "ill_configuration_summary",
+		"label": "Tier Name",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_discount_percent",
+		"fieldtype": "Percent",
+		"insert_after": "ill_tier_name",
+		"label": "Discount %",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_unit_msrp",
+		"fieldtype": "Currency",
+		"insert_after": "ill_discount_percent",
+		"label": "Unit MSRP",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_unit_net",
+		"fieldtype": "Currency",
+		"insert_after": "ill_unit_msrp",
+		"label": "Unit Net",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_configured_fixture",
+		"fieldtype": "Link",
+		"insert_after": "ill_unit_net",
+		"label": "Configured Fixture",
+		"options": "ILL Configured Fixture",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_configured_item",
+		"fieldtype": "Link",
+		"insert_after": "ill_configured_fixture",
+		"label": "Configured Item",
+		"options": "Item",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_bom",
+		"fieldtype": "Link",
+		"insert_after": "ill_configured_item",
+		"label": "BOM",
+		"options": "BOM",
+		"read_only": 1
+	},
+	{
+		"doctype": "Custom Field",
+		"dt": "Sales Order Item",
+		"fieldname": "ill_work_order",
+		"fieldtype": "Link",
+		"insert_after": "ill_bom",
+		"label": "Work Order",
+		"options": "Work Order",
+		"read_only": 1
+	}
+]

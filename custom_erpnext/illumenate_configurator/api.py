@@ -1255,3 +1255,251 @@ def compute_mounting_hardware(mounting_method_name: str, manufacturable_m: float
 		qty = 0
 
 	return {"hardware_item": mm.hardware_item, "qty": qty}
+
+
+# ============================================================================
+# Sprint 5: Portal Ordering Functions
+# ============================================================================
+
+
+@frappe.whitelist()
+def create_sales_order_from_schedule(schedule_name):
+	"""
+	Create Sales Order from ILL Fixture Schedule (portal-accessible).
+
+	Rules:
+	- Include only ilLumenate lines with configuration_json
+	- SO item: ILL-CONFIGURED-FIXTURE (placeholder)
+	- SO item.rate = schedule_line.unit_net
+	- SO item.description = configuration_summary
+	- Store config JSON in SO item custom fields
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name
+
+	Returns:
+		Dict with sales_order name or error info
+	"""
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	# Load the schedule
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		frappe.throw(_("Schedule not found: {0}").format(schedule_name))
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Permission check for portal users
+	if frappe.db.exists("Has Role", {"parent": frappe.session.user, "role": "Customer"}):
+		customer = get_customer_for_portal_user()
+		if not customer or schedule.customer != customer:
+			frappe.throw(_("Unauthorized: You can only access your own schedules"))
+
+	# Validate schedule status
+	if schedule.status != "Draft":
+		frappe.throw(_("Schedule has already been ordered"))
+
+	# Check for at least one valid ilLumenate line
+	ilumenate_lines = [
+		line for line in schedule.lines
+		if line.line_type == "ilLumenate" and line.configuration_json
+	]
+
+	if not ilumenate_lines:
+		frappe.throw(_("No configured ilLumenate lines found in schedule"))
+
+	# Ensure placeholder item exists
+	ensure_placeholder_item_exists()
+
+	# Create Sales Order
+	so = frappe.new_doc("Sales Order")
+	so.customer = schedule.customer
+	so.delivery_date = frappe.utils.add_days(frappe.utils.today(), 30)
+
+	for line in ilumenate_lines:
+		so.append("items", {
+			"item_code": "ILL-CONFIGURED-FIXTURE",
+			"qty": line.qty,
+			"rate": line.unit_net or 0,
+			"description": line.configuration_summary or line.description or "Configured Fixture",
+			# Custom fields for configuration tracking
+			"ill_configuration_json": line.configuration_json,
+			"ill_configuration_summary": line.configuration_summary,
+			"ill_tier_name": line.tier_name,
+			"ill_discount_percent": line.discount_percent,
+			"ill_unit_msrp": line.unit_msrp,
+			"ill_unit_net": line.unit_net,
+		})
+
+	so.insert()
+
+	# Update schedule to Ordered status
+	schedule.status = "Ordered"
+	schedule.sales_order = so.name
+	schedule.save()
+
+	return {
+		"success": True,
+		"sales_order": so.name,
+		"message": _("Sales Order {0} created successfully").format(so.name),
+	}
+
+
+def ensure_placeholder_item_exists():
+	"""Ensure the ILL-CONFIGURED-FIXTURE placeholder item exists."""
+	if frappe.db.exists("Item", "ILL-CONFIGURED-FIXTURE"):
+		return
+
+	# Ensure item group exists
+	if not frappe.db.exists("Item Group", "Configured Fixtures"):
+		frappe.get_doc({
+			"doctype": "Item Group",
+			"item_group_name": "Configured Fixtures",
+			"parent_item_group": "All Item Groups",
+		}).insert(ignore_permissions=True)
+
+	# Create placeholder item
+	frappe.get_doc({
+		"doctype": "Item",
+		"item_code": "ILL-CONFIGURED-FIXTURE",
+		"item_name": "Configured Fixture (Placeholder)",
+		"item_group": "Configured Fixtures",
+		"stock_uom": "Nos",
+		"is_stock_item": False,  # Not a stock item - just a placeholder
+		"is_sales_item": True,
+		"description": "Placeholder item for ilLumenate configured fixtures. Actual configuration details stored in custom fields.",
+	}).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def generate_manufacturing_packages_from_so(sales_order_name):
+	"""
+	Generate configured items/BOMs/WOs from Sales Order lines.
+
+	Requires: Illumenate Admin or Illumenate Product Manager role.
+
+	Args:
+		sales_order_name: The Sales Order name
+
+	Returns:
+		Dict with results for each processed line or error info
+	"""
+	import json
+
+	# Check permissions
+	if not (
+		frappe.db.exists("Has Role", {"parent": frappe.session.user, "role": "Illumenate Admin"})
+		or frappe.db.exists("Has Role", {"parent": frappe.session.user, "role": "Illumenate Product Manager"})
+		or frappe.session.user == "Administrator"
+	):
+		frappe.throw(_("Insufficient permissions. Requires Illumenate Admin or Product Manager role."))
+
+	if not frappe.db.exists("Sales Order", sales_order_name):
+		frappe.throw(_("Sales Order not found: {0}").format(sales_order_name))
+
+	so = frappe.get_doc("Sales Order", sales_order_name)
+	results = []
+	updated = False
+
+	for item in so.items:
+		# Only process placeholder items with configuration JSON
+		if item.item_code != "ILL-CONFIGURED-FIXTURE":
+			continue
+
+		config_json = getattr(item, "ill_configuration_json", None)
+		if not config_json:
+			continue
+
+		# Skip if already processed
+		if getattr(item, "ill_work_order", None):
+			results.append({
+				"row": item.idx,
+				"status": "skipped",
+				"message": "Already processed",
+				"work_order": item.ill_work_order,
+			})
+			continue
+
+		# Parse stored config
+		try:
+			config = json.loads(config_json)
+		except json.JSONDecodeError:
+			results.append({
+				"row": item.idx,
+				"status": "error",
+				"message": "Invalid configuration JSON",
+			})
+			continue
+
+		# Extract inputs from config
+		inputs = config.get("inputs", {})
+		if not inputs:
+			results.append({
+				"row": item.idx,
+				"status": "error",
+				"message": "No inputs found in configuration",
+			})
+			continue
+
+		# Call create_manufacturing_package with stored inputs
+		try:
+			result = create_manufacturing_package(
+				template_code=inputs.get("template_code"),
+				tape_spec=inputs.get("tape_spec"),
+				tape_attribute_combination=inputs.get("tape_attribute_combination"),
+				requested_overall_in=inputs.get("requested_overall_in"),
+				endcap_item=inputs.get("endcap_item"),
+				driver_spec=inputs.get("driver_spec"),
+				driver_attribute_combination=inputs.get("driver_attribute_combination"),
+				qty=int(item.qty),
+				tape_type_token=inputs.get("tape_type_token"),
+				environment_token=inputs.get("environment_token"),
+				cct_token=inputs.get("cct_token"),
+				cri_value=inputs.get("cri_value"),
+				output_token=inputs.get("output_token"),
+				finish_token=inputs.get("finish_token"),
+				lens_option=inputs.get("lens_option"),
+				mounting_method=inputs.get("mounting_method"),
+				joiner_angle=inputs.get("joiner_angle"),
+				tier_name=inputs.get("tier_name"),
+				customer=so.customer,
+			)
+
+			if result.get("error"):
+				results.append({
+					"row": item.idx,
+					"status": "error",
+					"message": str(result.get("errors", [])),
+				})
+				continue
+
+			# Update SO item row with manufacturing links
+			item.ill_configured_fixture = result.get("configured_fixture")
+			item.ill_configured_item = result.get("item_code")
+			item.ill_bom = result.get("bom_no")
+			# Note: Work Order creation would require additional implementation
+			# For now, we just mark that manufacturing package was created
+			updated = True
+
+			results.append({
+				"row": item.idx,
+				"status": "success",
+				"configured_fixture": result.get("configured_fixture"),
+				"item_code": result.get("item_code"),
+				"bom_no": result.get("bom_no"),
+			})
+
+		except Exception as e:
+			results.append({
+				"row": item.idx,
+				"status": "error",
+				"message": str(e),
+			})
+
+	if updated:
+		so.save()
+
+	return {
+		"success": True,
+		"sales_order": sales_order_name,
+		"results": results,
+	}

@@ -1,0 +1,153 @@
+{
+	"actions": [],
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"line_type",
+		"description",
+		"qty",
+		"column_break_ilumenate",
+		"fixture_template",
+		"configuration_json",
+		"configuration_summary",
+		"section_break_pricing",
+		"tier_name",
+		"discount_percent",
+		"column_break_pricing",
+		"unit_msrp",
+		"unit_net",
+		"line_total",
+		"section_break_other_mfr",
+		"manufacturer_name",
+		"model_number"
+	],
+	"fields": [
+		{
+			"default": "ilLumenate",
+			"fieldname": "line_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Line Type",
+			"options": "ilLumenate\nOther Manufacturer",
+			"reqd": 1
+		},
+		{
+			"fieldname": "description",
+			"fieldtype": "Text",
+			"in_list_view": 1,
+			"label": "Description"
+		},
+		{
+			"default": "1",
+			"fieldname": "qty",
+			"fieldtype": "Float",
+			"in_list_view": 1,
+			"label": "Qty",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_ilumenate",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "fixture_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Fixture Template",
+			"options": "ILL Fixture Template"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "configuration_json",
+			"fieldtype": "Long Text",
+			"hidden": 1,
+			"label": "Configuration JSON"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "configuration_summary",
+			"fieldtype": "Text",
+			"label": "Configuration Summary",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "section_break_pricing",
+			"fieldtype": "Section Break",
+			"label": "Pricing"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "tier_name",
+			"fieldtype": "Data",
+			"label": "Tier Name",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "discount_percent",
+			"fieldtype": "Float",
+			"label": "Discount %",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_pricing",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "unit_msrp",
+			"fieldtype": "Currency",
+			"label": "Unit MSRP",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "unit_net",
+			"fieldtype": "Currency",
+			"in_list_view": 1,
+			"label": "Unit Net",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "line_total",
+			"fieldtype": "Currency",
+			"label": "Line Total",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='Other Manufacturer'",
+			"fieldname": "section_break_other_mfr",
+			"fieldtype": "Section Break",
+			"label": "Other Manufacturer Details"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='Other Manufacturer'",
+			"fieldname": "manufacturer_name",
+			"fieldtype": "Data",
+			"label": "Manufacturer Name"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='Other Manufacturer'",
+			"fieldname": "model_number",
+			"fieldtype": "Data",
+			"label": "Model Number"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"istable": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Fixture Schedule Line",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
