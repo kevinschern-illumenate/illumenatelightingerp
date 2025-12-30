@@ -158,8 +158,17 @@ has_permission = {
 
 doc_events = {
 	"Lead": {
-		"after_insert": "custom_erpnext.illumenate_marketing.email.send_welcome_email"
-	}
+		"after_insert": [
+			"custom_erpnext.illumenate_marketing.email.send_welcome_email",
+			"custom_erpnext.illumenate_marketing.n8n_events.on_lead_created",
+		]
+	},
+	"Sales Order": {
+		"on_submit": "custom_erpnext.illumenate_marketing.n8n_events.on_purchase_completed"
+	},
+	"Sales Invoice": {
+		"on_submit": "custom_erpnext.illumenate_marketing.n8n_events.on_purchase_completed"
+	},
 }
 
 # Scheduled Tasks
