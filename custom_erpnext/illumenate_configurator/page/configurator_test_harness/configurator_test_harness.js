@@ -345,8 +345,8 @@ function validate_configuration(page) {
 	}
 
 	// Resolve abbreviated attribute combinations to full versions for API
-	var tape_attribute_combination = (page._tape_attribute_map || {})[tape_attribute_combination_abbr] || tape_attribute_combination_abbr;
-	var driver_attribute_combination = (page._driver_attribute_map || {})[driver_attribute_combination_abbr] || driver_attribute_combination_abbr;
+	var tape_attribute_combination = resolveAttributeCombination(page._tape_attribute_map, tape_attribute_combination_abbr);
+	var driver_attribute_combination = resolveAttributeCombination(page._driver_attribute_map, driver_attribute_combination_abbr);
 
 	// Build args
 	var args = {
@@ -515,8 +515,8 @@ function create_manufacturing_package(page) {
 	// Resolve abbreviated attribute combinations to full versions for API
 	var tape_attribute_combination_abbr = page.tape_attribute_field.get_value();
 	var driver_attribute_combination_abbr = page.driver_attribute_field.get_value();
-	var tape_attribute_combination = (page._tape_attribute_map || {})[tape_attribute_combination_abbr] || tape_attribute_combination_abbr;
-	var driver_attribute_combination = (page._driver_attribute_map || {})[driver_attribute_combination_abbr] || driver_attribute_combination_abbr;
+	var tape_attribute_combination = resolveAttributeCombination(page._tape_attribute_map, tape_attribute_combination_abbr);
+	var driver_attribute_combination = resolveAttributeCombination(page._driver_attribute_map, driver_attribute_combination_abbr);
 
 	var args = {
 		template_code: page.template_field.get_value(),
@@ -599,4 +599,18 @@ function create_manufacturing_package(page) {
 			});
 		},
 	});
+}
+
+/**
+ * Resolve an abbreviated attribute combination to its full version.
+ * @param {object} map - The mapping object from abbreviated to full values
+ * @param {string} abbreviatedValue - The abbreviated attribute combination
+ * @returns {string} The full attribute combination, or the abbreviated value if not found
+ */
+function resolveAttributeCombination(map, abbreviatedValue) {
+	if (!abbreviatedValue) {
+		return abbreviatedValue;
+	}
+	var fullValue = (map || {})[abbreviatedValue];
+	return fullValue || abbreviatedValue;
 }
