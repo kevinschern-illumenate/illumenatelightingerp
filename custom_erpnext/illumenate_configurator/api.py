@@ -622,14 +622,18 @@ def get_tape_spec_variants(tape_spec):
 		tape_spec: ILL LED Tape Spec name
 
 	Returns:
-		List of variant specs with their attribute combinations and electrical specs
+		List of variant specs with their attribute combinations and electrical specs.
+		The attribute_combination field contains the abbreviated version for display
+		in the Configurator Test Harness, while attribute_combination_full contains
+		the original full string for matching.
 	"""
 	tape = frappe.get_doc("ILL LED Tape Spec", tape_spec)
 
 	variants = []
 	for row in tape.variant_specs:
 		variants.append({
-			"attribute_combination": row.attribute_combination,
+			"attribute_combination": abbreviate_attribute_combination(row.attribute_combination),
+			"attribute_combination_full": row.attribute_combination,
 			"voltage": row.voltage,
 			"watts_per_ft": row.watts_per_ft,
 			"cut_increment_in": row.cut_increment_in,
@@ -653,14 +657,18 @@ def get_driver_spec_variants(driver_spec):
 		driver_spec: ILL Driver Spec name
 
 	Returns:
-		List of variant specs with their attribute combinations and electrical specs
+		List of variant specs with their attribute combinations and electrical specs.
+		The attribute_combination field contains the abbreviated version for display
+		in the Configurator Test Harness, while attribute_combination_full contains
+		the original full string for matching.
 	"""
 	driver = frappe.get_doc("ILL Driver Spec", driver_spec)
 
 	variants = []
 	for row in driver.variant_specs:
 		variants.append({
-			"attribute_combination": row.attribute_combination,
+			"attribute_combination": abbreviate_attribute_combination(row.attribute_combination),
+			"attribute_combination_full": row.attribute_combination,
 			"voltage_out": row.voltage_out,
 			"dimming_protocol": row.dimming_protocol,
 			"max_wattage": row.max_wattage,
