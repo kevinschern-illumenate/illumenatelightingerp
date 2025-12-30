@@ -10,6 +10,52 @@ Provides helper functions for portal user mapping, customer lookup, and other co
 import frappe
 
 
+def abbreviate_attribute_combination(attribute_combination: str) -> str:
+	"""
+	Convert an attribute combination string to use abbreviations.
+
+	Takes a string like "LED Tape CCT: 3000K, LED Tape CRI: 90+"
+	and returns an abbreviated version like "3000K-90+" using the
+	abbreviations defined in ERPNext's Item Attribute Value table.
+
+	Args:
+		attribute_combination: Full attribute combination string
+
+	Returns:
+		Abbreviated string, or original values if no abbreviation found
+	"""
+	if not attribute_combination:
+		return ""
+
+	abbreviated_parts = []
+
+	# Parse "Attribute: Value, Attribute: Value" format
+	for part in attribute_combination.split(","):
+		part = part.strip()
+		if ":" not in part:
+			continue
+
+		attribute_name, attribute_value = part.split(":", 1)
+		attribute_name = attribute_name.strip()
+		attribute_value = attribute_value.strip()
+
+		# Look up abbreviation from Item Attribute Value
+		abbr = frappe.db.get_value(
+			"Item Attribute Value",
+			{"parent": attribute_name, "attribute_value": attribute_value},
+			"abbr",
+		)
+
+		# Use abbreviation if found, otherwise use the value itself
+		if abbr:
+			abbreviated_parts.append(abbr)
+		else:
+			# Fall back to just the value (without attribute name)
+			abbreviated_parts.append(attribute_value)
+
+	return "-".join(abbreviated_parts)
+
+
 def get_customer_for_portal_user(user=None):
 	"""
 	Map portal user to Customer via 'Portal Users' child table or Contact.
