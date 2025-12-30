@@ -1,0 +1,129 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="container">
+	<div class="row mb-4">
+		<div class="col-12">
+			<nav aria-label="breadcrumb">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+					<li class="breadcrumb-item active">New Project</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	{% if error %}
+	<div class="alert alert-danger">
+		{{ error }}
+	</div>
+	<a href="/projects" class="btn btn-secondary">
+		<i class="fa fa-arrow-left"></i> Back to Projects
+	</a>
+	{% else %}
+	<div class="row">
+		<div class="col-md-8">
+			<div class="card">
+				<div class="card-header">
+					<h2 class="mb-0">Create New Project</h2>
+				</div>
+				<div class="card-body">
+					<form id="new-project-form">
+						<div class="form-group">
+							<label for="project_name">Project Name <span class="text-danger">*</span></label>
+							<input type="text" class="form-control" id="project_name" name="project_name" required>
+						</div>
+
+						<div class="form-group">
+							<label for="project_code">Project Code</label>
+							<input type="text" class="form-control" id="project_code" name="project_code" placeholder="Optional reference code">
+						</div>
+
+						<div class="form-group">
+							<label for="description">Description</label>
+							<textarea class="form-control" id="description" name="description" rows="3" placeholder="Optional project description"></textarea>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label for="expected_start_date">Expected Start Date</label>
+									<input type="date" class="form-control" id="expected_start_date" name="expected_start_date">
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label for="expected_end_date">Expected End Date</label>
+									<input type="date" class="form-control" id="expected_end_date" name="expected_end_date">
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group mb-0">
+							<button type="submit" class="btn btn-primary">
+								<i class="fa fa-save"></i> Create Project
+							</button>
+							<a href="/projects" class="btn btn-secondary">
+								Cancel
+							</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="mb-0">Customer</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-0"><strong>{{ customer_name }}</strong></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block page_script %}
+<script>
+frappe.ready(function() {
+	$('#new-project-form').on('submit', function(e) {
+		e.preventDefault();
+
+		var project_name = $('#project_name').val();
+		if (!project_name) {
+			frappe.msgprint(__('Project Name is required'));
+			return;
+		}
+
+		frappe.call({
+			method: 'custom_erpnext.www.new-project.create_project',
+			args: {
+				project_name: project_name,
+				project_code: $('#project_code').val() || null,
+				description: $('#description').val() || null,
+				expected_start_date: $('#expected_start_date').val() || null,
+				expected_end_date: $('#expected_end_date').val() || null
+			},
+			freeze: true,
+			freeze_message: __('Creating Project...'),
+			callback: function(r) {
+				if (r.message) {
+					frappe.msgprint({
+						title: __('Success'),
+						indicator: 'green',
+						message: __('Project "{0}" created successfully!', [r.message.project_name])
+					});
+					setTimeout(function() {
+						window.location.href = '/project?name=' + r.message.name;
+					}, 1500);
+				}
+			}
+		});
+	});
+});
+</script>
+{% endblock %}
