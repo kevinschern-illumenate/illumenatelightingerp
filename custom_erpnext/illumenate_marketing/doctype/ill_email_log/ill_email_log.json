@@ -1,0 +1,216 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"recipient_email",
+		"email_type",
+		"column_break_main",
+		"status",
+		"sent_at",
+		"section_break_lead",
+		"lead",
+		"lead_source",
+		"column_break_template",
+		"email_template",
+		"email_template_mapping",
+		"section_break_tracking",
+		"opened_at",
+		"opened_count",
+		"column_break_tracking",
+		"clicked_at",
+		"clicked_count",
+		"section_break_details",
+		"subject",
+		"from_email",
+		"column_break_details",
+		"error_message",
+		"tracking_id"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-EMAIL-LOG-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "recipient_email",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Recipient Email",
+			"options": "Email",
+			"reqd": 1
+		},
+		{
+			"fieldname": "email_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Email Type",
+			"options": "Welcome Email\nNewsletter\nMarketing\nTransactional\nOther",
+			"default": "Welcome Email",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Status",
+			"options": "Pending\nSent\nOpened\nClicked\nFailed\nBounced",
+			"default": "Pending",
+			"reqd": 1
+		},
+		{
+			"fieldname": "sent_at",
+			"fieldtype": "Datetime",
+			"in_list_view": 1,
+			"label": "Sent At"
+		},
+		{
+			"fieldname": "section_break_lead",
+			"fieldtype": "Section Break",
+			"label": "Lead Information"
+		},
+		{
+			"fieldname": "lead",
+			"fieldtype": "Link",
+			"label": "Lead",
+			"options": "Lead"
+		},
+		{
+			"fieldname": "lead_source",
+			"fieldtype": "Link",
+			"label": "Lead Source",
+			"options": "ILL Lead Source"
+		},
+		{
+			"fieldname": "column_break_template",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "email_template",
+			"fieldtype": "Link",
+			"label": "Email Template",
+			"options": "Email Template"
+		},
+		{
+			"fieldname": "email_template_mapping",
+			"fieldtype": "Link",
+			"label": "Email Template Mapping",
+			"options": "ILL Email Template Mapping"
+		},
+		{
+			"fieldname": "section_break_tracking",
+			"fieldtype": "Section Break",
+			"label": "Tracking"
+		},
+		{
+			"fieldname": "opened_at",
+			"fieldtype": "Datetime",
+			"label": "First Opened At"
+		},
+		{
+			"fieldname": "opened_count",
+			"fieldtype": "Int",
+			"label": "Open Count",
+			"default": "0"
+		},
+		{
+			"fieldname": "column_break_tracking",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "clicked_at",
+			"fieldtype": "Datetime",
+			"label": "First Clicked At"
+		},
+		{
+			"fieldname": "clicked_count",
+			"fieldtype": "Int",
+			"label": "Click Count",
+			"default": "0"
+		},
+		{
+			"fieldname": "section_break_details",
+			"fieldtype": "Section Break",
+			"label": "Email Details"
+		},
+		{
+			"fieldname": "subject",
+			"fieldtype": "Data",
+			"label": "Subject"
+		},
+		{
+			"fieldname": "from_email",
+			"fieldtype": "Data",
+			"label": "From Email"
+		},
+		{
+			"fieldname": "column_break_details",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "error_message",
+			"fieldtype": "Small Text",
+			"label": "Error Message",
+			"read_only": 1
+		},
+		{
+			"fieldname": "tracking_id",
+			"fieldtype": "Data",
+			"label": "Tracking ID",
+			"unique": 1,
+			"read_only": 1,
+			"description": "Unique identifier for tracking opens and clicks"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Email Log",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

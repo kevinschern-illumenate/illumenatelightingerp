@@ -156,13 +156,11 @@ has_permission = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Lead": {
+		"after_insert": "custom_erpnext.illumenate_marketing.email.send_welcome_email"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
