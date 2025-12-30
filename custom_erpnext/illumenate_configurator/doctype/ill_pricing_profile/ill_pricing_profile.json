@@ -1,0 +1,164 @@
+{
+	"actions": [],
+	"autoname": "field:pricing_profile_code",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"pricing_profile_code",
+		"fixture_template",
+		"column_break_main",
+		"currency",
+		"msrp_price_list",
+		"is_active",
+		"section_break_fees",
+		"base_fee",
+		"labor_fee",
+		"column_break_rates",
+		"profile_rate_per_m",
+		"lens_rate_per_m",
+		"tape_rate_per_m",
+		"labor_rate_per_m",
+		"section_break_driver",
+		"driver_markup_percent"
+	],
+	"fields": [
+		{
+			"fieldname": "pricing_profile_code",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Pricing Profile Code",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "fixture_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Fixture Template",
+			"options": "ILL Fixture Template",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "USD",
+			"fieldname": "currency",
+			"fieldtype": "Link",
+			"label": "Currency",
+			"options": "Currency"
+		},
+		{
+			"default": "MSRP",
+			"fieldname": "msrp_price_list",
+			"fieldtype": "Link",
+			"label": "MSRP Price List",
+			"options": "Price List"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		},
+		{
+			"fieldname": "section_break_fees",
+			"fieldtype": "Section Break",
+			"label": "Pricing Rates"
+		},
+		{
+			"default": "0",
+			"fieldname": "base_fee",
+			"fieldtype": "Currency",
+			"label": "Base Fee"
+		},
+		{
+			"default": "0",
+			"fieldname": "labor_fee",
+			"fieldtype": "Currency",
+			"label": "Labor Fee"
+		},
+		{
+			"fieldname": "column_break_rates",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"fieldname": "profile_rate_per_m",
+			"fieldtype": "Currency",
+			"label": "Profile Rate per Meter"
+		},
+		{
+			"default": "0",
+			"fieldname": "lens_rate_per_m",
+			"fieldtype": "Currency",
+			"label": "Lens Rate per Meter"
+		},
+		{
+			"default": "0",
+			"fieldname": "tape_rate_per_m",
+			"fieldtype": "Currency",
+			"label": "Tape Rate per Meter"
+		},
+		{
+			"default": "0",
+			"fieldname": "labor_rate_per_m",
+			"fieldtype": "Currency",
+			"label": "Labor Rate per Meter"
+		},
+		{
+			"fieldname": "section_break_driver",
+			"fieldtype": "Section Break",
+			"label": "Driver Pricing"
+		},
+		{
+			"default": "0",
+			"fieldname": "driver_markup_percent",
+			"fieldtype": "Float",
+			"label": "Driver Markup %"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Pricing Profile",
+	"naming_rule": "By fieldname",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}

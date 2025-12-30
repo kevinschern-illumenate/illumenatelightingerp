@@ -148,6 +148,16 @@ frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
 		options: ["", "Straight", "90", "Other"],
 	});
 
+	// === Sprint 4 Fields ===
+
+	page.tier_field = page.add_field({
+		label: "Pricing Tier",
+		fieldname: "tier_name",
+		fieldtype: "Select",
+		options: ["MSRP", "Dealer A", "Dealer B", "Dealer C", "Dealer D"],
+		default: "MSRP",
+	});
+
 	// Add validate button
 	page.set_primary_action("Validate Configuration", function () {
 		validate_configuration(page);
@@ -160,17 +170,21 @@ frappe.pages["configurator-test-harness"].on_page_load = function (wrapper) {
 			<div class="results-summary" style="display: none; margin-bottom: 15px;">
 				<div class="frappe-card p-4">
 					<div class="row">
-						<div class="col-md-4">
+						<div class="col-md-3">
 							<h5>Length</h5>
 							<div class="length-summary"></div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-3">
 							<h5>Electrical</h5>
 							<div class="electrical-summary"></div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-3">
 							<h5>Driver</h5>
 							<div class="driver-summary"></div>
+						</div>
+						<div class="col-md-3">
+							<h5>Pricing</h5>
+							<div class="pricing-summary"></div>
 						</div>
 					</div>
 					<div class="row mt-3">
@@ -301,6 +315,9 @@ function validate_configuration(page) {
 	var mounting_method = page.mounting_method_field.get_value();
 	var joiner_angle = page.joiner_angle_field.get_value();
 
+	// Sprint 4 fields
+	var tier_name = page.tier_field.get_value();
+
 	// Validate required fields
 	if (!template_code) {
 		frappe.msgprint("Please select a Template");
@@ -344,6 +361,9 @@ function validate_configuration(page) {
 	if (lens_option) args.lens_option = lens_option;
 	if (mounting_method) args.mounting_method = mounting_method;
 	if (joiner_angle) args.joiner_angle = joiner_angle;
+
+	// Sprint 4 params
+	if (tier_name) args.tier_name = tier_name;
 
 	frappe.call({
 		method: "custom_erpnext.illumenate_configurator.api.validate_configuration",
@@ -431,9 +451,36 @@ function display_results(page, result) {
 			</table>
 		`;
 
+		// Build pricing HTML
+		var pricing_html = "";
+		if (result.pricing) {
+			var p = result.pricing;
+			if (p.error) {
+				pricing_html = `<div class="text-muted">${p.message || "Pricing unavailable"}</div>`;
+			} else {
+				pricing_html = `
+					<table class="table table-sm table-borderless">
+						<tr><td>Unit MSRP:</td><td><strong>$${p.unit_msrp.toFixed(2)}</strong></td></tr>
+						<tr><td>Tier:</td><td>${p.tier_name}</td></tr>
+						<tr><td>Discount:</td><td>${p.discount_percent}%</td></tr>
+						<tr><td>Unit Net:</td><td><strong>$${p.unit_net_price.toFixed(2)}</strong></td></tr>
+					</table>
+				`;
+				// Show breakdown for internal roles
+				if (p.breakdown) {
+					pricing_html += `<details><summary>Breakdown</summary>
+						<pre style="font-size: 10px;">${JSON.stringify(p.breakdown, null, 2)}</pre>
+					</details>`;
+				}
+			}
+		} else {
+			pricing_html = `<div class="text-muted">Pricing not available</div>`;
+		}
+
 		summary.find(".length-summary").html(length_html);
 		summary.find(".electrical-summary").html(electrical_html);
 		summary.find(".driver-summary").html(driver_html);
+		summary.find(".pricing-summary").html(pricing_html);
 
 		if (length.warning) {
 			summary.find(".warning-message").html("<strong>Note:</strong> " + length.warning).show();
@@ -472,6 +519,8 @@ function create_manufacturing_package(page) {
 		lens_option: page.lens_option_field.get_value() || null,
 		mounting_method: page.mounting_method_field.get_value() || null,
 		joiner_angle: page.joiner_angle_field.get_value() || null,
+		// Sprint 4 fields
+		tier_name: page.tier_field.get_value() || "MSRP",
 	};
 
 	frappe.call({

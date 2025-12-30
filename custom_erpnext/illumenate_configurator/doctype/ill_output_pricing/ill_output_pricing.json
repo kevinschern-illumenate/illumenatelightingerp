@@ -1,0 +1,100 @@
+{
+	"actions": [],
+	"autoname": "hash",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"fixture_template",
+		"output_token",
+		"column_break_main",
+		"tape_rate_per_m_override",
+		"tape_adder_per_m",
+		"column_break_status",
+		"is_active"
+	],
+	"fields": [
+		{
+			"fieldname": "fixture_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Fixture Template",
+			"options": "ILL Fixture Template",
+			"reqd": 1
+		},
+		{
+			"fieldname": "output_token",
+			"fieldtype": "Int",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Output Token",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "tape_rate_per_m_override",
+			"fieldtype": "Currency",
+			"in_list_view": 1,
+			"label": "Tape Rate per Meter Override"
+		},
+		{
+			"fieldname": "tape_adder_per_m",
+			"fieldtype": "Currency",
+			"in_list_view": 1,
+			"label": "Tape Adder per Meter"
+		},
+		{
+			"fieldname": "column_break_status",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		}
+	],
+	"index_web_pages_for_search": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Configurator",
+	"name": "ILL Output Pricing",
+	"naming_rule": "Random",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
