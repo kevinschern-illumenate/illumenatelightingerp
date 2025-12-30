@@ -2436,3 +2436,304 @@ def save_schedule_line(
 	frappe.db.commit()
 
 	return {"success": True, "idx": target_line.idx}
+
+
+@frappe.whitelist()
+def validate_schedule_line_configuration(
+	schedule_name,
+	idx,
+	fixture_template,
+	requested_length_in,
+	tape_spec,
+	tape_attribute_combination,
+	endcap_item=None,
+	driver_spec=None,
+	driver_attribute_combination=None,
+	tape_type_token=None,
+	environment_token=None,
+	cct_token=None,
+	cri_value=None,
+	output_token=None,
+	finish_token=None,
+	lens_option=None,
+	mounting_method=None,
+	joiner_angle=None,
+	tier_name=None,
+):
+	"""
+	Validate a schedule line configuration and update it with computed values.
+
+	This endpoint validates the configuration using the same logic as the
+	Configurator Test Harness and updates the schedule line with computed
+	values (length, electrical, driver, pricing).
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name (required)
+		idx: The line index to update (required)
+		fixture_template: ILL Fixture Template name (required)
+		requested_length_in: Requested length in inches (required)
+		tape_spec: ILL LED Tape Spec name (required)
+		tape_attribute_combination: Tape attribute combination string (required)
+		endcap_item: Optional endcap Item name
+		driver_spec: Optional ILL Driver Spec name
+		driver_attribute_combination: Optional driver attribute combination
+		tape_type_token: Optional tape type (SW, TW, RGBTW)
+		environment_token: Optional environment (I, O)
+		cct_token: Optional CCT value
+		cri_value: Optional CRI value
+		output_token: Optional output value
+		finish_token: Optional finish
+		lens_option: Optional ILL Lens Option name
+		mounting_method: Optional ILL Mounting Method name
+		joiner_angle: Optional joiner angle
+		tier_name: Optional pricing tier
+
+	Returns:
+		dict with validation result and updated line data
+	"""
+	import json
+
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	# Check customer access
+	customer = get_customer_for_portal_user()
+	if not customer:
+		return {"success": False, "error": "No customer linked to your account."}
+
+	# Validate schedule exists
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		return {"success": False, "error": "Schedule not found."}
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Check if schedule is editable
+	if schedule.status == "Ordered":
+		return {"success": False, "error": "Cannot modify an ordered schedule."}
+
+	# Check customer access via project
+	if schedule.project:
+		project_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
+		if project_customer != customer:
+			return {"success": False, "error": "You do not have permission to modify this schedule."}
+
+	# Find the target line
+	idx = int(idx)
+	target_line = None
+	for line in schedule.lines:
+		if line.idx == idx:
+			target_line = line
+			break
+
+	if not target_line:
+		return {"success": False, "error": "Line not found."}
+
+	# Call validate_configuration to get computed values
+	validation_result = validate_configuration(
+		template_code=fixture_template,
+		tape_spec=tape_spec,
+		tape_attribute_combination=tape_attribute_combination,
+		requested_overall_in=float(requested_length_in),
+		driver_spec=driver_spec,
+		driver_attribute_combination=driver_attribute_combination,
+		endcap_item=endcap_item,
+		tape_type_token=tape_type_token,
+		environment_token=environment_token,
+		cct_token=cct_token,
+		cri_value=int(cri_value) if cri_value else None,
+		output_token=int(output_token) if output_token else None,
+		finish_token=finish_token,
+		lens_option=lens_option,
+		mounting_method=mounting_method,
+		joiner_angle=joiner_angle,
+		tier_name=tier_name,
+		customer=customer,
+	)
+
+	# Check for validation errors
+	if validation_result.get("errors"):
+		return {
+			"success": False,
+			"errors": validation_result.get("errors"),
+		}
+
+	# Update the line with configuration data
+	target_line.line_type = "ilLumenate"
+	target_line.fixture_template = fixture_template
+	target_line.requested_length_in = float(requested_length_in)
+	target_line.tape_spec = tape_spec
+	target_line.tape_attribute_combination = tape_attribute_combination
+	target_line.endcap_item = endcap_item
+	target_line.driver_spec = driver_spec
+	target_line.driver_attribute_combination = driver_attribute_combination
+	target_line.tape_type_token = tape_type_token
+	target_line.environment_token = environment_token
+	target_line.cct_token = cct_token
+	target_line.cri_value = int(cri_value) if cri_value else None
+	target_line.output_token = int(output_token) if output_token else None
+	target_line.finish_token = finish_token
+	target_line.lens_option = lens_option
+	target_line.mounting_method = mounting_method
+	target_line.joiner_angle = joiner_angle
+
+	# Update computed values from validation result
+	length = validation_result.get("length", {})
+	electrical = validation_result.get("electrical", {})
+	driver = validation_result.get("driver", {})
+	pricing = validation_result.get("pricing", {})
+
+	target_line.manufacturable_length_in = length.get("manufacturable", {}).get("in")
+	target_line.manufacturable_length_mm = length.get("manufacturable", {}).get("mm")
+	target_line.tape_cut_length_mm = length.get("tape_cut", {}).get("mm")
+	target_line.led_tape_length_mm = length.get("tape_cut", {}).get("mm")
+
+	target_line.watts_per_ft = electrical.get("watts_per_ft")
+	target_line.total_watts = electrical.get("total_watts")
+	target_line.max_run_length_ft = electrical.get("effective_max_run_ft")
+	target_line.runs_count = electrical.get("runs_count")
+
+	target_line.selected_driver_spec = driver.get("driver_spec")
+	target_line.selected_driver_qty = driver.get("quantity")
+
+	if pricing and not pricing.get("error"):
+		target_line.unit_msrp = pricing.get("unit_msrp")
+		target_line.unit_net = pricing.get("unit_net_price")
+		target_line.tier_name = pricing.get("tier_name")
+		target_line.discount_percent = pricing.get("discount_percent")
+		target_line.line_total = (pricing.get("unit_net_price") or 0) * (target_line.qty or 1)
+
+	# Store full configuration JSON
+	target_line.configuration_json = json.dumps(validation_result)
+	target_line.configuration_valid = 1
+
+	# Generate summary
+	summary_parts = [fixture_template]
+	in_display = length.get("manufacturable", {}).get("in_display_1_16")
+	if in_display:
+		summary_parts.append(in_display + '"')
+	if cct_token:
+		summary_parts.append(cct_token)
+	if cri_value:
+		summary_parts.append(str(cri_value) + " CRI")
+	if output_token:
+		summary_parts.append(str(output_token) + "lm")
+	if finish_token:
+		summary_parts.append(finish_token)
+	if lens_option:
+		summary_parts.append(lens_option)
+	if mounting_method:
+		summary_parts.append(mounting_method)
+
+	target_line.configuration_summary = " | ".join(summary_parts)
+
+	schedule.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {
+		"success": True,
+		"idx": target_line.idx,
+		"validation_result": validation_result,
+	}
+
+
+@frappe.whitelist()
+def save_other_manufacturer_line(
+	schedule_name,
+	idx=None,
+	qty=1,
+	description=None,
+	manufacturer_name=None,
+	model_number=None,
+	spec_data=None,
+):
+	"""
+	Save an Other Manufacturer schedule line with specification data.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name (required)
+		idx: The line index to update (optional - if not provided, adds new line)
+		qty: Quantity (default: 1)
+		description: Description/notes
+		manufacturer_name: Manufacturer name
+		model_number: Model number
+		spec_data: List of dicts with spec_name and spec_value
+
+	Returns:
+		dict with success status
+	"""
+	import json
+
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	customer = get_customer_for_portal_user()
+
+	if not customer:
+		return {"success": False, "error": "No customer linked to your account."}
+
+	# Validate schedule exists
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		return {"success": False, "error": "Schedule not found."}
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Check if schedule is editable
+	if schedule.status == "Ordered":
+		return {"success": False, "error": "Cannot modify an ordered schedule."}
+
+	# Check customer access via project
+	if schedule.project:
+		project_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
+		if project_customer != customer:
+			return {"success": False, "error": "You do not have permission to modify this schedule."}
+
+	# Find existing line or create new
+	target_line = None
+	if idx:
+		idx = int(idx)
+		for line in schedule.lines:
+			if line.idx == idx:
+				target_line = line
+				break
+
+	if not target_line:
+		# Add new line
+		target_line = schedule.append("lines", {})
+
+	# Update line fields
+	target_line.line_type = "Other Manufacturer"
+	target_line.qty = int(qty) if qty else 1
+	target_line.description = description
+	target_line.manufacturer_name = manufacturer_name
+	target_line.model_number = model_number
+
+	# Clear ilLumenate fields
+	target_line.fixture_template = None
+	target_line.configuration_json = None
+	target_line.configuration_summary = None
+	target_line.configuration_valid = 0
+	target_line.unit_msrp = None
+	target_line.unit_net = None
+	target_line.tier_name = None
+	target_line.discount_percent = None
+	target_line.line_total = None
+
+	# Parse and set spec_data
+	target_line.spec_data = []
+	if spec_data:
+		# Handle string input (from API call)
+		if isinstance(spec_data, str):
+			try:
+				spec_data = json.loads(spec_data)
+			except json.JSONDecodeError:
+				spec_data = []
+
+		for spec in spec_data:
+			if spec.get("spec_name") and spec.get("spec_value"):
+				target_line.append("spec_data", {
+					"spec_name": spec.get("spec_name"),
+					"spec_value": spec.get("spec_value"),
+				})
+
+	schedule.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {"success": True, "idx": target_line.idx}
