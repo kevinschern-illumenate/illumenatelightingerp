@@ -1,0 +1,4 @@
+{
+  "allow_cors": "http://localhost:3000",
+  "ignore_csrf": 1
+}
