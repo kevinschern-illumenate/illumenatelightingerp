@@ -2086,3 +2086,43 @@ def create_project(project_name, project_code=None, description=None, expected_s
 	project.insert()
 
 	return {"name": project.name, "project_name": project.project_name}
+
+
+@frappe.whitelist()
+def create_schedule(project, schedule_name):
+	"""
+	Create a new fixture schedule for a project.
+
+	Args:
+		project: The ILL Project name (required)
+		schedule_name: Name of the schedule (required)
+
+	Returns:
+		dict with schedule name on success
+	"""
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	customer = get_customer_for_portal_user()
+
+	if not customer:
+		frappe.throw("No customer linked to your account. Please contact support.")
+
+	# Validate project access
+	if not frappe.db.exists("ILL Project", project):
+		frappe.throw("Project not found.")
+
+	project_customer = frappe.db.get_value("ILL Project", project, "customer")
+	if project_customer != customer:
+		frappe.throw("You do not have permission to access this project.")
+
+	# Create the schedule
+	schedule = frappe.get_doc({
+		"doctype": "ILL Fixture Schedule",
+		"project": project,
+		"schedule_name": schedule_name,
+		"status": "Draft",
+	})
+
+	schedule.insert()
+
+	return {"name": schedule.name, "schedule_name": schedule.schedule_name}

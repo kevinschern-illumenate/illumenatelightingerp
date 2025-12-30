@@ -1,0 +1,158 @@
+{
+	"charts": [],
+	"content": "[{\"id\":\"marketing_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">ilLumenate Marketing</span>\",\"level\":4,\"col\":12}},{\"id\":\"forms_header\",\"type\":\"header\",\"data\":{\"text\":\"Forms & Sources\",\"level\":5,\"col\":12}},{\"id\":\"marketing_form_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Marketing Form\",\"col\":4}},{\"id\":\"lead_source_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Lead Source\",\"col\":4}},{\"id\":\"records_header\",\"type\":\"header\",\"data\":{\"text\":\"Records & Preferences\",\"level\":5,\"col\":12}},{\"id\":\"consent_record_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Consent Record\",\"col\":4}},{\"id\":\"email_preference_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Email Preference\",\"col\":4}},{\"id\":\"email_header\",\"type\":\"header\",\"data\":{\"text\":\"Email\",\"level\":5,\"col\":12}},{\"id\":\"email_template_mapping_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Email Template Mapping\",\"col\":4}},{\"id\":\"email_log_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Email Log\",\"col\":4}}]",
+	"creation": "2024-01-01 00:00:00.000000",
+	"custom_blocks": [],
+	"docstatus": 0,
+	"doctype": "Workspace",
+	"for_user": "",
+	"hide_custom": 0,
+	"icon": "email",
+	"is_hidden": 0,
+	"label": "ilLumenate Marketing",
+	"links": [
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Forms & Sources",
+			"link_count": 0,
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Marketing Form",
+			"link_count": 0,
+			"link_to": "ILL Marketing Form",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Lead Source",
+			"link_count": 0,
+			"link_to": "ILL Lead Source",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Records & Preferences",
+			"link_count": 0,
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Consent Record",
+			"link_count": 0,
+			"link_to": "ILL Consent Record",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Email Preference",
+			"link_count": 0,
+			"link_to": "ILL Email Preference",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Email",
+			"link_count": 0,
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Email Template Mapping",
+			"link_count": 0,
+			"link_to": "ILL Email Template Mapping",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Email Log",
+			"link_count": 0,
+			"link_to": "ILL Email Log",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		}
+	],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ilLumenate Marketing",
+	"number_cards": [],
+	"owner": "Administrator",
+	"parent_page": "",
+	"public": 1,
+	"quick_lists": [],
+	"roles": [],
+	"sequence_id": 2,
+	"shortcuts": [
+		{
+			"color": "Blue",
+			"doc_view": "List",
+			"label": "ILL Marketing Form",
+			"link_to": "ILL Marketing Form",
+			"type": "DocType"
+		},
+		{
+			"color": "Green",
+			"doc_view": "List",
+			"label": "ILL Lead Source",
+			"link_to": "ILL Lead Source",
+			"type": "DocType"
+		},
+		{
+			"color": "Orange",
+			"doc_view": "List",
+			"label": "ILL Consent Record",
+			"link_to": "ILL Consent Record",
+			"type": "DocType"
+		},
+		{
+			"color": "Yellow",
+			"doc_view": "List",
+			"label": "ILL Email Preference",
+			"link_to": "ILL Email Preference",
+			"type": "DocType"
+		},
+		{
+			"color": "Purple",
+			"doc_view": "List",
+			"label": "ILL Email Template Mapping",
+			"link_to": "ILL Email Template Mapping",
+			"type": "DocType"
+		},
+		{
+			"color": "Red",
+			"doc_view": "List",
+			"label": "ILL Email Log",
+			"link_to": "ILL Email Log",
+			"type": "DocType"
+		}
+	],
+	"title": "ilLumenate Marketing"
+}

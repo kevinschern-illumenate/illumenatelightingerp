@@ -1,6 +1,6 @@
 {
 	"charts": [],
-	"content": "[{\"id\":\"configurator_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">ilLumenate Configurator</span>\",\"level\":4,\"col\":12}},{\"id\":\"master_data_header\",\"type\":\"header\",\"data\":{\"text\":\"Master Data\",\"level\":5,\"col\":12}},{\"id\":\"tape_spec_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL LED Tape Spec\",\"col\":4}},{\"id\":\"driver_spec_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Driver Spec\",\"col\":4}},{\"id\":\"fixture_template_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Fixture Template\",\"col\":4}},{\"id\":\"tools_header\",\"type\":\"header\",\"data\":{\"text\":\"Tools\",\"level\":5,\"col\":12}},{\"id\":\"test_harness_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Configurator Test Harness\",\"col\":4}}]",
+	"content": "[{\"id\":\"configurator_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">ilLumenate Configurator</span>\",\"level\":4,\"col\":12}},{\"id\":\"master_data_header\",\"type\":\"header\",\"data\":{\"text\":\"Master Data\",\"level\":5,\"col\":12}},{\"id\":\"fixture_template_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Fixture Template\",\"col\":4}},{\"id\":\"tape_spec_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL LED Tape Spec\",\"col\":4}},{\"id\":\"driver_spec_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Driver Spec\",\"col\":4}},{\"id\":\"options_header\",\"type\":\"header\",\"data\":{\"text\":\"Options\",\"level\":5,\"col\":12}},{\"id\":\"lens_option_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Lens Option\",\"col\":4}},{\"id\":\"mounting_method_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Mounting Method\",\"col\":4}},{\"id\":\"joiner_option_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Joiner Option\",\"col\":4}},{\"id\":\"pricing_header\",\"type\":\"header\",\"data\":{\"text\":\"Pricing\",\"level\":5,\"col\":12}},{\"id\":\"tier_rule_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Tier Rule\",\"col\":4}},{\"id\":\"pricing_profile_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Pricing Profile\",\"col\":4}},{\"id\":\"option_price_adder_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Option Price Adder\",\"col\":4}},{\"id\":\"output_pricing_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Output Pricing\",\"col\":4}},{\"id\":\"projects_header\",\"type\":\"header\",\"data\":{\"text\":\"Projects & Schedules\",\"level\":5,\"col\":12}},{\"id\":\"project_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Project\",\"col\":4}},{\"id\":\"fixture_schedule_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Fixture Schedule\",\"col\":4}},{\"id\":\"configured_fixture_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Configured Fixture\",\"col\":4}},{\"id\":\"pdf_header\",\"type\":\"header\",\"data\":{\"text\":\"PDF & Resources\",\"level\":5,\"col\":12}},{\"id\":\"pdf_template_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL PDF Template\",\"col\":4}},{\"id\":\"pdf_field_map_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL PDF Field Map\",\"col\":4}},{\"id\":\"resource_document_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ILL Resource Document\",\"col\":4}},{\"id\":\"tools_header\",\"type\":\"header\",\"data\":{\"text\":\"Tools\",\"level\":5,\"col\":12}},{\"id\":\"test_harness_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Configurator Test Harness\",\"col\":4}}]",
 	"creation": "2024-01-01 00:00:00.000000",
 	"custom_blocks": [],
 	"docstatus": 0,
@@ -19,6 +19,16 @@
 			"link_type": "DocType",
 			"onboard": 0,
 			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Fixture Template",
+			"link_count": 0,
+			"link_to": "ILL Fixture Template",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
 		},
 		{
 			"hidden": 0,
@@ -43,9 +53,165 @@
 		{
 			"hidden": 0,
 			"is_query_report": 0,
-			"label": "ILL Fixture Template",
+			"label": "Options",
 			"link_count": 0,
-			"link_to": "ILL Fixture Template",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Lens Option",
+			"link_count": 0,
+			"link_to": "ILL Lens Option",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Mounting Method",
+			"link_count": 0,
+			"link_to": "ILL Mounting Method",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Joiner Option",
+			"link_count": 0,
+			"link_to": "ILL Joiner Option",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Pricing",
+			"link_count": 0,
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Tier Rule",
+			"link_count": 0,
+			"link_to": "ILL Tier Rule",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Pricing Profile",
+			"link_count": 0,
+			"link_to": "ILL Pricing Profile",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Option Price Adder",
+			"link_count": 0,
+			"link_to": "ILL Option Price Adder",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Output Pricing",
+			"link_count": 0,
+			"link_to": "ILL Output Pricing",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Projects & Schedules",
+			"link_count": 0,
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Project",
+			"link_count": 0,
+			"link_to": "ILL Project",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Fixture Schedule",
+			"link_count": 0,
+			"link_to": "ILL Fixture Schedule",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Configured Fixture",
+			"link_count": 0,
+			"link_to": "ILL Configured Fixture",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "PDF & Resources",
+			"link_count": 0,
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL PDF Template",
+			"link_count": 0,
+			"link_to": "ILL PDF Template",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL PDF Field Map",
+			"link_count": 0,
+			"link_to": "ILL PDF Field Map",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "ILL Resource Document",
+			"link_count": 0,
+			"link_to": "ILL Resource Document",
 			"link_type": "DocType",
 			"onboard": 0,
 			"type": "Link"
@@ -83,6 +249,13 @@
 	"sequence_id": 1,
 	"shortcuts": [
 		{
+			"color": "Orange",
+			"doc_view": "List",
+			"label": "ILL Fixture Template",
+			"link_to": "ILL Fixture Template",
+			"type": "DocType"
+		},
+		{
 			"color": "Blue",
 			"doc_view": "List",
 			"label": "ILL LED Tape Spec",
@@ -97,10 +270,94 @@
 			"type": "DocType"
 		},
 		{
-			"color": "Orange",
+			"color": "Grey",
 			"doc_view": "List",
-			"label": "ILL Fixture Template",
-			"link_to": "ILL Fixture Template",
+			"label": "ILL Lens Option",
+			"link_to": "ILL Lens Option",
+			"type": "DocType"
+		},
+		{
+			"color": "Grey",
+			"doc_view": "List",
+			"label": "ILL Mounting Method",
+			"link_to": "ILL Mounting Method",
+			"type": "DocType"
+		},
+		{
+			"color": "Grey",
+			"doc_view": "List",
+			"label": "ILL Joiner Option",
+			"link_to": "ILL Joiner Option",
+			"type": "DocType"
+		},
+		{
+			"color": "Yellow",
+			"doc_view": "List",
+			"label": "ILL Tier Rule",
+			"link_to": "ILL Tier Rule",
+			"type": "DocType"
+		},
+		{
+			"color": "Purple",
+			"doc_view": "List",
+			"label": "ILL Pricing Profile",
+			"link_to": "ILL Pricing Profile",
+			"type": "DocType"
+		},
+		{
+			"color": "Yellow",
+			"doc_view": "List",
+			"label": "ILL Option Price Adder",
+			"link_to": "ILL Option Price Adder",
+			"type": "DocType"
+		},
+		{
+			"color": "Yellow",
+			"doc_view": "List",
+			"label": "ILL Output Pricing",
+			"link_to": "ILL Output Pricing",
+			"type": "DocType"
+		},
+		{
+			"color": "Blue",
+			"doc_view": "List",
+			"label": "ILL Project",
+			"link_to": "ILL Project",
+			"type": "DocType"
+		},
+		{
+			"color": "Blue",
+			"doc_view": "List",
+			"label": "ILL Fixture Schedule",
+			"link_to": "ILL Fixture Schedule",
+			"type": "DocType"
+		},
+		{
+			"color": "Blue",
+			"doc_view": "List",
+			"label": "ILL Configured Fixture",
+			"link_to": "ILL Configured Fixture",
+			"type": "DocType"
+		},
+		{
+			"color": "Red",
+			"doc_view": "List",
+			"label": "ILL PDF Template",
+			"link_to": "ILL PDF Template",
+			"type": "DocType"
+		},
+		{
+			"color": "Red",
+			"doc_view": "List",
+			"label": "ILL PDF Field Map",
+			"link_to": "ILL PDF Field Map",
+			"type": "DocType"
+		},
+		{
+			"color": "Red",
+			"doc_view": "List",
+			"label": "ILL Resource Document",
+			"link_to": "ILL Resource Document",
 			"type": "DocType"
 		},
 		{
