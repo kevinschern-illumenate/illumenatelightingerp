@@ -35,8 +35,12 @@ def get_context(context):
 
 	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
 
-	# Check customer access
-	if schedule.customer != customer:
+	# Check customer access (via schedule.customer or project)
+	schedule_customer = schedule.customer
+	if not schedule_customer and schedule.project:
+		schedule_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
+	
+	if schedule_customer != customer:
 		context.error = "You do not have permission to view this schedule."
 		return context
 
@@ -49,7 +53,7 @@ def get_context(context):
 		context.project = None
 
 	# Get fixture templates for the configurator dropdown
-	context.fixture_templates = frappe.get_all(
+	context.templates = frappe.get_all(
 		"ILL Fixture Template",
 		fields=["name", "template_code", "template_name"],
 		order_by="template_code",

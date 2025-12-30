@@ -2233,3 +2233,186 @@ def delete_schedule_line(schedule_name, idx):
 	frappe.db.commit()
 
 	return {"success": True}
+
+
+@frappe.whitelist()
+def get_schedule_line(schedule_name, idx):
+	"""
+	Get a schedule line's data for editing.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name (required)
+		idx: The line index to get (required)
+
+	Returns:
+		dict with success status and line data
+	"""
+	import json
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	customer = get_customer_for_portal_user()
+
+	if not customer:
+		return {"success": False, "error": "No customer linked to your account."}
+
+	# Validate schedule exists
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		return {"success": False, "error": "Schedule not found."}
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Check customer access via project
+	if schedule.project:
+		project_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
+		if project_customer != customer:
+			return {"success": False, "error": "You do not have permission to view this schedule."}
+
+	# Find the line
+	idx = int(idx)
+	target_line = None
+	for line in schedule.lines:
+		if line.idx == idx:
+			target_line = line
+			break
+
+	if not target_line:
+		return {"success": False, "error": "Line not found."}
+
+	# Parse configuration JSON if present
+	length_inches = None
+	if target_line.configuration_json:
+		try:
+			config = json.loads(target_line.configuration_json)
+			length_inches = config.get("requested_overall_in")
+		except (json.JSONDecodeError, TypeError):
+			pass
+
+	return {
+		"success": True,
+		"line": {
+			"idx": target_line.idx,
+			"line_type": target_line.line_type,
+			"fixture_template": target_line.fixture_template,
+			"description": target_line.description,
+			"qty": target_line.qty,
+			"length_inches": length_inches,
+			"manufacturer_name": target_line.manufacturer_name,
+			"model_number": target_line.model_number,
+			"unit_net": target_line.unit_net,
+			"line_total": target_line.line_total,
+		}
+	}
+
+
+@frappe.whitelist()
+def save_schedule_line(
+	schedule_name,
+	line_type,
+	idx=None,
+	fixture_template=None,
+	length_inches=None,
+	qty=1,
+	description=None,
+	manufacturer_name=None,
+	model_number=None,
+):
+	"""
+	Save (add or update) a schedule line.
+
+	Args:
+		schedule_name: The ILL Fixture Schedule name (required)
+		line_type: Type of line - 'ilLumenate' or 'Other Manufacturer' (required)
+		idx: The line index to update (optional - if not provided, adds new line)
+		fixture_template: ILL Fixture Template name (required for ilLumenate)
+		length_inches: Length in inches (required for ilLumenate)
+		qty: Quantity (default: 1)
+		description: Description/notes
+		manufacturer_name: Manufacturer name (for Other Manufacturer type)
+		model_number: Model number (for Other Manufacturer type)
+
+	Returns:
+		dict with success status
+	"""
+	import json
+	from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+
+	customer = get_customer_for_portal_user()
+
+	if not customer:
+		return {"success": False, "error": "No customer linked to your account."}
+
+	# Validate schedule exists
+	if not frappe.db.exists("ILL Fixture Schedule", schedule_name):
+		return {"success": False, "error": "Schedule not found."}
+
+	schedule = frappe.get_doc("ILL Fixture Schedule", schedule_name)
+
+	# Check if schedule is editable
+	if schedule.status == "Ordered":
+		return {"success": False, "error": "Cannot modify an ordered schedule."}
+
+	# Check customer access via project
+	if schedule.project:
+		project_customer = frappe.db.get_value("ILL Project", schedule.project, "customer")
+		if project_customer != customer:
+			return {"success": False, "error": "You do not have permission to modify this schedule."}
+
+	# Find existing line or create new
+	target_line = None
+	if idx:
+		idx = int(idx)
+		for line in schedule.lines:
+			if line.idx == idx:
+				target_line = line
+				break
+
+	if not target_line:
+		# Add new line
+		target_line = schedule.append("lines", {})
+
+	# Update line fields
+	target_line.line_type = line_type
+	target_line.qty = int(qty) if qty else 1
+	target_line.description = description
+
+	if line_type == "ilLumenate":
+		if not fixture_template:
+			return {"success": False, "error": "Fixture template is required."}
+		if not length_inches:
+			return {"success": False, "error": "Length is required."}
+
+		target_line.fixture_template = fixture_template
+		target_line.manufacturer_name = None
+		target_line.model_number = None
+
+		# Store configuration as JSON
+		config = {
+			"fixture_template": fixture_template,
+			"requested_overall_in": float(length_inches),
+			"qty": int(qty) if qty else 1,
+		}
+		target_line.configuration_json = json.dumps(config)
+
+		# Generate configuration summary
+		template_name = frappe.db.get_value("ILL Fixture Template", fixture_template, "template_name") or fixture_template
+		target_line.configuration_summary = f"{template_name} - {length_inches}\" x {qty}"
+
+		# TODO: Call pricing engine to calculate unit_msrp, unit_net, line_total
+		# For now, set placeholder values
+		# This should integrate with validate_configuration and pricing logic
+		
+	else:
+		# Other Manufacturer
+		target_line.fixture_template = None
+		target_line.configuration_json = None
+		target_line.configuration_summary = None
+		target_line.manufacturer_name = manufacturer_name
+		target_line.model_number = model_number
+		target_line.unit_msrp = None
+		target_line.unit_net = None
+		target_line.line_total = None
+
+	schedule.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {"success": True, "idx": target_line.idx}

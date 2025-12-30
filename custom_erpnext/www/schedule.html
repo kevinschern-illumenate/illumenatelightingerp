@@ -215,52 +215,257 @@
 		</div>
 	</div>
 	{% endif %}
+
+	<!-- Edit Line Modal -->
+	{% if is_editable %}
+	<div class="modal fade" id="editLineModal" tabindex="-1" role="dialog" aria-labelledby="editLineModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="editLineModalLabel">Configure Line</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" id="edit-line-idx">
+					
+					<div class="form-group">
+						<label for="edit-line-type">Line Type</label>
+						<select class="form-control" id="edit-line-type">
+							<option value="ilLumenate">ilLumenate</option>
+							<option value="Other Manufacturer">Other Manufacturer</option>
+						</select>
+					</div>
+
+					<div id="illumenate-fields">
+						<div class="form-group">
+							<label for="edit-fixture-template">Fixture Template <span class="text-danger">*</span></label>
+							<select class="form-control" id="edit-fixture-template">
+								<option value="">Select a template...</option>
+								{% for template in templates %}
+								<option value="{{ template.name }}">{{ template.template_code }} - {{ template.template_name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label for="edit-length">Length (inches) <span class="text-danger">*</span></label>
+									<input type="number" class="form-control" id="edit-length" step="0.125" min="1">
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label for="edit-qty">Quantity <span class="text-danger">*</span></label>
+									<input type="number" class="form-control" id="edit-qty" min="1" value="1">
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="edit-description">Description / Notes</label>
+							<textarea class="form-control" id="edit-description" rows="2" placeholder="Optional notes about this line"></textarea>
+						</div>
+					</div>
+
+					<div id="other-mfr-fields" style="display: none;">
+						<div class="form-group">
+							<label for="edit-manufacturer">Manufacturer Name</label>
+							<input type="text" class="form-control" id="edit-manufacturer">
+						</div>
+						<div class="form-group">
+							<label for="edit-model">Model Number</label>
+							<input type="text" class="form-control" id="edit-model">
+						</div>
+						<div class="form-group">
+							<label for="edit-other-description">Description</label>
+							<textarea class="form-control" id="edit-other-description" rows="2"></textarea>
+						</div>
+						<div class="form-group">
+							<label for="edit-other-qty">Quantity <span class="text-danger">*</span></label>
+							<input type="number" class="form-control" id="edit-other-qty" min="1" value="1">
+						</div>
+					</div>
+
+					<div id="pricing-preview" class="alert alert-info" style="display: none;">
+						<strong>Pricing Preview:</strong>
+						<span id="pricing-preview-text">Configure the line to see pricing</span>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="save-line-btn">Save Line</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endif %}
+
 	{% endif %}
 </div>
 
 {% if is_editable %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	// Add Line button handlers
-	function addNewLine() {
-		frappe.call({
-			method: 'custom_erpnext.illumenate_configurator.api.add_schedule_line',
-			args: {
-				schedule_name: '{{ schedule.name }}',
-				line_type: 'ilLumenate'
-			},
-			freeze: true,
-			freeze_message: 'Adding line...',
-			callback: function(r) {
-				if (r.message && r.message.success) {
-					// Reload the page to show the new line
-					window.location.reload();
-				} else {
-					frappe.msgprint({
-						title: 'Error',
-						message: r.message ? r.message.error : 'Failed to add line',
-						indicator: 'red'
-					});
-				}
-			},
-			error: function(r) {
-				frappe.msgprint({
-					title: 'Error',
-					message: 'Failed to add line. Please try again.',
-					indicator: 'red'
-				});
-			}
+	// Toggle line type fields
+	const lineTypeSelect = document.getElementById('edit-line-type');
+	if (lineTypeSelect) {
+		lineTypeSelect.addEventListener('change', function() {
+			const isIlLumenate = this.value === 'ilLumenate';
+			document.getElementById('illumenate-fields').style.display = isIlLumenate ? 'block' : 'none';
+			document.getElementById('other-mfr-fields').style.display = isIlLumenate ? 'none' : 'block';
 		});
+	}
+
+	// Open modal for adding new line
+	function openAddLineModal() {
+		document.getElementById('edit-line-idx').value = '';
+		document.getElementById('editLineModalLabel').textContent = 'Add New Line';
+		document.getElementById('edit-line-type').value = 'ilLumenate';
+		document.getElementById('edit-fixture-template').value = '';
+		document.getElementById('edit-length').value = '';
+		document.getElementById('edit-qty').value = '1';
+		document.getElementById('edit-description').value = '';
+		document.getElementById('edit-manufacturer').value = '';
+		document.getElementById('edit-model').value = '';
+		document.getElementById('edit-other-description').value = '';
+		document.getElementById('edit-other-qty').value = '1';
+		document.getElementById('illumenate-fields').style.display = 'block';
+		document.getElementById('other-mfr-fields').style.display = 'none';
+		document.getElementById('pricing-preview').style.display = 'none';
+		$('#editLineModal').modal('show');
 	}
 
 	const addLineBtn = document.getElementById('add-line-btn');
 	if (addLineBtn) {
-		addLineBtn.addEventListener('click', addNewLine);
+		addLineBtn.addEventListener('click', openAddLineModal);
 	}
 
 	const addFirstLineBtn = document.getElementById('add-first-line-btn');
 	if (addFirstLineBtn) {
-		addFirstLineBtn.addEventListener('click', addNewLine);
+		addFirstLineBtn.addEventListener('click', openAddLineModal);
+	}
+
+	// Configure/Edit button handlers - open modal with line data
+	document.querySelectorAll('.configure-btn').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			const idx = this.getAttribute('data-idx');
+			const lineType = this.getAttribute('data-line-type');
+			
+			// Fetch line data from API
+			frappe.call({
+				method: 'custom_erpnext.illumenate_configurator.api.get_schedule_line',
+				args: {
+					schedule_name: '{{ schedule.name }}',
+					idx: idx
+				},
+				callback: function(r) {
+					if (r.message && r.message.success) {
+						const line = r.message.line;
+						document.getElementById('edit-line-idx').value = idx;
+						document.getElementById('editLineModalLabel').textContent = 'Edit Line #' + idx;
+						document.getElementById('edit-line-type').value = line.line_type || 'ilLumenate';
+						
+						if (line.line_type === 'ilLumenate') {
+							document.getElementById('edit-fixture-template').value = line.fixture_template || '';
+							document.getElementById('edit-length').value = line.length_inches || '';
+							document.getElementById('edit-qty').value = line.qty || 1;
+							document.getElementById('edit-description').value = line.description || '';
+							document.getElementById('illumenate-fields').style.display = 'block';
+							document.getElementById('other-mfr-fields').style.display = 'none';
+						} else {
+							document.getElementById('edit-manufacturer').value = line.manufacturer_name || '';
+							document.getElementById('edit-model').value = line.model_number || '';
+							document.getElementById('edit-other-description').value = line.description || '';
+							document.getElementById('edit-other-qty').value = line.qty || 1;
+							document.getElementById('illumenate-fields').style.display = 'none';
+							document.getElementById('other-mfr-fields').style.display = 'block';
+						}
+						
+						document.getElementById('pricing-preview').style.display = 'none';
+						$('#editLineModal').modal('show');
+					} else {
+						frappe.msgprint({
+							title: 'Error',
+							message: r.message ? r.message.error : 'Failed to load line data',
+							indicator: 'red'
+						});
+					}
+				}
+			});
+		});
+	});
+
+	// Save line button
+	const saveLineBtn = document.getElementById('save-line-btn');
+	if (saveLineBtn) {
+		saveLineBtn.addEventListener('click', function() {
+			const idx = document.getElementById('edit-line-idx').value;
+			const lineType = document.getElementById('edit-line-type').value;
+			
+			let args = {
+				schedule_name: '{{ schedule.name }}',
+				idx: idx || null,
+				line_type: lineType
+			};
+
+			if (lineType === 'ilLumenate') {
+				const template = document.getElementById('edit-fixture-template').value;
+				const length = document.getElementById('edit-length').value;
+				const qty = document.getElementById('edit-qty').value;
+				
+				if (!template) {
+					frappe.msgprint('Please select a fixture template');
+					return;
+				}
+				if (!length || parseFloat(length) <= 0) {
+					frappe.msgprint('Please enter a valid length');
+					return;
+				}
+				if (!qty || parseInt(qty) <= 0) {
+					frappe.msgprint('Please enter a valid quantity');
+					return;
+				}
+
+				args.fixture_template = template;
+				args.length_inches = parseFloat(length);
+				args.qty = parseInt(qty);
+				args.description = document.getElementById('edit-description').value;
+			} else {
+				args.manufacturer_name = document.getElementById('edit-manufacturer').value;
+				args.model_number = document.getElementById('edit-model').value;
+				args.description = document.getElementById('edit-other-description').value;
+				args.qty = parseInt(document.getElementById('edit-other-qty').value) || 1;
+			}
+
+			frappe.call({
+				method: 'custom_erpnext.illumenate_configurator.api.save_schedule_line',
+				args: args,
+				freeze: true,
+				freeze_message: 'Saving line...',
+				callback: function(r) {
+					if (r.message && r.message.success) {
+						$('#editLineModal').modal('hide');
+						window.location.reload();
+					} else {
+						frappe.msgprint({
+							title: 'Error',
+							message: r.message ? r.message.error : 'Failed to save line',
+							indicator: 'red'
+						});
+					}
+				},
+				error: function(r) {
+					frappe.msgprint({
+						title: 'Error',
+						message: 'Failed to save line. Please try again.',
+						indicator: 'red'
+					});
+				}
+			});
+		});
 	}
 
 	// Delete line button handlers
@@ -291,15 +496,6 @@ document.addEventListener('DOMContentLoaded', function() {
 					}
 				}
 			});
-		});
-	});
-
-	// Configure button handlers
-	document.querySelectorAll('.configure-btn').forEach(function(btn) {
-		btn.addEventListener('click', function() {
-			const idx = this.getAttribute('data-idx');
-			// Navigate to configurator page with schedule and line info
-			window.location.href = '/configurator?schedule={{ schedule.name }}&idx=' + idx;
 		});
 	});
 
