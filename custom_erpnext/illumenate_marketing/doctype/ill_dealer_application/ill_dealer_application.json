@@ -1,0 +1,343 @@
+{
+	"actions": [],
+	"autoname": "format:DA-{YYYY}-{#####}",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"section_applicant",
+		"company_name",
+		"contact_first_name",
+		"contact_last_name",
+		"column_break_applicant",
+		"email",
+		"phone",
+		"website",
+		"section_business",
+		"business_type",
+		"years_in_business",
+		"column_break_business",
+		"annual_revenue",
+		"number_of_locations",
+		"section_address",
+		"address_line1",
+		"address_line2",
+		"column_break_address",
+		"city",
+		"state",
+		"postal_code",
+		"country",
+		"section_dealer_info",
+		"requested_tier",
+		"resale_certificate",
+		"column_break_dealer",
+		"how_did_you_hear",
+		"additional_notes",
+		"section_application_status",
+		"status",
+		"reviewed_by",
+		"column_break_status",
+		"reviewed_on",
+		"rejection_reason",
+		"section_provisioned",
+		"customer",
+		"contact",
+		"column_break_provisioned",
+		"user",
+		"provisioned_on"
+	],
+	"fields": [
+		{
+			"fieldname": "section_applicant",
+			"fieldtype": "Section Break",
+			"label": "Applicant Information"
+		},
+		{
+			"fieldname": "company_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Company Name",
+			"reqd": 1
+		},
+		{
+			"fieldname": "contact_first_name",
+			"fieldtype": "Data",
+			"label": "Contact First Name",
+			"reqd": 1
+		},
+		{
+			"fieldname": "contact_last_name",
+			"fieldtype": "Data",
+			"label": "Contact Last Name",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_applicant",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "email",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Email",
+			"options": "Email",
+			"reqd": 1
+		},
+		{
+			"fieldname": "phone",
+			"fieldtype": "Data",
+			"label": "Phone",
+			"options": "Phone"
+		},
+		{
+			"fieldname": "website",
+			"fieldtype": "Data",
+			"label": "Website"
+		},
+		{
+			"fieldname": "section_business",
+			"fieldtype": "Section Break",
+			"label": "Business Details"
+		},
+		{
+			"fieldname": "business_type",
+			"fieldtype": "Select",
+			"label": "Business Type",
+			"options": "\nLighting Designer\nElectrical Contractor\nDistributor\nRetailer\nArchitect\nInterior Designer\nOther"
+		},
+		{
+			"fieldname": "years_in_business",
+			"fieldtype": "Select",
+			"label": "Years in Business",
+			"options": "\nLess than 1 year\n1-3 years\n3-5 years\n5-10 years\n10+ years"
+		},
+		{
+			"fieldname": "column_break_business",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "annual_revenue",
+			"fieldtype": "Select",
+			"label": "Estimated Annual Revenue",
+			"options": "\nUnder $100K\n$100K - $500K\n$500K - $1M\n$1M - $5M\nOver $5M"
+		},
+		{
+			"fieldname": "number_of_locations",
+			"fieldtype": "Int",
+			"label": "Number of Locations",
+			"default": 1
+		},
+		{
+			"fieldname": "section_address",
+			"fieldtype": "Section Break",
+			"label": "Business Address"
+		},
+		{
+			"fieldname": "address_line1",
+			"fieldtype": "Data",
+			"label": "Address Line 1"
+		},
+		{
+			"fieldname": "address_line2",
+			"fieldtype": "Data",
+			"label": "Address Line 2"
+		},
+		{
+			"fieldname": "column_break_address",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "city",
+			"fieldtype": "Data",
+			"label": "City"
+		},
+		{
+			"fieldname": "state",
+			"fieldtype": "Data",
+			"label": "State / Province"
+		},
+		{
+			"fieldname": "postal_code",
+			"fieldtype": "Data",
+			"label": "Postal Code"
+		},
+		{
+			"fieldname": "country",
+			"fieldtype": "Link",
+			"label": "Country",
+			"options": "Country",
+			"default": "United States"
+		},
+		{
+			"fieldname": "section_dealer_info",
+			"fieldtype": "Section Break",
+			"label": "Dealer Information"
+		},
+		{
+			"fieldname": "requested_tier",
+			"fieldtype": "Select",
+			"label": "Requested Pricing Tier",
+			"options": "\nDealer D\nDealer C\nDealer B\nDealer A",
+			"default": "Dealer D",
+			"description": "Tier will be reviewed and may be adjusted based on application"
+		},
+		{
+			"fieldname": "resale_certificate",
+			"fieldtype": "Attach",
+			"label": "Resale Certificate",
+			"description": "Upload your state resale certificate"
+		},
+		{
+			"fieldname": "column_break_dealer",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "how_did_you_hear",
+			"fieldtype": "Select",
+			"label": "How Did You Hear About Us?",
+			"options": "\nWeb Search\nReferral\nTrade Show\nSocial Media\nAdvertising\nOther"
+		},
+		{
+			"fieldname": "additional_notes",
+			"fieldtype": "Small Text",
+			"label": "Additional Notes"
+		},
+		{
+			"fieldname": "section_application_status",
+			"fieldtype": "Section Break",
+			"label": "Application Status"
+		},
+		{
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Status",
+			"options": "Pending\nUnder Review\nApproved\nRejected",
+			"default": "Pending",
+			"read_only_depends_on": "eval:!frappe.user.has_role('Illumenate Admin') && !frappe.user.has_role('Sales Manager')"
+		},
+		{
+			"fieldname": "reviewed_by",
+			"fieldtype": "Link",
+			"label": "Reviewed By",
+			"options": "User",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_status",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "reviewed_on",
+			"fieldtype": "Datetime",
+			"label": "Reviewed On",
+			"read_only": 1
+		},
+		{
+			"fieldname": "rejection_reason",
+			"fieldtype": "Small Text",
+			"label": "Rejection Reason",
+			"depends_on": "eval:doc.status=='Rejected'",
+			"mandatory_depends_on": "eval:doc.status=='Rejected'"
+		},
+		{
+			"fieldname": "section_provisioned",
+			"fieldtype": "Section Break",
+			"label": "Provisioned Accounts",
+			"depends_on": "eval:doc.status=='Approved'"
+		},
+		{
+			"fieldname": "customer",
+			"fieldtype": "Link",
+			"label": "Customer",
+			"options": "Customer",
+			"read_only": 1
+		},
+		{
+			"fieldname": "contact",
+			"fieldtype": "Link",
+			"label": "Contact",
+			"options": "Contact",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_provisioned",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "user",
+			"fieldtype": "Link",
+			"label": "User",
+			"options": "User",
+			"read_only": 1
+		},
+		{
+			"fieldname": "provisioned_on",
+			"fieldtype": "Datetime",
+			"label": "Provisioned On",
+			"read_only": 1
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [
+		{
+			"link_doctype": "Customer",
+			"link_fieldname": "customer"
+		},
+		{
+			"link_doctype": "User",
+			"link_fieldname": "user"
+		}
+	],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Dealer Application",
+	"naming_rule": "Expression",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 0,
+			"delete": 0,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Sales Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 0,
+			"delete": 0,
+			"email": 0,
+			"export": 0,
+			"print": 0,
+			"read": 1,
+			"report": 0,
+			"role": "Sales User",
+			"share": 0,
+			"write": 0
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1,
+	"track_seen": 1
+}

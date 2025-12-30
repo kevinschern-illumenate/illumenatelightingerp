@@ -47,6 +47,145 @@ def get_customer_for_portal_user(user=None):
 	return None
 
 
+def get_company_for_contact(contact_name):
+	"""
+	Get the Company linked to a Contact.
+
+	Args:
+		contact_name: The Contact document name.
+
+	Returns:
+		Company name or None if no link found.
+	"""
+	if not contact_name:
+		return None
+
+	# Check Dynamic Link for Company
+	company = frappe.db.get_value(
+		"Dynamic Link",
+		{"link_doctype": "Company", "parent": contact_name, "parenttype": "Contact"},
+		"link_name",
+	)
+	return company
+
+
+def get_customer_for_company(company_name):
+	"""
+	Get the Customer linked to a Company (for dealer inheritance).
+
+	This supports the scenario where an employee of a dealer company
+	should inherit the company's customer/discount tier.
+
+	Args:
+		company_name: The Company name.
+
+	Returns:
+		Customer name or None if no link found.
+	"""
+	if not company_name:
+		return None
+
+	# Look for a Customer that has this company in its customer_primary_contact
+	# or find via a Link field if exists
+	# First try: Customer with matching company name
+	customer = frappe.db.get_value(
+		"Customer",
+		{"customer_name": company_name},
+		"name",
+	)
+	if customer:
+		return customer
+
+	# Second try: Find via Dynamic Link where a Contact linked to this company
+	# is also linked to a Customer
+	contacts = frappe.get_all(
+		"Dynamic Link",
+		filters={"link_doctype": "Company", "link_name": company_name, "parenttype": "Contact"},
+		pluck="parent",
+	)
+
+	for contact in contacts:
+		customer = frappe.db.get_value(
+			"Dynamic Link",
+			{"link_doctype": "Customer", "parent": contact, "parenttype": "Contact"},
+			"link_name",
+		)
+		if customer:
+			return customer
+
+	return None
+
+
+def get_customer_price_list_for_user(user=None):
+	"""
+	Determine pricing tier/price list based on user's company linkage.
+
+	Follows the chain: User → Contact → Company → Customer → Price List
+	This supports:
+	- Direct customer portal users (User → Customer)
+	- Employee inheritance (User → Contact → Company → Customer)
+
+	Args:
+		user: Optional user email. Defaults to current session user.
+
+	Returns:
+		dict with:
+			- price_list: Price list name (e.g., "Dealer A", "MSRP")
+			- customer: Customer name if found
+			- source: How the price list was determined
+	"""
+	if not user:
+		user = frappe.session.user
+
+	result = {
+		"price_list": "MSRP",
+		"customer": None,
+		"source": "default",
+	}
+
+	# Path 1: Direct customer mapping via Portal Users
+	customer = frappe.db.get_value("Portal User", {"user": user}, "parent")
+	if customer:
+		price_list = frappe.db.get_value("Customer", customer, "default_price_list")
+		if price_list:
+			result["price_list"] = price_list
+			result["customer"] = customer
+			result["source"] = "portal_user"
+			return result
+
+	# Path 2: User → Contact → Customer
+	contact = frappe.db.get_value("Contact", {"user": user}, "name")
+	if contact:
+		# Try direct Customer link from Contact
+		customer = frappe.db.get_value(
+			"Dynamic Link",
+			{"link_doctype": "Customer", "parent": contact, "parenttype": "Contact"},
+			"link_name",
+		)
+		if customer:
+			price_list = frappe.db.get_value("Customer", customer, "default_price_list")
+			if price_list:
+				result["price_list"] = price_list
+				result["customer"] = customer
+				result["source"] = "contact_customer"
+				return result
+
+		# Path 3: User → Contact → Company → Customer (employee inheritance)
+		company = get_company_for_contact(contact)
+		if company:
+			customer = get_customer_for_company(company)
+			if customer:
+				price_list = frappe.db.get_value("Customer", customer, "default_price_list")
+				if price_list:
+					result["price_list"] = price_list
+					result["customer"] = customer
+					result["source"] = "company_inheritance"
+					return result
+
+	# Fallback: MSRP for retail customers
+	return result
+
+
 def is_portal_user():
 	"""
 	Check if the current user is a portal user (has Customer role).
