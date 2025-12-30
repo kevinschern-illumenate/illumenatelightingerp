@@ -56,7 +56,7 @@
 						</div>
 
 						<div class="form-group mb-0">
-							<button type="submit" class="btn btn-primary">
+							<button type="button" id="btn-create-schedule" class="btn btn-primary">
 								<i class="fa fa-save"></i> Create Schedule
 							</button>
 							{% if project %}
@@ -90,63 +90,57 @@
 	</div>
 	{% endif %}
 </div>
-{% endblock %}
 
-{% block page_script %}
 <script>
-$(document).ready(function() {
-	console.log('new_schedule.js loaded');
-	
-	$('#new-schedule-form').on('submit', function(e) {
-		e.preventDefault();
-		console.log('Form submit triggered');
+document.addEventListener('DOMContentLoaded', function() {
+	var createBtn = document.getElementById('btn-create-schedule');
+	if (createBtn) {
+		createBtn.addEventListener('click', function(e) {
+			e.preventDefault();
+			
+			var project = document.getElementById('project').value;
+			var schedule_name = document.getElementById('schedule_name').value;
 
-		var project = $('#project').val();
-		var schedule_name = $('#schedule_name').val();
-
-		if (!project) {
-			frappe.msgprint(__('Please select a project'));
-			return;
-		}
-
-		if (!schedule_name) {
-			frappe.msgprint(__('Schedule Name is required'));
-			return;
-		}
-
-		console.log('Creating schedule:', schedule_name, 'for project:', project);
-
-		frappe.call({
-			method: 'custom_erpnext.illumenate_configurator.api.create_schedule',
-			args: {
-				project: project,
-				schedule_name: schedule_name
-			},
-			freeze: true,
-			freeze_message: __('Creating Schedule...'),
-			callback: function(r) {
-				console.log('Response:', r);
-				if (r.message) {
-					frappe.msgprint({
-						title: __('Success'),
-						indicator: 'green',
-						message: __('Schedule "{0}" created successfully!', [r.message.schedule_name])
-					});
-					setTimeout(function() {
-						window.location.href = '/schedule?name=' + r.message.name;
-					}, 1500);
-				}
-			},
-			error: function(r) {
-				console.log('Error:', r);
-				frappe.msgprint({
-					title: __('Error'),
-					indicator: 'red',
-					message: __('Failed to create schedule. Please try again.')
-				});
+			if (!project) {
+				frappe.msgprint('Please select a project');
+				return;
 			}
+
+			if (!schedule_name) {
+				frappe.msgprint('Schedule Name is required');
+				return;
+			}
+
+			frappe.call({
+				method: 'custom_erpnext.illumenate_configurator.api.create_schedule',
+				args: {
+					project: project,
+					schedule_name: schedule_name
+				},
+				freeze: true,
+				freeze_message: 'Creating Schedule...',
+				callback: function(r) {
+					if (r.message) {
+						frappe.msgprint({
+							title: 'Success',
+							indicator: 'green',
+							message: 'Schedule "' + r.message.schedule_name + '" created successfully!'
+						});
+						setTimeout(function() {
+							window.location.href = '/schedule?name=' + r.message.name;
+						}, 1500);
+					}
+				},
+				error: function(r) {
+					frappe.msgprint({
+						title: 'Error',
+						indicator: 'red',
+						message: 'Failed to create schedule. Please try again.'
+					});
+				}
+			});
 		});
-	});
+	}
 });
 </script>
 {% endblock %}

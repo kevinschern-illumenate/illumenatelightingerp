@@ -60,7 +60,7 @@
 						</div>
 
 						<div class="form-group mb-0">
-							<button type="submit" class="btn btn-primary">
+							<button type="button" id="btn-create-project" class="btn btn-primary">
 								<i class="fa fa-save"></i> Create Project
 							</button>
 							<a href="/projects" class="btn btn-secondary">
@@ -85,78 +85,70 @@
 	</div>
 	{% endif %}
 </div>
-{% endblock %}
 
-{% block page_script %}
 <script>
-$(document).ready(function() {
-	console.log('new_project.js loaded');
-	
-	$('#new-project-form').on('submit', function(e) {
-		e.preventDefault();
-		console.log('Form submit triggered');
-
-		var project_name = $('#project_name').val();
-		if (!project_name) {
-			frappe.msgprint(__('Project Name is required'));
-			return;
-		}
-
-		console.log('Creating project:', project_name);
-
-		frappe.call({
-			method: 'custom_erpnext.illumenate_configurator.api.create_project',
-			args: {
-				project_name: project_name,
-				project_code: $('#project_code').val() || null,
-				description: $('#description').val() || null,
-				expected_start_date: $('#expected_start_date').val() || null,
-				expected_end_date: $('#expected_end_date').val() || null
-			},
-			freeze: true,
-			freeze_message: __('Creating Project...'),
-			callback: function(r) {
-				console.log('Response:', r);
-				if (r.message) {
-					frappe.msgprint({
-						title: __('Success'),
-						indicator: 'green',
-						message: __('Project "{0}" created successfully!', [r.message.project_name])
-					});
-					setTimeout(function() {
-						window.location.href = '/project?name=' + r.message.name;
-					}, 1500);
-				} else {
-					frappe.msgprint({
-						title: __('Error'),
-						indicator: 'red',
-						message: __('Failed to create project. Please try again.')
-					});
-				}
-			},
-			error: function(r) {
-				console.log('Error:', r);
-				var error_message = __('Failed to create project. Please try again.');
-				if (r && r.responseJSON && r.responseJSON._server_messages) {
-					try {
-						var messages = JSON.parse(r.responseJSON._server_messages);
-						if (messages.length > 0) {
-							error_message = JSON.parse(messages[0]).message || error_message;
-						}
-					} catch (e) {
-						// Use default error message
-					}
-				} else if (r && r.exc) {
-					error_message = r.exc;
-				}
-				frappe.msgprint({
-					title: __('Error'),
-					indicator: 'red',
-					message: error_message
-				});
+document.addEventListener('DOMContentLoaded', function() {
+	var createBtn = document.getElementById('btn-create-project');
+	if (createBtn) {
+		createBtn.addEventListener('click', function(e) {
+			e.preventDefault();
+			
+			var project_name = document.getElementById('project_name').value;
+			if (!project_name) {
+				frappe.msgprint('Project Name is required');
+				return;
 			}
+
+			frappe.call({
+				method: 'custom_erpnext.illumenate_configurator.api.create_project',
+				args: {
+					project_name: project_name,
+					project_code: document.getElementById('project_code').value || null,
+					description: document.getElementById('description').value || null,
+					expected_start_date: document.getElementById('expected_start_date').value || null,
+					expected_end_date: document.getElementById('expected_end_date').value || null
+				},
+				freeze: true,
+				freeze_message: 'Creating Project...',
+				callback: function(r) {
+					if (r.message) {
+						frappe.msgprint({
+							title: 'Success',
+							indicator: 'green',
+							message: 'Project "' + r.message.project_name + '" created successfully!'
+						});
+						setTimeout(function() {
+							window.location.href = '/project?name=' + r.message.name;
+						}, 1500);
+					} else {
+						frappe.msgprint({
+							title: 'Error',
+							indicator: 'red',
+							message: 'Failed to create project. Please try again.'
+						});
+					}
+				},
+				error: function(r) {
+					var error_message = 'Failed to create project. Please try again.';
+					if (r && r.responseJSON && r.responseJSON._server_messages) {
+						try {
+							var messages = JSON.parse(r.responseJSON._server_messages);
+							if (messages.length > 0) {
+								error_message = JSON.parse(messages[0]).message || error_message;
+							}
+						} catch (e) {
+							// Use default error message
+						}
+					}
+					frappe.msgprint({
+						title: 'Error',
+						indicator: 'red',
+						message: error_message
+					});
+				}
+			});
 		});
-	});
+	}
 });
 </script>
 {% endblock %}
