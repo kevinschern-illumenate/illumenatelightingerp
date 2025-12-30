@@ -32,7 +32,17 @@ class ILLPromoCode(Document):
 			frappe.throw(_("Discount percent must be between 0 and 100"))
 
 	def mark_as_used(self):
-		"""Mark the promo code as used."""
+		"""
+		Mark the promo code as used.
+
+		Uses reload() before update to minimize race condition window.
+		The unique constraint on the promo_code field provides additional protection.
+		"""
+		self.reload()  # Get latest state from DB
+
+		if self.is_used:
+			frappe.throw(_("This promo code has already been used"))
+
 		self.is_used = 1
 		self.used_at = now_datetime()
 		self.save(ignore_permissions=True)

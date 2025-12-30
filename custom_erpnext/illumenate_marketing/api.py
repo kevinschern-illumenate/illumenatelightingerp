@@ -879,12 +879,18 @@ def generate_promo_code(customer_name, discount_percent, valid_days=30, campaign
 	if valid_days < 1:
 		frappe.throw(_("Valid days must be at least 1"))
 
-	# Generate unique code
-	code = f"ILL-{secrets.token_hex(4).upper()}"
+	# Generate unique code with max retry limit
+	max_retries = 10
+	code = None
 
-	# Ensure uniqueness
-	while frappe.db.exists("ILL Promo Code", code):
-		code = f"ILL-{secrets.token_hex(4).upper()}"
+	for retry_num in range(max_retries):  # noqa: B007
+		candidate = f"ILL-{secrets.token_hex(4).upper()}"
+		if not frappe.db.exists("ILL Promo Code", candidate):
+			code = candidate
+			break
+
+	if not code:
+		frappe.throw(_("Unable to generate unique promo code. Please try again."))
 
 	# Calculate validity dates
 	from frappe.utils import add_days, today
