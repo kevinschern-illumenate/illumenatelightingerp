@@ -334,6 +334,7 @@ def create_dealer_application(email, form_data, lead_data):
 
 	# Map years in business - form uses free text, doctype uses select
 	years_in_business = form_data.get("years_in_business", "")
+	years_in_business_text = ""  # For storing non-numeric values
 	if years_in_business:
 		# Try to normalize the value to match doctype options
 		try:
@@ -349,13 +350,18 @@ def create_dealer_application(email, form_data, lead_data):
 			else:
 				dealer_app.years_in_business = "10+ years"
 		except ValueError:
-			# If not a number, store as-is in additional_notes
-			pass
+			# If not a number, store as-is for additional_notes
+			years_in_business_text = f"Years in Business: {years_in_business}"
 
-	# Store message in additional notes
+	# Store message in additional notes (including non-numeric years_in_business if applicable)
 	message = form_data.get("message", "")
+	notes_parts = []
+	if years_in_business_text:
+		notes_parts.append(years_in_business_text)
 	if message:
-		dealer_app.additional_notes = message
+		notes_parts.append(message)
+	if notes_parts:
+		dealer_app.additional_notes = "\n".join(notes_parts)
 
 	# Handle resale certificate if uploaded
 	resale_cert_url = form_data.get("resale_certificate_url")

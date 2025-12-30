@@ -509,6 +509,28 @@ class TestDealerApplicationFromFormSubmission(unittest.TestCase):
 
 		self.assertEqual(additional_notes, message)
 
+	def test_non_numeric_years_in_business_stored_in_notes(self):
+		"""Test that non-numeric years_in_business is stored in additional_notes."""
+		years_in_business = "Five years"
+		message = "Looking to become a dealer."
+
+		# Simulate the logic from create_dealer_application
+		years_in_business_text = ""
+		try:
+			int(years_in_business)
+		except ValueError:
+			years_in_business_text = f"Years in Business: {years_in_business}"
+
+		notes_parts = []
+		if years_in_business_text:
+			notes_parts.append(years_in_business_text)
+		if message:
+			notes_parts.append(message)
+
+		additional_notes = "\n".join(notes_parts)
+
+		self.assertEqual(additional_notes, "Years in Business: Five years\nLooking to become a dealer.")
+
 	def test_duplicate_application_handling(self):
 		"""Test that duplicate applications are detected."""
 		# Simulate checking for existing application
