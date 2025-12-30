@@ -7,7 +7,26 @@ Portal page for viewing project details and schedules.
 
 import frappe
 
-from custom_erpnext.illumenate_configurator.utils import get_customer_for_portal_user
+from custom_erpnext.illumenate_configurator.utils import (
+	get_customer_for_portal_user,
+	get_customer_price_list_for_user,
+)
+
+
+def get_customer_price_list(user=None):
+	"""
+	Determine pricing tier based on logged-in user's company linkage.
+
+	Follows the chain: User → Contact → Company → Customer → Price List
+
+	Args:
+		user: Optional user email. Defaults to current session user.
+
+	Returns:
+		Price list name (e.g., "Dealer A", "MSRP") or "MSRP" as fallback for retail.
+	"""
+	result = get_customer_price_list_for_user(user)
+	return result["price_list"]
 
 
 def get_context(context):
@@ -49,5 +68,9 @@ def get_context(context):
 		fields=["name", "schedule_name", "status", "sales_order", "creation"],
 		order_by="creation desc",
 	)
+
+	# Add pricing tier for the current user (Sprint 4 - auto-detect tier)
+	pricing_info = get_customer_price_list_for_user()
+	context.pricing_tier = pricing_info["price_list"]
 
 	return context
