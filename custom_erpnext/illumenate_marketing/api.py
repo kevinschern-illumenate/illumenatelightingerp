@@ -242,11 +242,34 @@ def create_lead(email, form_data, utm_params, lead_source, form_type):
 			campaign_info.append(f"UTM Campaign: {utm_params['utm_campaign']}")
 		if form_data.get("message"):
 			campaign_info.append(f"Message: {form_data['message']}")
+		if form_data.get("business_type"):
+			campaign_info.append(f"Business Type: {form_data['business_type']}")
+		if form_data.get("years_in_business"):
+			campaign_info.append(f"Years in Business: {form_data['years_in_business']}")
+		if form_data.get("website"):
+			campaign_info.append(f"Website: {form_data['website']}")
+		if form_data.get("resale_certificate_url"):
+			campaign_info.append(f"Resale Certificate: {form_data['resale_certificate_url']}")
 
 		if campaign_info:
 			lead.notes = "\n".join(campaign_info)
 
 	lead.insert(ignore_permissions=True)
+
+	# Attach resale certificate to lead if provided
+	resale_cert_url = form_data.get("resale_certificate_url")
+	if resale_cert_url:
+		try:
+			# Link the already uploaded file to the Lead document
+			existing_file = frappe.db.get_value("File", {"file_url": resale_cert_url}, "name")
+			if existing_file:
+				file_doc = frappe.get_doc("File", existing_file)
+				file_doc.attached_to_doctype = "Lead"
+				file_doc.attached_to_name = lead.name
+				file_doc.save(ignore_permissions=True)
+		except Exception as e:
+			frappe.log_error(f"Failed to attach resale certificate: {e}", "Dealer Inquiry File Attachment")
+
 	return {"name": lead.name, "is_new": True}
 
 

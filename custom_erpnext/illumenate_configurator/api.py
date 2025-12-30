@@ -2083,7 +2083,10 @@ def create_project(project_name, project_code=None, description=None, expected_s
 		"status": "Draft",
 	})
 
-	project.insert()
+	# Portal users have create permission on ILL Project via the Customer role
+	# but we explicitly insert to ensure the project is created for their linked customer
+	project.insert(ignore_permissions=True)
+	frappe.db.commit()
 
 	return {"name": project.name, "project_name": project.project_name}
 
@@ -2123,6 +2126,9 @@ def create_schedule(project, schedule_name):
 		"status": "Draft",
 	})
 
-	schedule.insert()
+	# Portal users have create permission on ILL Fixture Schedule via the Customer role
+	# but we explicitly insert to ensure the schedule is created for their linked customer's project
+	schedule.insert(ignore_permissions=True)
+	frappe.db.commit()
 
 	return {"name": schedule.name, "schedule_name": schedule.schedule_name}
