@@ -100,7 +100,7 @@ frappe.ready(function() {
 		}
 
 		frappe.call({
-			method: 'custom_erpnext.www.new_project.create_project',
+			method: 'custom_erpnext.illumenate_configurator.api.create_project',
 			args: {
 				project_name: project_name,
 				project_code: $('#project_code').val() || null,
