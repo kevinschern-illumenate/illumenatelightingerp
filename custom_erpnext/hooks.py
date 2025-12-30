@@ -100,7 +100,8 @@ fixtures = [
 # ------------
 
 # before_install = "custom_erpnext.install.before_install"
-# after_install = "custom_erpnext.install.after_install"
+after_install = "custom_erpnext.install.after_install"
+after_migrate = "custom_erpnext.install.after_migrate"
 
 # Uninstallation
 # ------------
