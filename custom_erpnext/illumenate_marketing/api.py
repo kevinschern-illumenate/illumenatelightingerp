@@ -192,6 +192,13 @@ def submit_form(form_name, **kwargs):
 		except Exception as e:
 			frappe.log_error(f"Dealer Application creation failed: {e}", "Marketing Form Submission")
 
+	# Create Company and Individual Contact for all form submissions
+	contact_data = None
+	try:
+		contact_data = create_contacts_from_form(email, kwargs)
+	except Exception as e:
+		frappe.log_error(f"Contact creation failed: {e}", "Marketing Form Submission")
+
 	# Send notification email
 	if form.notification_email:
 		try:
@@ -205,6 +212,8 @@ def submit_form(form_name, **kwargs):
 		"redirect_url": form.redirect_url or None,
 		"lead_name": lead_data.get("name") if lead_data else None,
 		"dealer_application_name": dealer_application_data.get("name") if dealer_application_data else None,
+		"company_contact_name": contact_data.get("company_contact") if contact_data else None,
+		"individual_contact_name": contact_data.get("individual_contact") if contact_data else None,
 	}
 
 
@@ -389,6 +398,96 @@ def create_dealer_application(email, form_data, lead_data):
 			)
 
 	return {"name": dealer_app.name, "is_new": True}
+
+
+def create_contacts_from_form(email, form_data):
+	"""
+	Create Company Contact and Individual Contact from form submission.
+
+	Creates a Contact record representing the company (if company name is provided),
+	and an Individual Contact representing the person who submitted the form.
+	The Individual Contact is linked to the Company Contact.
+
+	Args:
+		email: Submitter's email
+		form_data: Form field values
+
+	Returns:
+		dict with company_contact and individual_contact names
+	"""
+	# Check if Contact doctype exists
+	if not frappe.db.exists("DocType", "Contact"):
+		return None
+
+	company_name = form_data.get("company", "").strip()
+	first_name = form_data.get("first_name", "").strip()
+	last_name = form_data.get("last_name", "").strip()
+	phone = form_data.get("phone", "")
+
+	company_contact_name = None
+	individual_contact_name = None
+
+	# Create Company Contact if company name is provided
+	if company_name:
+		# Check if a contact with this company name already exists
+		# Using is_primary_contact filter to identify company-type contacts
+		existing_company_contacts = frappe.get_list(
+			"Contact",
+			filters={"company_name": company_name, "is_primary_contact": 1},
+			fields=["name"],
+			limit=1,
+		)
+
+		if existing_company_contacts:
+			company_contact_name = existing_company_contacts[0].name
+		else:
+			# Create new company contact
+			company_contact = frappe.new_doc("Contact")
+			company_contact.first_name = company_name
+			company_contact.company_name = company_name
+			company_contact.is_primary_contact = 1
+
+			company_contact.insert(ignore_permissions=True)
+			company_contact_name = company_contact.name
+
+	# Create Individual Contact
+	# Check if individual contact with this email already exists in Contact Email child table
+	existing_individual = frappe.db.get_value(
+		"Contact Email",
+		{"email_id": email},
+		"parent",
+	)
+
+	if existing_individual:
+		individual_contact_name = existing_individual
+	else:
+		# Create new individual contact
+		individual_contact = frappe.new_doc("Contact")
+		individual_contact.first_name = first_name or email.split("@")[0]
+		individual_contact.last_name = last_name or ""
+		individual_contact.email_id = email
+		individual_contact.company_name = company_name or ""
+
+		# Add email to child table
+		individual_contact.append("email_ids", {"email_id": email, "is_primary": 1})
+
+		# Add phone if provided
+		if phone:
+			individual_contact.append("phone_nos", {"phone": phone, "is_primary_phone": 1})
+
+		# Link to company contact if one was created
+		if company_contact_name:
+			individual_contact.append(
+				"links", {"link_doctype": "Contact", "link_name": company_contact_name}
+			)
+
+		individual_contact.insert(ignore_permissions=True)
+		individual_contact_name = individual_contact.name
+
+	return {
+		"company_contact": company_contact_name,
+		"individual_contact": individual_contact_name,
+	}
 
 
 def send_notification_email(form, submitter_email, form_data, utm_params):
