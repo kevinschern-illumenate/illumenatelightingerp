@@ -31,7 +31,7 @@ def on_lead_created(doc, method=None):
 		is_n8n_enabled,
 	)
 
-	email = doc.email_id if hasattr(doc, "email_id") else None
+	email = getattr(doc, "email_id", None)
 	if not email:
 		return
 
@@ -51,8 +51,8 @@ def on_lead_created(doc, method=None):
 				data={
 					"email": email,
 					"lead_name": doc.lead_name,
-					"source": doc.source if hasattr(doc, "source") else None,
-					"company_name": doc.company_name if hasattr(doc, "company_name") else None,
+					"source": getattr(doc, "source", None),
+					"company_name": getattr(doc, "company_name", None),
 				},
 			)
 		except Exception as e:
@@ -81,7 +81,7 @@ def on_purchase_completed(doc, method=None):
 
 	# Get email from contact or customer
 	email = _get_email_from_order(doc)
-	customer_name = doc.customer if hasattr(doc, "customer") else None
+	customer_name = getattr(doc, "customer", None)
 
 	if not email:
 		return
@@ -105,9 +105,9 @@ def on_purchase_completed(doc, method=None):
 				data={
 					"email": email,
 					"customer": customer_name,
-					"customer_name": doc.customer_name if hasattr(doc, "customer_name") else None,
-					"grand_total": float(doc.grand_total) if hasattr(doc, "grand_total") else None,
-					"currency": doc.currency if hasattr(doc, "currency") else None,
+					"customer_name": getattr(doc, "customer_name", None),
+					"grand_total": float(doc.grand_total) if getattr(doc, "grand_total", None) else None,
+					"currency": getattr(doc, "currency", None),
 				},
 			)
 		except Exception as e:
@@ -130,11 +130,12 @@ def _get_email_from_order(doc):
 		Email address string or None
 	"""
 	# Try direct email field
-	if hasattr(doc, "contact_email") and doc.contact_email:
-		return doc.contact_email
+	contact_email = getattr(doc, "contact_email", None)
+	if contact_email:
+		return contact_email
 
 	# Try to get from customer
-	customer = doc.customer if hasattr(doc, "customer") else None
+	customer = getattr(doc, "customer", None)
 	if not customer:
 		return None
 

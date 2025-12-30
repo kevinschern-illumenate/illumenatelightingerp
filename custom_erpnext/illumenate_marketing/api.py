@@ -581,11 +581,8 @@ def _handle_log_event(data):
 		return {"success": False, "error": "Event type is required"}
 
 	try:
-		# Log the event (can be extended to store in a doctype)
-		frappe.log_error(
-			message=f"Marketing Event: {event_type} for {email}\nData: {event_data}",
-			title="n8n Marketing Event",
-		)
+		# Log the event using info logging (not error)
+		frappe.logger("n8n").info(f"Marketing Event: {event_type} for {email} - Data: {event_data}")
 		return {"success": True, "message": f"Event {event_type} logged"}
 	except Exception as e:
 		frappe.log_error(f"n8n webhook error: {e}", "n8n Webhook Handler")
@@ -698,13 +695,18 @@ def _send_webhook_request(webhook_url, payload, headers):
 	Send webhook request to n8n.
 
 	This runs as a background job to avoid blocking the main request.
+
+	Args:
+		webhook_url: The n8n webhook endpoint URL
+		payload: JSON-serialized payload string
+		headers: HTTP headers dict
 	"""
 	import requests
 
 	try:
 		response = requests.post(
 			webhook_url,
-			data=payload,
+			data=payload.encode("utf-8") if isinstance(payload, str) else payload,
 			headers=headers,
 			timeout=30,
 		)
