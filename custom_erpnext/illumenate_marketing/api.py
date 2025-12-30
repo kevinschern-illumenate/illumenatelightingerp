@@ -430,14 +430,16 @@ def create_contacts_from_form(email, form_data):
 	# Create Company Contact if company name is provided
 	if company_name:
 		# Check if a contact with this company name already exists
-		existing_company_contact = frappe.db.get_value(
+		# Using is_primary_contact filter to identify company-type contacts
+		existing_company_contacts = frappe.get_list(
 			"Contact",
-			{"company_name": company_name},
-			"name",
+			filters={"company_name": company_name, "is_primary_contact": 1},
+			fields=["name"],
+			limit=1,
 		)
 
-		if existing_company_contact:
-			company_contact_name = existing_company_contact
+		if existing_company_contacts:
+			company_contact_name = existing_company_contacts[0].name
 		else:
 			# Create new company contact
 			company_contact = frappe.new_doc("Contact")
@@ -449,11 +451,11 @@ def create_contacts_from_form(email, form_data):
 			company_contact_name = company_contact.name
 
 	# Create Individual Contact
-	# Check if individual contact with this email already exists
+	# Check if individual contact with this email already exists in Contact Email child table
 	existing_individual = frappe.db.get_value(
-		"Contact",
+		"Contact Email",
 		{"email_id": email},
-		"name",
+		"parent",
 	)
 
 	if existing_individual:
