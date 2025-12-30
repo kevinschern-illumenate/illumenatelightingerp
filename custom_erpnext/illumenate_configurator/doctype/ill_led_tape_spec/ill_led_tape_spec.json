@@ -120,8 +120,10 @@
 			"write": 1
 		}
 	],
+	"show_title_field_in_link": 1,
 	"sort_field": "creation",
 	"sort_order": "DESC",
 	"states": [],
+	"title_field": "tape_item",
 	"track_changes": 1
 }

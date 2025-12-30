@@ -221,6 +221,7 @@ function update_tape_attribute_options(page) {
 		page.tape_attribute_field.df.options = [""];
 		page.tape_attribute_field.set_value("");
 		page.tape_attribute_field.refresh();
+		page._tape_attribute_map = {};
 		return;
 	}
 
@@ -229,7 +230,10 @@ function update_tape_attribute_options(page) {
 		args: { tape_spec: tape_spec },
 		callback: function (r) {
 			if (r.message && r.message.variants) {
+				// Store mapping from abbreviated to full attribute combination
+				page._tape_attribute_map = {};
 				var options = r.message.variants.map(function (v) {
+					page._tape_attribute_map[v.attribute_combination] = v.attribute_combination_full;
 					return v.attribute_combination;
 				});
 				page.tape_attribute_field.df.options = [""].concat(options);
@@ -246,6 +250,7 @@ function update_driver_attribute_options(page) {
 		page.driver_attribute_field.df.options = [""];
 		page.driver_attribute_field.set_value("");
 		page.driver_attribute_field.refresh();
+		page._driver_attribute_map = {};
 		return;
 	}
 
@@ -254,7 +259,10 @@ function update_driver_attribute_options(page) {
 		args: { driver_spec: driver_spec },
 		callback: function (r) {
 			if (r.message && r.message.variants) {
+				// Store mapping from abbreviated to full attribute combination
+				page._driver_attribute_map = {};
 				var options = r.message.variants.map(function (v) {
+					page._driver_attribute_map[v.attribute_combination] = v.attribute_combination_full;
 					return v.attribute_combination;
 				});
 				page.driver_attribute_field.df.options = [""].concat(options);
@@ -298,11 +306,11 @@ function update_endcap_filter(page) {
 function validate_configuration(page) {
 	var template_code = page.template_field.get_value();
 	var tape_spec = page.tape_field.get_value();
-	var tape_attribute_combination = page.tape_attribute_field.get_value();
+	var tape_attribute_combination_abbr = page.tape_attribute_field.get_value();
 	var requested_overall_in = page.length_field.get_value();
 	var endcap_item = page.endcap_field.get_value();
 	var driver_spec = page.driver_field.get_value();
-	var driver_attribute_combination = page.driver_attribute_field.get_value();
+	var driver_attribute_combination_abbr = page.driver_attribute_field.get_value();
 
 	// Sprint 3 fields
 	var tape_type_token = page.tape_type_field.get_value();
@@ -327,7 +335,7 @@ function validate_configuration(page) {
 		frappe.msgprint("Please select a Tape Spec");
 		return;
 	}
-	if (!tape_attribute_combination) {
+	if (!tape_attribute_combination_abbr) {
 		frappe.msgprint("Please select a Tape Attribute Combination");
 		return;
 	}
@@ -335,6 +343,10 @@ function validate_configuration(page) {
 		frappe.msgprint("Please enter a valid length (greater than 0)");
 		return;
 	}
+
+	// Resolve abbreviated attribute combinations to full versions for API
+	var tape_attribute_combination = (page._tape_attribute_map || {})[tape_attribute_combination_abbr] || tape_attribute_combination_abbr;
+	var driver_attribute_combination = (page._driver_attribute_map || {})[driver_attribute_combination_abbr] || driver_attribute_combination_abbr;
 
 	// Build args
 	var args = {
@@ -346,7 +358,7 @@ function validate_configuration(page) {
 	};
 
 	// Add optional driver params
-	if (driver_spec && driver_attribute_combination) {
+	if (driver_spec && driver_attribute_combination_abbr) {
 		args.driver_spec = driver_spec;
 		args.driver_attribute_combination = driver_attribute_combination;
 	}
@@ -500,14 +512,20 @@ function display_results(page, result) {
 }
 
 function create_manufacturing_package(page) {
+	// Resolve abbreviated attribute combinations to full versions for API
+	var tape_attribute_combination_abbr = page.tape_attribute_field.get_value();
+	var driver_attribute_combination_abbr = page.driver_attribute_field.get_value();
+	var tape_attribute_combination = (page._tape_attribute_map || {})[tape_attribute_combination_abbr] || tape_attribute_combination_abbr;
+	var driver_attribute_combination = (page._driver_attribute_map || {})[driver_attribute_combination_abbr] || driver_attribute_combination_abbr;
+
 	var args = {
 		template_code: page.template_field.get_value(),
 		tape_spec: page.tape_field.get_value(),
-		tape_attribute_combination: page.tape_attribute_field.get_value(),
+		tape_attribute_combination: tape_attribute_combination,
 		requested_overall_in: page.length_field.get_value(),
 		endcap_item: page.endcap_field.get_value() || null,
 		driver_spec: page.driver_field.get_value() || null,
-		driver_attribute_combination: page.driver_attribute_field.get_value() || null,
+		driver_attribute_combination: driver_attribute_combination || null,
 		qty: 1,
 		// Sprint 3 fields
 		tape_type_token: page.tape_type_field.get_value() || null,
