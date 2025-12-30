@@ -1,0 +1,148 @@
+{
+	"actions": [],
+	"autoname": "naming_series:",
+	"creation": "2024-01-01 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"naming_series",
+		"mapping_name",
+		"column_break_main",
+		"is_active",
+		"section_break_mapping",
+		"lead_source",
+		"email_template",
+		"column_break_trigger",
+		"trigger_event",
+		"delay_minutes",
+		"section_break_settings",
+		"subject_override",
+		"from_email_override"
+	],
+	"fields": [
+		{
+			"fieldname": "naming_series",
+			"fieldtype": "Select",
+			"hidden": 1,
+			"label": "Naming Series",
+			"options": "ILL-EMAIL-MAP-.YYYY.-.#####"
+		},
+		{
+			"fieldname": "mapping_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Mapping Name",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_active",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Is Active"
+		},
+		{
+			"fieldname": "section_break_mapping",
+			"fieldtype": "Section Break",
+			"label": "Mapping Configuration"
+		},
+		{
+			"fieldname": "lead_source",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Lead Source",
+			"options": "ILL Lead Source",
+			"description": "Lead source to match. Leave empty for all sources."
+		},
+		{
+			"fieldname": "email_template",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Email Template",
+			"options": "Email Template",
+			"reqd": 1,
+			"description": "Frappe Email Template to use for welcome email"
+		},
+		{
+			"fieldname": "column_break_trigger",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "trigger_event",
+			"fieldtype": "Select",
+			"label": "Trigger Event",
+			"options": "Lead Created\nForm Submitted",
+			"default": "Lead Created",
+			"reqd": 1,
+			"description": "When to send the welcome email"
+		},
+		{
+			"fieldname": "delay_minutes",
+			"fieldtype": "Int",
+			"label": "Delay (Minutes)",
+			"default": "0",
+			"description": "Delay in minutes before sending (0 for immediate)"
+		},
+		{
+			"fieldname": "section_break_settings",
+			"fieldtype": "Section Break",
+			"label": "Email Settings Override"
+		},
+		{
+			"fieldname": "subject_override",
+			"fieldtype": "Data",
+			"label": "Subject Override",
+			"description": "Override the email template subject (optional)"
+		},
+		{
+			"fieldname": "from_email_override",
+			"fieldtype": "Data",
+			"label": "From Email Override",
+			"description": "Override the sender email address (optional)"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "ilLumenate Marketing",
+	"name": "ILL Email Template Mapping",
+	"naming_rule": "By \"Naming Series\" field",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Admin",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "Illumenate Product Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
