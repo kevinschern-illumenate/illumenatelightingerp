@@ -22,6 +22,9 @@ from custom_erpnext.illumenate_marketing.doctype.ill_lead_source.ill_lead_source
 	validate_lead_source,
 )
 
+# Constants
+MAX_USER_AGENT_LENGTH = 500
+
 
 def parse_utm_parameters(request_data):
 	"""
@@ -155,10 +158,10 @@ def submit_form(form_name, **kwargs):
 		consent_doc.email = email
 		consent_doc.consent_type = "Marketing Communications"
 		consent_doc.consent_given = 1
-		consent_doc.consent_timestamp = frappe.utils.now()
+		# consent_timestamp is auto-set by before_insert hook
 		consent_doc.marketing_form = form_name
 		consent_doc.ip_address = ip_address
-		consent_doc.user_agent = user_agent[:500] if user_agent else ""  # Truncate user agent
+		consent_doc.user_agent = user_agent[:MAX_USER_AGENT_LENGTH] if user_agent else ""
 		consent_doc.utm_source = utm_params.get("utm_source", "")
 		consent_doc.utm_medium = utm_params.get("utm_medium", "")
 		consent_doc.utm_campaign = utm_params.get("utm_campaign", "")

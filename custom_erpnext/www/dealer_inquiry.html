@@ -194,17 +194,20 @@ document.addEventListener('DOMContentLoaded', function() {
 							`;
 						}
 					} else {
-						// Show errors
-						let errorMsg = 'An error occurred. Please try again.';
+						// Show errors - use textContent to prevent XSS
+						let errorMessages = ['An error occurred. Please try again.'];
 						if (r.message && r.message.errors) {
-							errorMsg = r.message.errors.map(e => e.message).join('<br>');
+							errorMessages = r.message.errors.map(e => e.message);
 						}
 						const existingAlert = form.querySelector('.alert-danger');
 						if (existingAlert) {
-							existingAlert.innerHTML = errorMsg;
+							existingAlert.textContent = errorMessages.join(' | ');
 						} else {
-							form.insertAdjacentHTML('afterbegin', 
-								`<div class="alert alert-danger" role="alert">${errorMsg}</div>`);
+							const alertDiv = document.createElement('div');
+							alertDiv.className = 'alert alert-danger';
+							alertDiv.setAttribute('role', 'alert');
+							alertDiv.textContent = errorMessages.join(' | ');
+							form.insertBefore(alertDiv, form.firstChild);
 						}
 						submitBtn.disabled = false;
 						submitBtn.textContent = 'Submit Application';
@@ -217,8 +220,11 @@ document.addEventListener('DOMContentLoaded', function() {
 					if (existingAlert) {
 						existingAlert.textContent = 'An error occurred. Please try again.';
 					} else {
-						form.insertAdjacentHTML('afterbegin', 
-							'<div class="alert alert-danger" role="alert">An error occurred. Please try again.</div>');
+						const alertDiv = document.createElement('div');
+						alertDiv.className = 'alert alert-danger';
+						alertDiv.setAttribute('role', 'alert');
+						alertDiv.textContent = 'An error occurred. Please try again.';
+						form.insertBefore(alertDiv, form.firstChild);
 					}
 				}
 			});

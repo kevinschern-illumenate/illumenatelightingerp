@@ -100,6 +100,23 @@ document.addEventListener('DOMContentLoaded', function() {
 	const globalUnsubscribe = document.getElementById('global_unsubscribe');
 	const prefSwitches = document.querySelectorAll('.pref-switch');
 	
+	// Helper function to show inline error message
+	function showErrorMessage(message) {
+		const form = document.getElementById('preferences-form');
+		if (!form) return;
+		
+		let existingAlert = form.querySelector('.alert-danger');
+		if (existingAlert) {
+			existingAlert.textContent = message;
+		} else {
+			const alertDiv = document.createElement('div');
+			alertDiv.className = 'alert alert-danger';
+			alertDiv.setAttribute('role', 'alert');
+			alertDiv.textContent = message;
+			form.insertBefore(alertDiv, form.firstChild);
+		}
+	}
+	
 	if (globalUnsubscribe) {
 		globalUnsubscribe.addEventListener('change', function() {
 			prefSwitches.forEach(function(switchEl) {
@@ -156,13 +173,13 @@ document.addEventListener('DOMContentLoaded', function() {
 					} else {
 						submitBtn.disabled = false;
 						submitBtn.textContent = 'Update Preferences';
-						alert(r.message.message || 'An error occurred');
+						showErrorMessage(r.message.message || 'An error occurred');
 					}
 				},
 				error: function() {
 					submitBtn.disabled = false;
 					submitBtn.textContent = 'Update Preferences';
-					alert('An error occurred. Please try again.');
+					showErrorMessage('An error occurred. Please try again.');
 				}
 			});
 		});
