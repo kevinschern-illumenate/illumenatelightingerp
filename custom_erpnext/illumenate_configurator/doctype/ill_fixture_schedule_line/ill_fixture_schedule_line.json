@@ -9,6 +9,41 @@
 		"qty",
 		"column_break_ilumenate",
 		"fixture_template",
+		"requested_length_in",
+		"configuration_valid",
+		"configure_fixture_button",
+		"section_break_tape_config",
+		"tape_spec",
+		"tape_attribute_combination",
+		"tape_type_token",
+		"environment_token",
+		"column_break_tape_config",
+		"cct_token",
+		"cri_value",
+		"output_token",
+		"section_break_fixture_options",
+		"endcap_item",
+		"finish_token",
+		"lens_option",
+		"column_break_fixture_options",
+		"mounting_method",
+		"joiner_angle",
+		"section_break_driver",
+		"driver_spec",
+		"driver_attribute_combination",
+		"section_break_computed",
+		"manufacturable_length_in",
+		"manufacturable_length_mm",
+		"tape_cut_length_mm",
+		"column_break_computed",
+		"watts_per_ft",
+		"total_watts",
+		"max_run_length_ft",
+		"led_tape_length_mm",
+		"section_break_driver_result",
+		"selected_driver_spec",
+		"selected_driver_qty",
+		"runs_count",
 		"configuration_json",
 		"configuration_summary",
 		"section_break_pricing",
@@ -20,7 +55,8 @@
 		"line_total",
 		"section_break_other_mfr",
 		"manufacturer_name",
-		"model_number"
+		"model_number",
+		"spec_data"
 	],
 	"fields": [
 		{
@@ -57,6 +93,237 @@
 			"in_list_view": 1,
 			"label": "Fixture Template",
 			"options": "ILL Fixture Template"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "requested_length_in",
+			"fieldtype": "Float",
+			"label": "Requested Length (inches)"
+		},
+		{
+			"default": "0",
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "configuration_valid",
+			"fieldtype": "Check",
+			"label": "Configuration Valid",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate' && doc.fixture_template",
+			"fieldname": "configure_fixture_button",
+			"fieldtype": "Button",
+			"label": "Configure Fixture"
+		},
+		{
+			"collapsible": 1,
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "section_break_tape_config",
+			"fieldtype": "Section Break",
+			"label": "LED Tape Configuration"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "tape_spec",
+			"fieldtype": "Link",
+			"label": "Tape Spec",
+			"options": "ILL LED Tape Spec"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "tape_attribute_combination",
+			"fieldtype": "Data",
+			"label": "Tape Attribute Combination"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "tape_type_token",
+			"fieldtype": "Select",
+			"label": "Tape Type",
+			"options": "\nSW\nTW\nRGBTW"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "environment_token",
+			"fieldtype": "Select",
+			"label": "Environment",
+			"options": "\nI\nO"
+		},
+		{
+			"fieldname": "column_break_tape_config",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "cct_token",
+			"fieldtype": "Data",
+			"label": "CCT"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "cri_value",
+			"fieldtype": "Int",
+			"label": "CRI"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "output_token",
+			"fieldtype": "Int",
+			"label": "Output"
+		},
+		{
+			"collapsible": 1,
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "section_break_fixture_options",
+			"fieldtype": "Section Break",
+			"label": "Fixture Options"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "endcap_item",
+			"fieldtype": "Link",
+			"label": "Endcap",
+			"options": "Item"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "finish_token",
+			"fieldtype": "Data",
+			"label": "Finish"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "lens_option",
+			"fieldtype": "Link",
+			"label": "Lens Option",
+			"options": "ILL Lens Option"
+		},
+		{
+			"fieldname": "column_break_fixture_options",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "mounting_method",
+			"fieldtype": "Link",
+			"label": "Mounting Method",
+			"options": "ILL Mounting Method"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "joiner_angle",
+			"fieldtype": "Select",
+			"label": "Joiner Angle",
+			"options": "\nStraight\n90\nOther"
+		},
+		{
+			"collapsible": 1,
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "section_break_driver",
+			"fieldtype": "Section Break",
+			"label": "Driver Configuration"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "driver_spec",
+			"fieldtype": "Link",
+			"label": "Driver Spec (optional)",
+			"options": "ILL Driver Spec"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "driver_attribute_combination",
+			"fieldtype": "Data",
+			"label": "Driver Attribute Combination"
+		},
+		{
+			"collapsible": 1,
+			"collapsible_depends_on": "eval:doc.configuration_valid",
+			"depends_on": "eval:doc.line_type=='ilLumenate' && doc.configuration_valid",
+			"fieldname": "section_break_computed",
+			"fieldtype": "Section Break",
+			"label": "Computed Configuration"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "manufacturable_length_in",
+			"fieldtype": "Float",
+			"label": "Actual Length (inches)",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "manufacturable_length_mm",
+			"fieldtype": "Float",
+			"label": "Actual Length (mm)",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "tape_cut_length_mm",
+			"fieldtype": "Float",
+			"label": "Tape Cut Length (mm)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_computed",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "watts_per_ft",
+			"fieldtype": "Float",
+			"label": "Watts per Foot",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "total_watts",
+			"fieldtype": "Float",
+			"label": "Total Watts",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "max_run_length_ft",
+			"fieldtype": "Float",
+			"label": "Max Run Length (ft)",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "led_tape_length_mm",
+			"fieldtype": "Float",
+			"label": "LED Tape Length (mm)",
+			"read_only": 1
+		},
+		{
+			"collapsible": 1,
+			"depends_on": "eval:doc.line_type=='ilLumenate' && doc.configuration_valid",
+			"fieldname": "section_break_driver_result",
+			"fieldtype": "Section Break",
+			"label": "Driver Selection"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "selected_driver_spec",
+			"fieldtype": "Link",
+			"label": "Selected Driver",
+			"options": "ILL Driver Spec",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "selected_driver_qty",
+			"fieldtype": "Int",
+			"label": "Driver Qty",
+			"read_only": 1
+		},
+		{
+			"depends_on": "eval:doc.line_type=='ilLumenate'",
+			"fieldname": "runs_count",
+			"fieldtype": "Int",
+			"label": "Runs Count",
+			"read_only": 1
 		},
 		{
 			"depends_on": "eval:doc.line_type=='ilLumenate'",
@@ -135,6 +402,13 @@
 			"fieldname": "model_number",
 			"fieldtype": "Data",
 			"label": "Model Number"
+		},
+		{
+			"depends_on": "eval:doc.line_type=='Other Manufacturer'",
+			"fieldname": "spec_data",
+			"fieldtype": "Table",
+			"label": "Specification Data",
+			"options": "ILL Spec Data"
 		}
 	],
 	"index_web_pages_for_search": 1,
